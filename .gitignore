@@ -1,0 +1,11 @@
+node_modules/
+dist/
+out/
+release/
+*.log
+.DS_Store
+
+# datos locales (base SQLite, copias de seguridad)
+*.sqlite
+*.sqlite3
+*.db
