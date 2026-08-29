@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>Ariadne — prueba de viabilidad</title>
+  <style>
+    :root {
+      --tinta: #23201c;
+      --tenue: #6b6459;
+      --fondo: #f7f6f3;
+      --papel: #ffffff;
+      --borde: #e2ded6;
+      --bien: #2f6f4f;
+      --mal: #a33a2a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px;
+      font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: var(--tinta);
+      background: var(--fondo);
+    }
+    h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: -0.01em; }
+    .sub { color: var(--tenue); margin: 0 0 24px; font-size: 14px; }
+    .tarjeta {
+      background: var(--papel);
+      border: 1px solid var(--borde);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .estado { display: flex; align-items: baseline; gap: 10px; font-weight: 600; margin-bottom: 12px; }
+    .estado.ok { color: var(--bien); }
+    .estado.error { color: var(--mal); }
+    .punto { font-size: 20px; line-height: 1; }
+    dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; font-size: 13px; }
+    dt { color: var(--tenue); }
+    dd { margin: 0; word-break: break-all; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+    pre {
+      margin: 12px 0 0;
+      padding: 12px;
+      background: var(--fondo);
+      border: 1px solid var(--borde);
+      border-radius: 6px;
+      font-size: 12px;
+      max-height: 160px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+    .botones { display: flex; gap: 10px; }
+    button {
+      font: inherit;
+      padding: 9px 16px;
+      border-radius: 7px;
+      border: 1px solid var(--borde);
+      background: var(--papel);
+      color: var(--tinta);
+      cursor: pointer;
+    }
+    button.primario { background: var(--tinta); color: var(--papel); border-color: var(--tinta); }
+    button:hover { opacity: 0.88; }
+    footer { color: var(--tenue); font-size: 12px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Ariadne — prueba de viabilidad</h1>
+  <p class="sub">Esta ventana no es la aplicación. Solo comprueba dos cosas: que el programa arranca en este equipo y que puede escribir un fichero en disco.</p>
+
+  <div class="tarjeta">
+    <div class="estado" id="estado"><span class="punto">·</span><span id="estadoTexto">Comprobando…</span></div>
+    <dl>
+      <dt>Fichero</dt><dd id="ruta">—</dd>
+    </dl>
+    <pre id="contenido">—</pre>
+  </div>
+
+  <div class="botones">
+    <button class="primario" id="reintentar">Escribir otra vez</button>
+    <button id="carpeta">Ver la carpeta</button>
+  </div>
+
+  <footer id="versiones"></footer>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
