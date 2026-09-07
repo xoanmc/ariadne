@@ -244,7 +244,7 @@ Todos requieren logo, membrete y firma, y se imprimen. La estructura varía seg�
 
 ## 7. Requisitos no funcionales
 
-- **RNF-01** Aplicación de escritorio instalable en Windows.
+- **RNF-01** Aplicación de escritorio en Windows, distribuida como carpeta portable (sin instalador).
 - **RNF-02** Almacenamiento local en fichero bajo control de la usuaria.
 - **RNF-03** Sin servidor, sin cuentas, sin conexión obligatoria.
 - **RNF-04** Ningún dato identificativo abandona el equipo.

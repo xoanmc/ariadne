@@ -8,7 +8,7 @@ Cómo se construye lo especificado. Cada decisión indica el principio que la re
 
 | Capa | Elección |
 |---|---|
-| Empaquetado | Electron → instalador Windows |
+| Empaquetado | Electron → carpeta portable Windows (zip) |
 | Lenguaje | TypeScript |
 | Interfaz | React |
 | Datos | SQLite en fichero único |
@@ -20,17 +20,23 @@ Cómo se construye lo especificado. Cada decisión indica el principio que la re
 
 **La interfaz se va a rediseñar varias veces.** El registro rápido tiene un criterio de aceptación cronometrado: menos de dos minutos. Eso no se acierta a la primera, se ajusta probando con ella. Con HTML y CSS se itera en minutos; con cualquier toolkit nativo, en horas.
 
-**Un instalador con todo dentro.** No hay que instalar runtimes en el equipo. Se ejecuta un instalador y funciona.
+**Todo dentro, sin instalación.** No hay que instalar runtimes en el equipo. Se descomprime una carpeta y funciona.
 
 **La interfaz es reutilizable.** Si algún día hiciera falta, se reutiliza tal cual en un navegador. Con una aplicación nativa habría que reescribirla entera.
 
-**Contra:** el instalador ronda los 150 MB y consume más memoria que una aplicación nativa. A esta escala, irrelevante (P9).
+**Contra:** el paquete ronda los 150 MB y consume más memoria que una aplicación nativa. A esta escala, irrelevante (P9).
+
+### Instalador NSIS descartado tras T0.1
+
+El plan original preveía un instalador NSIS. Se abandonó después de probarlo en dos equipos Windows reales: el instalador funcionaba, pero la desinstalación se enquistaba (había que limpiar a mano con `regedit`). La causa es un bug conocido y sin arreglo de electron-builder (issue #4875): al compilar NSIS desde macOS, el desinstalador se genera ejecutando un binario Windows en tiempo de build, y ese paso falla en cross-build. Como NSIS reutiliza en silencio el desinstalador antiguo al actualizar sobre una instalación previa, el fallo habría roto también las actualizaciones futuras — bloqueante antes de construir nada encima.
+
+Se sustituyó por distribución en zip (target `dir` de electron-builder + script de empaquetado que anida todo bajo una única carpeta `Ariadne/`): sin instalador, sin registro de Windows, sin desinstalador que pueda fallar. Descomprimir, ejecutar, y "desinstalar" es borrar la carpeta. Actualizar una versión es reemplazar la carpeta entera.
 
 ### Alternativas descartadas
 
 **Java con JavaFX** — Apache POI es excelente para `.docx`. Se descarta porque la interfaz es mucho más lenta de iterar, y ese es justo el punto crítico del proyecto.
 
-**Tauri** — instalador de 5 MB en lugar de 150. Se descarta porque mete Rust en el backend por un ahorro que aquí no aporta nada.
+**Tauri** — paquete de 5 MB en lugar de 150. Se descarta porque mete Rust en el backend por un ahorro que aquí no aporta nada.
 
 **Aplicación web con almacenamiento en navegador** — se descarta por frágil: limpiar el navegador borraría los datos.
 
@@ -183,7 +189,7 @@ Alcance con pruebas automáticas:
 | Filtro de pseudonimización | Un fallo saca un nombre fuera del equipo. Se prueba con nombres compuestos, acentuados y con guion |
 | Coherencia alumno/trimestre | Verifica que las claves redundantes no puedan divergir (ver §4) |
 
-Fuera de las pruebas automáticas: interfaz, generación `.docx` (se valida abriendo el fichero) e instalador (se valida en un equipo Windows, T0.1).
+Fuera de las pruebas automáticas: interfaz, generación `.docx` (se valida abriendo el fichero) y empaquetado (se valida en un equipo Windows, T0.1).
 
 El dominio debe poder probarse **sin base de datos y sin Electron**. Si una prueba de dominio necesita levantar SQLite, la separación de capas está mal hecha y eso es lo primero que hay que arreglar.
 
@@ -218,18 +224,18 @@ recursos/
 
 | Riesgo | Mitigación |
 |---|---|
-| Compilación nativa de SQLite al empaquetar | Verificar el instalador desde el primer día, no al final |
+| Compilación nativa de SQLite al empaquetar | Verificar el empaquetado desde el primer día, no al final |
 | Los marcadores en `.docx` se fragmentan al editar en Word | Normalizar la plantilla antes de usarla; validar al cargarla |
 | Las plantillas exigen campos no previstos | El esquema es extensible; migraciones desde el inicio |
 | El vocabulario inicial de sesión no encaja con su forma de trabajar | Editable desde la aplicación, no fijo en código |
 
-Conviene una prueba temprana con un instalador vacío antes de tener nada construido.
+Lo que sí falló, al probar temprano con un paquete vacío, fue la desinstalación del instalador NSIS (ver §1), resuelto pasando a distribución en zip.
 
 ---
 
 ## 9. Orden de construcción
 
-1. Esqueleto e instalador funcionando en un equipo Windows real
+1. Esqueleto y paquete portable funcionando en un equipo Windows real
 2. Persistencia, migraciones y copias de seguridad
 3. Alumnos y ciclo de curso
 4. Programa de intervención y objetivos
