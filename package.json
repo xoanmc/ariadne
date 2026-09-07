@@ -8,7 +8,8 @@
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
-    "dist:win": "electron-builder --win --x64 --publish never"
+    "dist:win": "electron-builder --win --x64 --publish never && npm run zip:win",
+    "zip:win": "cd dist && rm -f Ariadne-*-windows.zip && mv win-unpacked Ariadne && zip -qrX \"Ariadne-$npm_package_version-windows.zip\" Ariadne -x '*.DS_Store' && mv Ariadne win-unpacked"
   },
   "devDependencies": {
     "electron": "^44.0.0",
@@ -28,17 +29,12 @@
     "win": {
       "target": [
         {
-          "target": "nsis",
-          "arch": ["x64"]
+          "target": "dir",
+          "arch": [
+            "x64"
+          ]
         }
       ]
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "shortcutName": "Ariadne"
     }
   }
 }
