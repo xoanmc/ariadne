@@ -68,13 +68,17 @@ Ventaja secundaria: las tres capas internas no dependen de Electron. Si mañana 
 
 Un único fichero SQLite. Eso cumple P1 y P2 de forma literal: copiar el fichero es la copia de seguridad, llevárselo es la portabilidad, y no existe servidor al que pedir permiso.
 
-**Ubicación:** carpeta de datos del usuario, con la ruta visible y modificable desde la aplicación. Debe poder ponerlo en un USB si quiere.
+**Ubicación:** carpeta de datos del usuario, con la ruta visible y modificable desde la aplicación. Debe poder ponerlo en un USB si quiere. La ruta elegida se guarda en un pequeño `configuracion.json` en la carpeta de datos del usuario, fuera de la base (no puede vivir dentro del fichero que sirve para localizar).
+
+- **Cambiar ubicación** copia la base a la carpeta elegida y pasa a usar la copia; el original se conserva sin cambios. Si en esa carpeta ya hay una base de Ariadne, nunca se sobrescribe: se ofrece abrir esa en su lugar (caso del USB llevado a otro equipo).
+- **Si la base configurada no aparece al arrancar** (USB desconectado), la aplicación se bloquea con un aviso que muestra la ruta, con *Reintentar* y *Buscar la base en otra ubicación*. Solo el primer arranque crea una base nueva; después, **nunca se crea una vacía en silencio**, para que no crea haber perdido sus datos ni escriba en una base equivocada.
+- **Un único fichero de verdad:** sin modo WAL, que generaría ficheros auxiliares junto a la base y rompería "copiar el fichero es la copia de seguridad".
 
 **Copias de seguridad:** automática al arrancar, rotando las últimas diez. Manual bajo demanda. Ambas son copias del fichero.
 
 **Exportación:** además del fichero SQLite, exportación a JSON legible. El SQLite garantiza que puede restaurar; el JSON garantiza que puede leer sus datos dentro de diez años sin esta aplicación. P1 pide lo segundo tanto como lo primero.
 
-**Versionado de esquema:** tabla de control de versión y migraciones incrementales. Sin esto, cualquier cambio futuro arriesga sus datos.
+**Versionado de esquema:** tabla de control de versión y migraciones incrementales. Sin esto, cualquier cambio futuro arriesga sus datos. Las migraciones son ficheros `recursos/migraciones/NNN_descripcion.sql`, numerados sin huecos; cada una se aplica en su propia transacción, de modo que una que falle no deja rastro. Una base creada por una versión más reciente de la aplicación se rechaza en lugar de abrirse (puede pasar al llevar el USB a un equipo con una versión anterior).
 
 ---
 
@@ -224,7 +228,7 @@ recursos/
 
 | Riesgo | Mitigación |
 |---|---|
-| Compilación nativa de SQLite al empaquetar | Verificar el empaquetado desde el primer día, no al final |
+| Compilación nativa de SQLite al empaquetar | Resuelto en T1.2: better-sqlite3 13 trae binarios precompilados (N-API) para Windows x64 dentro del paquete npm. Se desactiva la recompilación de electron-builder (`npmRebuild: false`), que intentaba compilar desde fuente y no puede desde macOS. Pendiente de confirmar en Windows real |
 | Los marcadores en `.docx` se fragmentan al editar en Word | Normalizar la plantilla antes de usarla; validar al cargarla |
 | Las plantillas exigen campos no previstos | El esquema es extensible; migraciones desde el inicio |
 | El vocabulario inicial de sesión no encaja con su forma de trabajar | Editable desde la aplicación, no fijo en código |

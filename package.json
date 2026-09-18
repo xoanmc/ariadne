@@ -16,6 +16,7 @@
     "zip:win": "cd dist && rm -f Ariadne-*-windows.zip && mv win-unpacked Ariadne && zip -qrX \"Ariadne-$npm_package_version-windows.zip\" Ariadne -x '*.DS_Store' && mv Ariadne win-unpacked"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^26.6.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
@@ -38,8 +39,11 @@
     },
     "files": [
       "out/**/*",
-      "package.json"
+      "package.json",
+      "!node_modules/better-sqlite3/{deps,src}/**",
+      "!node_modules/better-sqlite3/binding.gyp"
     ],
+    "npmRebuild": false,
     "win": {
       "target": [
         {
@@ -48,7 +52,14 @@
             "x64"
           ]
         }
+      ],
+      "files": [
+        "!node_modules/better-sqlite3/prebuilds/{darwin,linux,linuxmusl}-*.node",
+        "!node_modules/better-sqlite3/prebuilds/win32-arm64.node"
       ]
     }
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3"
   }
 }

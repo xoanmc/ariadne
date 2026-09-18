@@ -1,17 +1,31 @@
 export const CANALES = {
-  eco: 'sistema:eco'
+  estado: 'datos:estado',
+  reintentar: 'datos:reintentar',
+  cambiarUbicacion: 'datos:cambiarUbicacion',
+  abrirExistente: 'datos:abrirExistente',
+  buscarBase: 'datos:buscarBase',
+  mostrarEnCarpeta: 'datos:mostrarEnCarpeta'
 } as const
 
-export interface PeticionEco {
-  texto: string
-}
+export type EstadoDatos =
+  | { tipo: 'lista'; ruta: string }
+  | { tipo: 'ausente'; ruta: string }
+  | { tipo: 'error'; ruta: string; mensaje: string }
 
-export interface RespuestaEco {
-  texto: string
-  recibidoEn: string
-  version: string
-}
+export type ResultadoCambio =
+  | { tipo: 'cancelado' }
+  | { tipo: 'movida'; ruta: string }
+  | { tipo: 'abierta'; ruta: string }
+  | { tipo: 'existe'; ruta: string }
+  | { tipo: 'error'; mensaje: string }
 
 export interface AriadneApi {
-  eco(peticion: PeticionEco): Promise<RespuestaEco>
+  datos: {
+    estado(): Promise<EstadoDatos>
+    reintentar(): Promise<EstadoDatos>
+    cambiarUbicacion(): Promise<ResultadoCambio>
+    abrirExistente(): Promise<ResultadoCambio>
+    buscarBase(): Promise<ResultadoCambio>
+    mostrarEnCarpeta(): Promise<void>
+  }
 }

@@ -1,6 +1,8 @@
 import { app, BrowserWindow } from 'electron'
 import { join } from 'node:path'
 import { registrarManejadoresIpc } from './ipc/registrar'
+import { MIGRACIONES } from './persistencia/catalogoMigraciones'
+import { UbicacionDatos } from './servicios/ubicacionDatos'
 
 function crearVentana(): void {
   const ventana = new BrowserWindow({
@@ -26,7 +28,11 @@ function crearVentana(): void {
 }
 
 app.whenReady().then(() => {
-  registrarManejadoresIpc()
+  const datos = new UbicacionDatos(app.getPath('userData'), MIGRACIONES)
+  datos.iniciar()
+  app.on('will-quit', () => datos.cerrar())
+
+  registrarManejadoresIpc(datos)
   crearVentana()
 
   app.on('activate', () => {
