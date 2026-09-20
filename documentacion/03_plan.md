@@ -160,6 +160,14 @@ Es también la única cadena que cruza de curso. `objetivo` cuelga de `programa_
 
 **`valoracion`** admite exactamente cuatro valores: `sin_valorar`, `conseguido`, `no_conseguido`, `pendiente_desarrollar`. Restringido a nivel de base de datos (P10).
 
+**Convenciones del esquema** (T1.3, `recursos/migraciones/001_esquema_inicial.sql`):
+
+- Fechas en `TEXT` con formato `AAAA-MM-DD`, validado en la propia tabla. Así ordenan y comparan como texto, sin conversiones.
+- Booleanos en `INTEGER` 0/1. Estados y tipos en minúscula con guion bajo: `activo`/`cerrado` para el curso, `abierto`/`cerrado` para el trimestre.
+- **Las cadenas no se bifurcan:** `asignacion_trimestral.asignacion_anterior_id` y `curso_academico.curso_anterior_id` son `UNIQUE`, de modo que una asignación o un curso no pueden ser el origen de dos continuaciones. Recorrer el historial hacia atrás da siempre un único camino.
+- Una evaluación inicial y un programa como mucho por curso; un objetivo como mucho una vez por trimestre; una sola plantilla activa por tipo de documento.
+- Sin índices por rendimiento: a esta escala no se justifican (P9). Los únicos índices son los que nacen de restricciones de unicidad.
+
 ---
 
 ## 5. Módulo de documentos
