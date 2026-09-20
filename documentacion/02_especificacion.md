@@ -69,6 +69,8 @@ Subdivisión del curso. Tres por curso.
 
 **Fechas:** al abrir el curso, la aplicación propone fechas orientativas para los tres trimestres (septiembre–diciembre, enero–marzo, abril–junio) y ella las ajusta al calendario real de su centro. La propuesta evita que el alta se detenga a pedir datos que aún no importan; la edición garantiza que acaben siendo las correctas. Las fechas sirven para situar automáticamente una sesión en su trimestre a partir de la fecha de la sesión.
 
+Los trimestres no pueden solaparse, porque entonces una fecha caería en dos a la vez. Los huecos entre ellos sí son normales: son las vacaciones. Qué ocurre con una sesión fechada en vacaciones o fuera del curso se decide al diseñar el registro rápido (RF-12).
+
 **Cierre:** ver RF-18. Un trimestre no puede cerrarse mientras quede algún objetivo `sin valorar`.
 
 ### Evaluación inicial

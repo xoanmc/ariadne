@@ -257,8 +257,8 @@ Lo que sí falló, al probar temprano con un paquete vacío, fue la desinstalaci
 
 ## 9. Orden de construcción
 
-1. Esqueleto y paquete portable funcionando en un equipo Windows real
-2. Persistencia, migraciones y copias de seguridad
+1. Esqueleto y paquete portable funcionando en un equipo Windows real ✅
+2. Persistencia, migraciones y copias de seguridad ✅ *(a falta de probar el paquete con SQLite dentro en un equipo Windows)*
 3. Alumnos y ciclo de curso
 4. Programa de intervención y objetivos
 5. **Registro rápido de sesión** — con medición contra el criterio de los dos minutos

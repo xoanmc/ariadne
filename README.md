@@ -21,8 +21,15 @@ En construcción:
 | Hito | Estado |
 |---|---|
 | 0 — Viabilidad en Windows | ✅ Cerrado |
-| 1 — Cimientos | En curso: T1.1 (esqueleto) y T1.2 (persistencia y migraciones) hechas; siguiente T1.3 (esquema completo) |
-| 2 a 7 | Pendientes |
+| 1 — Cimientos | ✅ Cerrado |
+| 2 — Alumnos y ciclo académico | Siguiente |
+| 3 a 7 | Pendientes |
+
+Los cimientos están completos: empaquetado para Windows, base de datos con migraciones, el esquema entero, copias de seguridad con restauración y la capa de dominio con las reglas centrales.
+
+Hoy la aplicación abre una única pantalla, **Tus datos**, que muestra dónde viven los datos, permite cambiarlos de sitio y gestiona las copias de seguridad. Lo que ella usará a diario —alumnos, sesiones, objetivos y documentos— llega a partir del Hito 2.
+
+**Pendiente de comprobar:** el paquete con SQLite dentro no se ha probado todavía en un equipo Windows real.
 
 ## Stack
 
@@ -58,6 +65,8 @@ documentacion/       constitución, especificación y plan
 
 Las capas dependen siempre hacia dentro (interfaz → servicios → dominio → persistencia). La interfaz corre aislada, sin acceso a Node ni a la base de datos, y se comunica con el proceso principal solo a través del contrato de `src/compartido/ipc.ts`.
 
+**El dominio no importa nada fuera de su carpeta**: ni Electron, ni SQLite, ni otras capas. No es una recomendación, hay una prueba que revisa las importaciones y falla si alguna se escapa. Ahí viven el vocabulario de la rúbrica, la cadena de arrastre de objetivos, el calendario del curso y la regla de cierre de trimestre, y se prueban sin levantar nada.
+
 ### Migraciones
 
 Cada cambio de esquema es un fichero nuevo en `recursos/migraciones/`, numerado sin huecos (`001_...sql`, `002_...sql`). Se aplican solas al arrancar, cada una en su propia transacción. Una migración ya publicada no se modifica nunca: se añade otra.
@@ -71,6 +80,8 @@ Se distribuye como **zip portable**, no como instalador: `npm run dist:win` gene
 - **Desinstalar:** borrar la carpeta.
 
 Los datos no viven en la carpeta de la aplicación, sino en `%APPDATA%\Ariadne\ariadne.sqlite` (o donde ella elija desde la propia aplicación), así que actualizar o borrar la aplicación nunca los toca.
+
+Las copias de seguridad se guardan en una carpeta `copias/` junto a los datos: una al abrir la aplicación, conservando las diez últimas. Si mueve los datos a un USB, las copias van con ellos. Además puede guardar una copia donde quiera, y esa no entra en la rotación.
 
 El paquete se genera desde macOS sin Wine ni Rosetta. Se descartó el instalador NSIS porque electron-builder genera un desinstalador corrupto al compilar desde macOS; los detalles están en el [plan técnico](documentacion/03_plan.md#instalador-nsis-descartado-tras-t01).
 
