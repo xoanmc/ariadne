@@ -1,5 +1,6 @@
-import { BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } from 'electron'
-import { CANALES, type ResultadoCambio } from '../../compartido/ipc'
+import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } from 'electron'
+import { join } from 'node:path'
+import { CANALES, type ResultadoCambio, type ResultadoCopia, type ResultadoRestauracion } from '../../compartido/ipc'
 import type { UbicacionDatos } from '../servicios/ubicacionDatos'
 
 function ventanaDe(evento: IpcMainInvokeEvent): BrowserWindow {
@@ -41,5 +42,35 @@ export function registrarManejadoresIpc(datos: UbicacionDatos): void {
 
   ipcMain.handle(CANALES.mostrarEnCarpeta, () => {
     shell.showItemInFolder(datos.estado.ruta)
+  })
+
+  ipcMain.handle(CANALES.listarCopias, () => datos.copias())
+
+  ipcMain.handle(CANALES.guardarCopia, async (evento): Promise<ResultadoCopia> => {
+    const hoy = new Date().toISOString().slice(0, 10)
+    const eleccion = await dialog.showSaveDialog(ventanaDe(evento), {
+      title: 'Guardar una copia de tus datos',
+      buttonLabel: 'Guardar copia',
+      defaultPath: join(app.getPath('documents'), `ariadne-copia-${hoy}.sqlite`),
+      filters: [{ name: 'Base de datos de Ariadne', extensions: ['sqlite'] }]
+    })
+    if (eleccion.canceled || !eleccion.filePath) return { tipo: 'cancelado' }
+    return datos.guardarCopiaEn(eleccion.filePath)
+  })
+
+  ipcMain.handle(CANALES.restaurarCopia, (_evento, ruta: string) => datos.restaurarDesde(ruta))
+
+  ipcMain.handle(CANALES.restaurarDesdeFichero, async (evento): Promise<ResultadoRestauracion> => {
+    const eleccion = await dialog.showOpenDialog(ventanaDe(evento), {
+      title: 'Elige la copia que quieres restaurar',
+      buttonLabel: 'Restaurar',
+      properties: ['openFile'],
+      filters: [
+        { name: 'Copia de Ariadne', extensions: ['sqlite'] },
+        { name: 'Todos los ficheros', extensions: ['*'] }
+      ]
+    })
+    if (eleccion.canceled || eleccion.filePaths.length === 0) return { tipo: 'cancelado' }
+    return datos.restaurarDesde(eleccion.filePaths[0])
   })
 }

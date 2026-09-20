@@ -9,6 +9,12 @@ const api: AriadneApi = {
     abrirExistente: () => ipcRenderer.invoke(CANALES.abrirExistente),
     buscarBase: () => ipcRenderer.invoke(CANALES.buscarBase),
     mostrarEnCarpeta: () => ipcRenderer.invoke(CANALES.mostrarEnCarpeta)
+  },
+  copias: {
+    listar: () => ipcRenderer.invoke(CANALES.listarCopias),
+    guardar: () => ipcRenderer.invoke(CANALES.guardarCopia),
+    restaurar: (ruta) => ipcRenderer.invoke(CANALES.restaurarCopia, ruta),
+    restaurarDesdeFichero: () => ipcRenderer.invoke(CANALES.restaurarDesdeFichero)
   }
 }
 

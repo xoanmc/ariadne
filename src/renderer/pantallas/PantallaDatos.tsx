@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import type { EstadoDatos, ResultadoCambio } from '../../compartido/ipc'
+import { Copias } from '../componentes/Copias'
 
 interface Props {
   ruta: string
+  avisoCopia?: string
   onEstado: (estado: EstadoDatos) => void
 }
 
-export function PantallaDatos({ ruta, onEstado }: Props) {
+export function PantallaDatos({ ruta, avisoCopia, onEstado }: Props) {
   const [resultado, setResultado] = useState<ResultadoCambio | null>(null)
   const { datos } = window.ariadne
 
@@ -47,6 +49,8 @@ export function PantallaDatos({ ruta, onEstado }: Props) {
         </div>
       )}
       {resultado?.tipo === 'error' && <p className="aviso">{resultado.mensaje}</p>}
+
+      <Copias aviso={avisoCopia} onRestaurada={async () => onEstado(await datos.estado())} />
     </main>
   )
 }

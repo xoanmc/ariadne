@@ -76,6 +76,14 @@ Un único fichero SQLite. Eso cumple P1 y P2 de forma literal: copiar el fichero
 
 **Copias de seguridad:** automática al arrancar, rotando las últimas diez. Manual bajo demanda. Ambas son copias del fichero.
 
+Detalles fijados en T1.4:
+
+- Las automáticas viven en una carpeta `copias/` **junto a la base**, así que acompañan a los datos si ella los mueve a un USB. La primera creación de la base no genera copia: estaría vacía.
+- La **copia manual** se guarda donde ella elija con el diálogo del sistema, fuera de la rotación: es suya y no la borra nadie.
+- **Restaurar guarda antes el estado actual como una copia más.** Restaurar por error no puede costarle datos, y la vuelta atrás está en la propia lista.
+- Una copia que falla (USB protegido, disco lleno) **avisa pero no impide abrir la aplicación**. Perder la copia de hoy no puede dejarla sin trabajar.
+- La rotación de diez cuenta aperturas, no días: si abre la aplicación varias veces al día, el histórico automático cubre menos de una semana. Suficiente como red de seguridad ante un error reciente, no como archivo histórico; para eso está la copia manual y la exportación (RF-26).
+
 **Exportación:** además del fichero SQLite, exportación a JSON legible. El SQLite garantiza que puede restaurar; el JSON garantiza que puede leer sus datos dentro de diez años sin esta aplicación. P1 pide lo segundo tanto como lo primero.
 
 **Versionado de esquema:** tabla de control de versión y migraciones incrementales. Sin esto, cualquier cambio futuro arriesga sus datos. Las migraciones son ficheros `recursos/migraciones/NNN_descripcion.sql`, numerados sin huecos; cada una se aplica en su propia transacción, de modo que una que falle no deja rastro. Una base creada por una versión más reciente de la aplicación se rechaza en lugar de abrirse (puede pasar al llevar el USB a un equipo con una versión anterior).

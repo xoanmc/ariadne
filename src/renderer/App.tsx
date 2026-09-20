@@ -12,5 +12,5 @@ export function App() {
 
   if (!estado) return null
   if (estado.tipo !== 'lista') return <PantallaSinDatos estado={estado} onEstado={setEstado} />
-  return <PantallaDatos ruta={estado.ruta} onEstado={setEstado} />
+  return <PantallaDatos ruta={estado.ruta} avisoCopia={estado.avisoCopia} onEstado={setEstado} />
 }

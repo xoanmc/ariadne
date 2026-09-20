@@ -50,3 +50,25 @@ export function abrirBaseExistente(ruta: string, migraciones: Migracion[]): Base
 export function copiarBase(db: BaseDatos, destino: string): void {
   db.prepare('VACUUM INTO ?').run(destino)
 }
+
+// Comprueba que un fichero es una base de Ariadne sin tocarlo: restaurar una copia no debe modificarla.
+export function validarBase(ruta: string): void {
+  let db: BaseDatos
+  try {
+    db = new Database(ruta, { fileMustExist: true, readonly: true })
+  } catch (error) {
+    throw new ErrorBaseDatos(`No se pudo abrir el fichero: ${error instanceof Error ? error.message : error}`)
+  }
+  try {
+    const tabla = db
+      .prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'version_esquema'")
+      .get()
+    if (tabla === undefined) throw new ErrorBaseDatos('El fichero elegido no es una base de datos de Ariadne.')
+  } catch (error) {
+    throw error instanceof ErrorBaseDatos
+      ? error
+      : new ErrorBaseDatos('El fichero elegido no es una base de datos de Ariadne.')
+  } finally {
+    db.close()
+  }
+}

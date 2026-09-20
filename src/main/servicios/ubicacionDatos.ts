@@ -1,8 +1,9 @@
-import { existsSync, unlinkSync } from 'node:fs'
+import { copyFileSync, existsSync, renameSync, unlinkSync } from 'node:fs'
 import { join, resolve } from 'node:path'
-import type { EstadoDatos, ResultadoCambio } from '../../compartido/ipc'
-import { abrirBaseExistente, copiarBase, crearBase, type BaseDatos } from '../persistencia/baseDatos'
+import type { Copia, EstadoDatos, ResultadoCambio, ResultadoCopia, ResultadoRestauracion } from '../../compartido/ipc'
+import { abrirBaseExistente, copiarBase, crearBase, validarBase, type BaseDatos } from '../persistencia/baseDatos'
 import { guardarConfiguracion, leerConfiguracion } from '../persistencia/configuracion'
+import { crearCopia, listarCopias, rotarCopias } from '../persistencia/copias'
 import type { Migracion } from '../persistencia/migraciones'
 
 export const NOMBRE_FICHERO = 'ariadne.sqlite'
@@ -95,6 +96,79 @@ export class UbicacionDatos {
     return this.cambiarA(ruta)
   }
 
+  copias(): Copia[] {
+    return this.estadoActual.tipo === 'lista' ? listarCopias(this.estadoActual.ruta) : []
+  }
+
+  guardarCopiaEn(destino: string): ResultadoCopia {
+    if (!this.db || this.estadoActual.tipo !== 'lista') {
+      return { tipo: 'error', mensaje: 'No hay ninguna base abierta que copiar.' }
+    }
+    // VACUUM INTO exige que el destino no exista, así que se escribe aparte y se sustituye al final:
+    // si algo falla, el fichero que ella eligiera sobrescribir sigue intacto.
+    const temporal = `${destino}.parcial`
+    try {
+      if (existsSync(temporal)) unlinkSync(temporal)
+      copiarBase(this.db, temporal)
+      renameSync(temporal, destino)
+      return { tipo: 'guardada', ruta: destino }
+    } catch (error) {
+      if (existsSync(temporal)) unlinkSync(temporal)
+      return { tipo: 'error', mensaje: `No se pudo guardar la copia: ${mensajeDe(error)}` }
+    }
+  }
+
+  restaurarDesde(rutaCopia: string): ResultadoRestauracion {
+    if (!this.db || this.estadoActual.tipo !== 'lista') {
+      return { tipo: 'error', mensaje: 'No hay ninguna base abierta que restaurar.' }
+    }
+    const ruta = this.estadoActual.ruta
+    if (resolve(rutaCopia) === resolve(ruta)) {
+      return { tipo: 'error', mensaje: 'Esa es la base que estás usando ahora, no una copia.' }
+    }
+
+    try {
+      validarBase(rutaCopia)
+    } catch (error) {
+      return { tipo: 'error', mensaje: mensajeDe(error) }
+    }
+
+    // Antes de sustituir nada, el estado actual queda guardado como una copia más: restaurar por error no pierde datos.
+    let copiaPrevia: Copia
+    try {
+      copiaPrevia = crearCopia(this.db, ruta)
+    } catch (error) {
+      return { tipo: 'error', mensaje: `No se pudo guardar el estado actual antes de restaurar: ${mensajeDe(error)}` }
+    }
+
+    this.cerrar()
+    try {
+      copyFileSync(rutaCopia, ruta)
+      this.sustituir(abrirBaseExistente(ruta, this.migraciones))
+    } catch (error) {
+      return this.deshacerRestauracion(ruta, copiaPrevia, error)
+    }
+
+    rotarCopias(ruta)
+    this.estadoActual = { tipo: 'lista', ruta }
+    return { tipo: 'restaurada', ruta, copiaPrevia: copiaPrevia.ruta }
+  }
+
+  private deshacerRestauracion(ruta: string, copiaPrevia: Copia, error: unknown): ResultadoRestauracion {
+    try {
+      copyFileSync(copiaPrevia.ruta, ruta)
+      this.sustituir(abrirBaseExistente(ruta, this.migraciones))
+      this.estadoActual = { tipo: 'lista', ruta }
+      return { tipo: 'error', mensaje: `No se pudo restaurar la copia: ${mensajeDe(error)}. Tus datos siguen como estaban.` }
+    } catch (fallo) {
+      this.estadoActual = { tipo: 'error', ruta, mensaje: mensajeDe(fallo) }
+      return {
+        tipo: 'error',
+        mensaje: `No se pudo restaurar la copia ni recuperar el estado anterior. Tus datos de antes están guardados en ${copiaPrevia.ruta}`
+      }
+    }
+  }
+
   cerrar(): void {
     this.db?.close()
     this.db = null
@@ -121,10 +195,21 @@ export class UbicacionDatos {
     }
     try {
       this.sustituir(abrirBaseExistente(ruta, this.migraciones))
-      return (this.estadoActual = { tipo: 'lista', ruta })
+      return (this.estadoActual = { tipo: 'lista', ruta, avisoCopia: this.copiaDeArranque(ruta) })
     } catch (error) {
       this.cerrar()
       return (this.estadoActual = { tipo: 'error', ruta, mensaje: mensajeDe(error) })
+    }
+  }
+
+  // Una copia que falla (USB protegido, disco lleno) no puede impedirle trabajar: se avisa y se sigue.
+  private copiaDeArranque(ruta: string): string | undefined {
+    try {
+      crearCopia(this.conexion(), ruta)
+      rotarCopias(ruta)
+      return undefined
+    } catch (error) {
+      return `No se pudo guardar la copia de seguridad de hoy: ${mensajeDe(error)}`
     }
   }
 
