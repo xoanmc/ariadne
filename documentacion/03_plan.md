@@ -213,6 +213,8 @@ Fuera de las pruebas automáticas: interfaz, generación `.docx` (se valida abri
 
 El dominio debe poder probarse **sin base de datos y sin Electron**. Si una prueba de dominio necesita levantar SQLite, la separación de capas está mal hecha y eso es lo primero que hay que arreglar.
 
+Desde T1.5 esto no depende de la buena voluntad: una prueba (`pruebas/dominio/aislamiento.test.ts`) revisa las importaciones de `src/main/dominio/` y falla si aparece cualquiera que salga de la carpeta. El vocabulario de la rúbrica vive en el dominio y la prueba del esquema lo importa de allí, de modo que base de datos y dominio no pueden separarse sin que salte una prueba.
+
 ---
 
 ## 7. Estructura del proyecto

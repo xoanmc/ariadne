@@ -3,6 +3,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { VALORACIONES } from '../../src/main/dominio/vocabulario'
 import { aplicarMigraciones, leerCatalogo } from '../../src/main/persistencia/migraciones'
 
 const CARPETA = fileURLToPath(new URL('../../recursos/migraciones', import.meta.url))
@@ -84,11 +85,11 @@ describe('creación del esquema', () => {
 })
 
 describe('valoración', () => {
-  it('acepta exactamente los cuatro valores de la rúbrica', () => {
+  // La base y el dominio deben hablar el mismo idioma: si uno cambia sin el otro, esta prueba lo dice.
+  it('acepta exactamente los valores de la rúbrica del dominio', () => {
     const { trimestres, programaId } = alumnoConTrimestres()
-    const valores = ['sin_valorar', 'conseguido', 'no_conseguido', 'pendiente_desarrollar']
 
-    valores.forEach((valoracion, i) => {
+    VALORACIONES.forEach((valoracion, i) => {
       insertar('asignacion_trimestral', {
         objetivo_id: objetivo(programaId, `Objetivo ${i}`),
         trimestre_id: trimestres[0],
@@ -96,7 +97,7 @@ describe('valoración', () => {
       })
     })
 
-    expect(db.prepare('SELECT COUNT(*) AS n FROM asignacion_trimestral').get()).toEqual({ n: 4 })
+    expect(db.prepare('SELECT COUNT(*) AS n FROM asignacion_trimestral').get()).toEqual({ n: VALORACIONES.length })
   })
 
   it('rechaza una valoración inventada', () => {
