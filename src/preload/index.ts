@@ -15,6 +15,12 @@ const api: AriadneApi = {
     guardar: () => ipcRenderer.invoke(CANALES.guardarCopia),
     restaurar: (ruta) => ipcRenderer.invoke(CANALES.restaurarCopia, ruta),
     restaurarDesdeFichero: () => ipcRenderer.invoke(CANALES.restaurarDesdeFichero)
+  },
+  alumnos: {
+    listar: () => ipcRenderer.invoke(CANALES.listarAlumnos),
+    obtener: (id) => ipcRenderer.invoke(CANALES.obtenerAlumno, id),
+    darDeAlta: (datos, confirmarDuplicado) => ipcRenderer.invoke(CANALES.darDeAlta, datos, confirmarDuplicado),
+    editar: (id, datos) => ipcRenderer.invoke(CANALES.editarAlumno, id, datos)
   }
 }
 

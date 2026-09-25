@@ -94,3 +94,206 @@ button.principal {
   background: #fbf6e3;
   border-radius: 4px;
 }
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Marco: barra superior */
+
+.barra {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.6rem 2rem;
+  background: #fff;
+  border-bottom: 1px solid #e0dcd3;
+}
+
+.marca {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.barra nav {
+  flex: 1;
+}
+
+button.enlace {
+  border: none;
+  background: none;
+  padding: 0.25rem 0;
+  color: #4a463f;
+}
+
+button.enlace.activo {
+  color: #2f5d50;
+  font-weight: 600;
+}
+
+button.enlace.discreto {
+  font-size: 0.9rem;
+  color: #7a756b;
+}
+
+button.enlace.discreto.activo {
+  color: #2f5d50;
+}
+
+.banda-aviso {
+  margin: 0;
+  padding: 0.6rem 2rem;
+  background: #fbf0e8;
+  color: #8a3d12;
+  border-bottom: 1px solid #efd6c4;
+}
+
+.banda-aviso button.enlace {
+  color: #8a3d12;
+  text-decoration: underline;
+}
+
+.pantalla > h1 + .seccion {
+  margin-top: 1rem;
+  padding-top: 0;
+  border-top: none;
+}
+
+/* Alumnos */
+
+.cabecera-pantalla {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.vacio {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border: 1px dashed #cfcac0;
+  border-radius: 6px;
+}
+
+.lista-alumnos {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+}
+
+button.fila-alumno {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1rem;
+  margin-bottom: 0.4rem;
+  text-align: left;
+  border-color: #e0dcd3;
+}
+
+button.fila-alumno:hover {
+  border-color: #2f5d50;
+}
+
+.nombre-alumno {
+  font-weight: 500;
+}
+
+.codigo {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.9rem;
+  color: #5d584f;
+  background: #ebe9e4;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+}
+
+.codigo-grande {
+  font-size: 1.1rem;
+  padding: 0.25rem 0.6rem;
+}
+
+.cabecera-ficha {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+button.volver {
+  border: none;
+  background: none;
+  padding: 0;
+  color: #5d584f;
+}
+
+.ficha {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.6rem 1.5rem;
+  margin: 1.5rem 0 0;
+}
+
+.ficha dt {
+  color: #6f6a61;
+}
+
+.ficha dd {
+  margin: 0;
+}
+
+.texto-largo {
+  white-space: pre-wrap;
+}
+
+/* Formularios */
+
+.formulario {
+  margin-top: 1.5rem;
+}
+
+.fila-campos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 1rem;
+}
+
+.campo label {
+  font-size: 0.9rem;
+  color: #4a463f;
+}
+
+.campo input,
+.campo textarea {
+  font: inherit;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #c9c4b9;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.campo input:focus,
+.campo textarea:focus {
+  outline: 2px solid #2f5d50;
+  outline-offset: -1px;
+}
+
+.con-problema input,
+.con-problema textarea {
+  border-color: #b3261e;
+}
+
+.problema {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #b3261e;
+}

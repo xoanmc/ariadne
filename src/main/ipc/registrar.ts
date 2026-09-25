@@ -1,6 +1,7 @@
 import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } from 'electron'
 import { join } from 'node:path'
 import { CANALES, type ResultadoCambio, type ResultadoCopia, type ResultadoRestauracion } from '../../compartido/ipc'
+import * as alumnos from '../servicios/alumnos'
 import type { UbicacionDatos } from '../servicios/ubicacionDatos'
 
 function ventanaDe(evento: IpcMainInvokeEvent): BrowserWindow {
@@ -73,4 +74,16 @@ export function registrarManejadoresIpc(datos: UbicacionDatos): void {
     if (eleccion.canceled || eleccion.filePaths.length === 0) return { tipo: 'cancelado' }
     return datos.restaurarDesde(eleccion.filePaths[0])
   })
+
+  ipcMain.handle(CANALES.listarAlumnos, () => alumnos.listarAlumnos(datos.conexion()))
+
+  ipcMain.handle(CANALES.obtenerAlumno, (_evento, id: unknown) => alumnos.obtenerAlumno(datos.conexion(), id))
+
+  ipcMain.handle(CANALES.darDeAlta, (_evento, entrada, confirmarDuplicado: unknown) =>
+    alumnos.darDeAlta(datos.conexion(), entrada, confirmarDuplicado === true)
+  )
+
+  ipcMain.handle(CANALES.editarAlumno, (_evento, id: unknown, entrada) =>
+    alumnos.editarAlumno(datos.conexion(), id, entrada)
+  )
 }

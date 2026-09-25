@@ -1,29 +1,9 @@
-import Database from 'better-sqlite3'
-import { readdirSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import type Database from 'better-sqlite3'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { VALORACIONES } from '../../src/main/dominio/vocabulario'
-import { aplicarMigraciones, leerCatalogo } from '../../src/main/persistencia/migraciones'
-
-const CARPETA = fileURLToPath(new URL('../../recursos/migraciones', import.meta.url))
-
-const MIGRACIONES = leerCatalogo(
-  Object.fromEntries(
-    readdirSync(CARPETA)
-      .filter((f) => f.endsWith('.sql'))
-      .map((f) => [f, readFileSync(join(CARPETA, f), 'utf8')])
-  )
-)
+import { crearBaseDePrueba } from '../ayudas/baseDePrueba'
 
 let db: Database.Database
-
-function crearEsquema(): Database.Database {
-  const base = new Database(':memory:')
-  base.pragma('foreign_keys = ON')
-  aplicarMigraciones(base, MIGRACIONES)
-  return base
-}
 
 function insertar(tabla: string, valores: Record<string, unknown>): number {
   const columnas = Object.keys(valores)
@@ -53,7 +33,7 @@ function objetivo(programaId: number, enunciado = 'Mejorar la lectura'): number 
 }
 
 beforeEach(() => {
-  db = crearEsquema()
+  db = crearBaseDePrueba()
 })
 
 describe('creación del esquema', () => {
@@ -76,6 +56,7 @@ describe('creación del esquema', () => {
       'opcion_catalogo',
       'plantilla',
       'programa_intervencion',
+      'secuencia_codigo',
       'sesion',
       'sesion_objetivo',
       'trimestre',

@@ -35,9 +35,11 @@ export function Copias({ aviso, onRestaurada }: Props) {
 
   return (
     <section className="seccion">
-      <h2>Copias de seguridad</h2>
+      <h2>Copias guardadas</h2>
       <p>
         Ariadne guarda una copia cada vez que abres la aplicación y conserva las diez últimas, junto a tus datos.
+        Te protegen de tus propios errores, pero están en el mismo equipo: de vez en cuando, guarda una copia en un USB
+        o en la nube.
       </p>
       {aviso && <p className="aviso">{aviso}</p>}
 

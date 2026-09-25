@@ -62,6 +62,10 @@ En Electron esto se reparte así: el proceso principal contiene dominio, servici
 
 Ventaja secundaria: las tres capas internas no dependen de Electron. Si mañana el destino fuera un navegador, se reutilizan sin tocar.
 
+**Navegación** (decidida en T2.1): **todo parte del alumno.** La pantalla de inicio es la lista de sus alumnos, y desde cada uno se llega a todo lo suyo. Arriba, una barra mínima con "Alumnos" y, en una esquina y en discreto, "Copias de seguridad" (ubicación de los datos, copias y, más adelante, exportación). Se descartó un menú lateral por secciones: ella piensa en alumnos, no en secciones, y cada tarea empezaría por elegir sección y luego alumno. Con el registro rápido (T4.2), cada alumno de la lista tendrá su propio botón para registrar sesión, de modo que al salir de una sesión esté a un clic (P3).
+
+Si la copia de seguridad del día falla, el aviso se muestra en una banda sobre cualquier pantalla: la de copias ya no es la de inicio y el aviso no puede quedar escondido en ella.
+
 ---
 
 ## 3. Almacenamiento
@@ -177,6 +181,13 @@ Es también la única cadena que cruza de curso. `objetivo` cuelga de `programa_
 - **Las cadenas no se bifurcan:** `asignacion_trimestral.asignacion_anterior_id` y `curso_academico.curso_anterior_id` son `UNIQUE`, de modo que una asignación o un curso no pueden ser el origen de dos continuaciones. Recorrer el historial hacia atrás da siempre un único camino.
 - Una evaluación inicial y un programa como mucho por curso; un objetivo como mucho una vez por trimestre; una sola plantilla activa por tipo de documento.
 - Sin índices por rendimiento: a esta escala no se justifican (P9). Los únicos índices son los que nacen de restricciones de unicidad.
+
+**Código interno** (T2.1, `002_codigo_interno.sql`):
+
+- Formato `A-01`, `A-02`… `A-99`, y después `A-100` sin más. No lleva nada que identifique: ni iniciales, ni año de nacimiento, ni curso. Solo el orden de alta.
+- Lo asigna la aplicación al dar de alta; ella no lo elige.
+- **Nunca cambia:** un disparador de la base rechaza cualquier modificación, aunque se intente por fuera de la aplicación.
+- **Nunca se reutiliza:** el último número entregado vive en `secuencia_codigo`, separado de los alumnos, y no puede retroceder. Aunque algún día se borre un alumno, su número no vuelve a darse. Es lo que da continuidad a sus registros: `A-07` es siempre la misma persona.
 
 ---
 

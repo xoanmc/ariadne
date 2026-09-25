@@ -8,8 +8,48 @@ export const CANALES = {
   listarCopias: 'copias:listar',
   guardarCopia: 'copias:guardar',
   restaurarCopia: 'copias:restaurar',
-  restaurarDesdeFichero: 'copias:restaurarDesdeFichero'
+  restaurarDesdeFichero: 'copias:restaurarDesdeFichero',
+  listarAlumnos: 'alumnos:listar',
+  obtenerAlumno: 'alumnos:obtener',
+  darDeAlta: 'alumnos:alta',
+  editarAlumno: 'alumnos:editar'
 } as const
+
+export interface FichaAlumno {
+  id: number
+  codigoInterno: string
+  nombre: string
+  apellidos: string
+  fechaNacimiento: string | null
+  diagnosticos: string | null
+  notas: string | null
+}
+
+/** Lo que ella rellena. El código no viaja nunca de la interfaz al proceso principal. */
+export interface DatosAlumno {
+  nombre: string
+  apellidos: string
+  fechaNacimiento: string | null
+  diagnosticos: string | null
+  notas: string | null
+}
+
+export type CampoAlumno = keyof DatosAlumno
+
+export interface ProblemaCampo {
+  campo: CampoAlumno
+  mensaje: string
+}
+
+export type ResultadoAlta =
+  | { tipo: 'creado'; alumno: FichaAlumno }
+  | { tipo: 'posible_duplicado'; coincidencias: FichaAlumno[] }
+  | { tipo: 'invalido'; problemas: ProblemaCampo[] }
+
+export type ResultadoEdicion =
+  | { tipo: 'guardado'; alumno: FichaAlumno }
+  | { tipo: 'invalido'; problemas: ProblemaCampo[] }
+  | { tipo: 'no_existe' }
 
 export type EstadoDatos =
   | { tipo: 'lista'; ruta: string; avisoCopia?: string }
@@ -54,5 +94,11 @@ export interface AriadneApi {
     guardar(): Promise<ResultadoCopia>
     restaurar(ruta: string): Promise<ResultadoRestauracion>
     restaurarDesdeFichero(): Promise<ResultadoRestauracion>
+  }
+  alumnos: {
+    listar(): Promise<FichaAlumno[]>
+    obtener(id: number): Promise<FichaAlumno | null>
+    darDeAlta(datos: DatosAlumno, confirmarDuplicado: boolean): Promise<ResultadoAlta>
+    editar(id: number, datos: DatosAlumno): Promise<ResultadoEdicion>
   }
 }
