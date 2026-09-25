@@ -29,7 +29,7 @@ Los cimientos están completos: empaquetado para Windows, base de datos con migr
 
 Hoy la aplicación abre una única pantalla, **Tus datos**, que muestra dónde viven los datos, permite cambiarlos de sitio y gestiona las copias de seguridad. Lo que ella usará a diario —alumnos, sesiones, objetivos y documentos— llega a partir del Hito 2.
 
-**Pendiente de comprobar:** el paquete con SQLite dentro no se ha probado todavía en un equipo Windows real.
+Todo lo anterior está probado en un equipo Windows real con el paquete zip, incluida la base de datos SQLite empaquetada.
 
 ## Stack
 

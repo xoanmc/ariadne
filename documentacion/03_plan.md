@@ -83,6 +83,8 @@ Detalles fijados en T1.4:
 - **Restaurar guarda antes el estado actual como una copia más.** Restaurar por error no puede costarle datos, y la vuelta atrás está en la propia lista.
 - Una copia que falla (USB protegido, disco lleno) **avisa pero no impide abrir la aplicación**. Perder la copia de hoy no puede dejarla sin trabajar.
 - La rotación de diez cuenta aperturas, no días: si abre la aplicación varias veces al día, el histórico automático cubre menos de una semana. Suficiente como red de seguridad ante un error reciente, no como archivo histórico; para eso está la copia manual y la exportación (RF-26).
+- **Las copias automáticas protegen de sus errores, no del equipo.** Viven en el mismo disco que los datos: si el portátil se estropea, lo roban o lo cifra un virus, se pierden juntos. Como trabajará casi siempre desde el mismo equipo, la recomendación que hay que darle es una copia manual a un USB o a la nube de vez en cuando; una por trimestre, al cerrarlo, es suficiente.
+- Restaurar no mueve la copia restaurada en la lista: sigue con su fecha original y envejece como las demás. Los datos en uso no aparecen nunca en la lista; su estado pasa a ella con la copia del siguiente arranque.
 
 **Exportación:** además del fichero SQLite, exportación a JSON legible. El SQLite garantiza que puede restaurar; el JSON garantiza que puede leer sus datos dentro de diez años sin esta aplicación. P1 pide lo segundo tanto como lo primero.
 
@@ -246,7 +248,7 @@ recursos/
 
 | Riesgo | Mitigación |
 |---|---|
-| Compilación nativa de SQLite al empaquetar | Resuelto en T1.2: better-sqlite3 13 trae binarios precompilados (N-API) para Windows x64 dentro del paquete npm. Se desactiva la recompilación de electron-builder (`npmRebuild: false`), que intentaba compilar desde fuente y no puede desde macOS. Pendiente de confirmar en Windows real |
+| Compilación nativa de SQLite al empaquetar | Resuelto en T1.2: better-sqlite3 13 trae binarios precompilados (N-API) para Windows x64 dentro del paquete npm. Se desactiva la recompilación de electron-builder (`npmRebuild: false`), que intentaba compilar desde fuente y no puede desde macOS. Confirmado en Windows real el 2026-09-25 |
 | Los marcadores en `.docx` se fragmentan al editar en Word | Normalizar la plantilla antes de usarla; validar al cargarla |
 | Las plantillas exigen campos no previstos | El esquema es extensible; migraciones desde el inicio |
 | El vocabulario inicial de sesión no encaja con su forma de trabajar | Editable desde la aplicación, no fijo en código |
@@ -258,7 +260,7 @@ Lo que sí falló, al probar temprano con un paquete vacío, fue la desinstalaci
 ## 9. Orden de construcción
 
 1. Esqueleto y paquete portable funcionando en un equipo Windows real ✅
-2. Persistencia, migraciones y copias de seguridad ✅ *(a falta de probar el paquete con SQLite dentro en un equipo Windows)*
+2. Persistencia, migraciones y copias de seguridad ✅
 3. Alumnos y ciclo de curso
 4. Programa de intervención y objetivos
 5. **Registro rápido de sesión** — con medición contra el criterio de los dos minutos
