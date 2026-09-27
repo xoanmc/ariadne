@@ -64,6 +64,8 @@ Ventaja secundaria: las tres capas internas no dependen de Electron. Si mañana 
 
 **Navegación** (decidida en T2.1): **todo parte del alumno.** La pantalla de inicio es la lista de sus alumnos, y desde cada uno se llega a todo lo suyo. Arriba, una barra mínima con "Alumnos" y, en una esquina y en discreto, "Copias de seguridad" (ubicación de los datos, copias y, más adelante, exportación). Se descartó un menú lateral por secciones: ella piensa en alumnos, no en secciones, y cada tarea empezaría por elegir sección y luego alumno. Con el registro rápido (T4.2), cada alumno de la lista tendrá su propio botón para registrar sesión, de modo que al salir de una sesión esté a un clic (P3).
 
+En la lista, arriba van los alumnos con curso activo y, en una sección plegada, los que no lo tienen (recién dados de alta o que ya terminaron), para que ninguno quede inaccesible. La búsqueda recorre todos y se abre con Intro sin tocar el ratón (T2.2).
+
 Si la copia de seguridad del día falla, el aviso se muestra en una banda sobre cualquier pantalla: la de copias ya no es la de inicio y el aviso no puede quedar escondido en ella.
 
 ---

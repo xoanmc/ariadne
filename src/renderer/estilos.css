@@ -392,3 +392,54 @@ button.volver {
   background: #ebe9e4;
   color: #5d584f;
 }
+
+/* Lista de alumnos: búsqueda y grupos */
+
+.buscador {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 1.5rem;
+  font: inherit;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #c9c4b9;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.buscador:focus {
+  outline: 2px solid #2f5d50;
+  outline-offset: -1px;
+}
+
+.buscador + .apunte {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+}
+
+.detalle-alumno {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.nivel {
+  color: #6f6a61;
+  font-size: 0.95rem;
+}
+
+.etiqueta-apagada {
+  background: #ebe9e4;
+  color: #6f6a61;
+}
+
+.grupo-sin-curso {
+  margin-top: 1.5rem;
+}
+
+button.plegable {
+  border: none;
+  background: none;
+  padding: 0.25rem 0;
+  color: #5d584f;
+}

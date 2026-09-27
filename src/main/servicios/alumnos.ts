@@ -1,19 +1,25 @@
-import type { DatosAlumno, FichaAlumno, ResultadoAlta, ResultadoEdicion } from '../../compartido/ipc'
+import type { AlumnoEnLista, DatosAlumno, FichaAlumno, ResultadoAlta, ResultadoEdicion } from '../../compartido/ipc'
 import { claveDeNombre, normalizarDatosAlumno, validarDatosAlumno } from '../dominio/alumno'
 import { siguienteCodigo } from '../dominio/codigoInterno'
 import type { Fecha } from '../dominio/entidades'
 import type { BaseDatos } from '../persistencia/baseDatos'
 import * as repositorio from '../persistencia/repositorioAlumnos'
+import { cursosActivos } from '../persistencia/repositorioCursos'
 import { esId } from './entrada'
 import { hoyLocal } from './fecha'
 
 const orden = new Intl.Collator('es', { sensitivity: 'base' })
 
 /** Por nombre, como ella los piensa ("acabo de ver a Lucía"), con orden alfabético del español. */
-export function listarAlumnos(db: BaseDatos): FichaAlumno[] {
+export function listarAlumnos(db: BaseDatos): AlumnoEnLista[] {
+  const activos = cursosActivos(db)
   return repositorio
     .listarAlumnos(db)
     .sort((a, b) => orden.compare(a.nombre, b.nombre) || orden.compare(a.apellidos, b.apellidos) || a.id - b.id)
+    .map((alumno) => {
+      const curso = activos.get(alumno.id)
+      return { ...alumno, cursoActivo: curso ? { curso: curso.curso, nivelEducativo: curso.nivelEducativo } : null }
+    })
 }
 
 export function obtenerAlumno(db: BaseDatos, id: unknown): FichaAlumno | null {

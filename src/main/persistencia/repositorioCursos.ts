@@ -49,6 +49,12 @@ export function cursosDeAlumno(db: BaseDatos, alumnoId: number): CursoAcademico[
   return filas.map(aCurso)
 }
 
+/** El curso activo de cada alumno que lo tiene, en una sola consulta. */
+export function cursosActivos(db: BaseDatos): Map<number, CursoAcademico> {
+  const filas = db.prepare("SELECT * FROM curso_academico WHERE estado = 'activo'").all() as FilaCurso[]
+  return new Map(filas.map((f) => [f.alumno_id, aCurso(f)]))
+}
+
 export function obtenerCurso(db: BaseDatos, id: number): CursoAcademico | null {
   const fila = db.prepare('SELECT * FROM curso_academico WHERE id = ?').get(id) as FilaCurso | undefined
   return fila ? aCurso(fila) : null

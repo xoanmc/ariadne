@@ -2,6 +2,7 @@ import type Database from 'better-sqlite3'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { DatosAlumno } from '../../src/compartido/ipc'
 import { darDeAlta, editarAlumno, listarAlumnos, obtenerAlumno } from '../../src/main/servicios/alumnos'
+import { abrirCurso } from '../../src/main/servicios/cursos'
 import { crearBaseDePrueba, MIGRACIONES_REALES } from '../ayudas/baseDePrueba'
 import { aplicarMigraciones } from '../../src/main/persistencia/migraciones'
 import BetterSqlite from 'better-sqlite3'
@@ -152,6 +153,41 @@ describe('listado', () => {
       'Lucía García',
       'Óscar Martín'
     ])
+  })
+
+  it('dice qué alumnos tienen curso activo y con qué nivel', () => {
+    const lucia = alta('Lucía', 'García')
+    alta('Mario', 'Ruiz')
+    abrirCurso(db, lucia.id, {
+      curso: '2026/2027',
+      nivelEducativo: '3.º de Primaria',
+      periodos: [
+        { numero: 1, fechaInicio: '2026-09-10', fechaFin: '2026-12-22' },
+        { numero: 2, fechaInicio: '2027-01-08', fechaFin: '2027-03-26' },
+        { numero: 3, fechaInicio: '2027-04-06', fechaFin: '2027-06-23' }
+      ]
+    })
+
+    expect(listarAlumnos(db).map((a) => [a.nombre, a.cursoActivo])).toEqual([
+      ['Lucía', { curso: '2026/2027', nivelEducativo: '3.º de Primaria' }],
+      ['Mario', null]
+    ])
+  })
+
+  it('un alumno cuyo curso se cierra deja de contar como activo, pero sigue en la lista', () => {
+    const lucia = alta('Lucía', 'García')
+    abrirCurso(db, lucia.id, {
+      curso: '2026/2027',
+      nivelEducativo: null,
+      periodos: [
+        { numero: 1, fechaInicio: '2026-09-10', fechaFin: '2026-12-22' },
+        { numero: 2, fechaInicio: '2027-01-08', fechaFin: '2027-03-26' },
+        { numero: 3, fechaInicio: '2027-04-06', fechaFin: '2027-06-23' }
+      ]
+    })
+    db.prepare("UPDATE curso_academico SET estado = 'cerrado' WHERE alumno_id = ?").run(lucia.id)
+
+    expect(listarAlumnos(db)).toEqual([expect.objectContaining({ nombre: 'Lucía', cursoActivo: null })])
   })
 
   it('obtener con un identificador raro no revienta', () => {

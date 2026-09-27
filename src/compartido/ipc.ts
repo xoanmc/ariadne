@@ -75,6 +75,11 @@ export interface FichaAlumno {
   notas: string | null
 }
 
+/** Una fila de la lista de alumnos: su ficha y, si lo tiene, su curso activo. */
+export interface AlumnoEnLista extends FichaAlumno {
+  cursoActivo: { curso: string; nivelEducativo: string | null } | null
+}
+
 /** Lo que ella rellena. El código no viaja nunca de la interfaz al proceso principal. */
 export interface DatosAlumno {
   nombre: string
@@ -146,7 +151,7 @@ export interface AriadneApi {
     restaurarDesdeFichero(): Promise<ResultadoRestauracion>
   }
   alumnos: {
-    listar(): Promise<FichaAlumno[]>
+    listar(): Promise<AlumnoEnLista[]>
     obtener(id: number): Promise<FichaAlumno | null>
     darDeAlta(datos: DatosAlumno, confirmarDuplicado: boolean): Promise<ResultadoAlta>
     editar(id: number, datos: DatosAlumno): Promise<ResultadoEdicion>

@@ -22,12 +22,12 @@ En construcción:
 |---|---|
 | 0 — Viabilidad en Windows | ✅ Cerrado |
 | 1 — Cimientos | ✅ Cerrado |
-| 2 — Alumnos y ciclo académico | En curso: T2.1 (alta y ficha) y T2.3 (apertura de curso) hechas |
+| 2 — Alumnos y ciclo académico | En curso: T2.1 (alta y ficha), T2.2 (listado y búsqueda) y T2.3 (apertura de curso) hechas |
 | 3 a 7 | Pendientes |
 
 Los cimientos están completos: empaquetado para Windows, base de datos con migraciones, el esquema entero, copias de seguridad con restauración y la capa de dominio con las reglas centrales.
 
-Hoy la aplicación abre la **lista de alumnos**: permite dar de alta a un alumno, que recibe su código interno (`A-01`, `A-02`…), y consultar y editar su ficha. Desde la ficha se abre el curso del alumno, con sus tres trimestres y fechas propuestas que ella corrige. En una esquina, **Copias de seguridad** muestra dónde viven los datos, permite cambiarlos de sitio y gestiona las copias. Sesiones, objetivos y documentos llegan en las tareas siguientes.
+Hoy la aplicación abre la **lista de alumnos**, con los que tienen curso activo arriba, los demás en una sección plegada y una búsqueda por nombre o código. Permite dar de alta a un alumno, que recibe su código interno (`A-01`, `A-02`…), y consultar y editar su ficha. Desde la ficha se abre el curso del alumno, con sus tres trimestres y fechas propuestas que ella corrige. En una esquina, **Copias de seguridad** muestra dónde viven los datos, permite cambiarlos de sitio y gestiona las copias. Sesiones, objetivos y documentos llegan en las tareas siguientes.
 
 Todo lo anterior está probado en un equipo Windows real con el paquete zip, incluida la base de datos SQLite empaquetada.
 
