@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { CANALES, type ResultadoCambio, type ResultadoCopia, type ResultadoRestauracion } from '../../compartido/ipc'
 import * as alumnos from '../servicios/alumnos'
 import * as cursos from '../servicios/cursos'
+import * as evaluaciones from '../servicios/evaluaciones'
 import type { UbicacionDatos } from '../servicios/ubicacionDatos'
 
 function ventanaDe(evento: IpcMainInvokeEvent): BrowserWindow {
@@ -103,4 +104,14 @@ export function registrarManejadoresIpc(datos: UbicacionDatos): void {
   ipcMain.handle(CANALES.corregirCurso, (_evento, cursoId: unknown, entrada) =>
     cursos.corregirCurso(datos.conexion(), cursoId, entrada)
   )
+
+  ipcMain.handle(CANALES.evaluacionDeCurso, (_evento, cursoId: unknown) =>
+    evaluaciones.evaluacionDeCurso(datos.conexion(), cursoId)
+  )
+
+  ipcMain.handle(CANALES.guardarEvaluacion, (_evento, cursoId: unknown, entrada) =>
+    evaluaciones.guardarEvaluacion(datos.conexion(), cursoId, entrada)
+  )
+
+  ipcMain.handle(CANALES.sugerenciasDeInstrumento, () => evaluaciones.sugerenciasDeInstrumento(datos.conexion()))
 }

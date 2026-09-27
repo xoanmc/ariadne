@@ -16,8 +16,33 @@ export const CANALES = {
   cursosDeAlumno: 'cursos:deAlumno',
   proponerCurso: 'cursos:proponer',
   abrirCurso: 'cursos:abrir',
-  corregirCurso: 'cursos:corregir'
+  corregirCurso: 'cursos:corregir',
+  evaluacionDeCurso: 'evaluaciones:deCurso',
+  guardarEvaluacion: 'evaluaciones:guardar',
+  sugerenciasDeInstrumento: 'evaluaciones:instrumentos'
 } as const
+
+export interface DatosEvaluacion {
+  fecha: string
+  instrumento: string | null
+  contenido: string
+}
+
+export interface VistaEvaluacion extends DatosEvaluacion {
+  id: number
+}
+
+export type CampoEvaluacion = keyof DatosEvaluacion
+
+export interface ProblemaEvaluacion {
+  campo: CampoEvaluacion
+  mensaje: string
+}
+
+export type ResultadoEvaluacion =
+  | { tipo: 'guardada'; evaluacion: VistaEvaluacion }
+  | { tipo: 'invalida'; problemas: ProblemaEvaluacion[] }
+  | { tipo: 'rechazada'; mensaje: string }
 
 export type NumeroTrimestre = 1 | 2 | 3
 
@@ -161,5 +186,10 @@ export interface AriadneApi {
     proponer(alumnoId: number, curso?: string): Promise<PropuestaCurso>
     abrir(alumnoId: number, datos: DatosCurso): Promise<ResultadoCurso>
     corregir(cursoId: number, datos: DatosCurso): Promise<ResultadoCurso>
+  }
+  evaluaciones: {
+    deCurso(cursoId: number): Promise<VistaEvaluacion | null>
+    guardar(cursoId: number, datos: DatosEvaluacion): Promise<ResultadoEvaluacion>
+    sugerenciasDeInstrumento(): Promise<string[]>
   }
 }

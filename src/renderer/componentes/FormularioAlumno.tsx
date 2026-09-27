@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import type { CampoAlumno, DatosAlumno, ProblemaCampo } from '../../compartido/ipc'
+import { hoy } from '../fechas'
 
 interface Props {
   inicial: DatosAlumno
@@ -16,12 +17,6 @@ export const ALUMNO_VACIO: DatosAlumno = {
   fechaNacimiento: null,
   diagnosticos: null,
   notas: null
-}
-
-function hoy(): string {
-  const ahora = new Date()
-  const dos = (n: number) => String(n).padStart(2, '0')
-  return `${ahora.getFullYear()}-${dos(ahora.getMonth() + 1)}-${dos(ahora.getDate())}`
 }
 
 export function FormularioAlumno({ inicial, problemas, etiquetaGuardar, ocupado, onGuardar, onCancelar }: Props) {

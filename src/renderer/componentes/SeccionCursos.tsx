@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { DatosCurso, ProblemaCurso, PropuestaCurso, ResultadoCurso, VistaCurso } from '../../compartido/ipc'
+import { fechaCorta } from '../fechas'
+import { EvaluacionInicial } from './EvaluacionInicial'
 import { FormularioCurso, NOMBRE_TRIMESTRE } from './FormularioCurso'
 
 interface Props {
@@ -7,10 +9,6 @@ interface Props {
 }
 
 type Edicion = { modo: 'abrir'; inicial: DatosCurso; cursoAnterior: string | null } | { modo: 'corregir'; curso: VistaCurso }
-
-function fecha(iso: string): string {
-  return new Date(`${iso}T00:00:00`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
-}
 
 export function SeccionCursos({ alumnoId }: Props) {
   const [cursos, setCursos] = useState<VistaCurso[] | null>(null)
@@ -108,7 +106,7 @@ export function SeccionCursos({ alumnoId }: Props) {
                   <li key={t.id}>
                     <span className="nombre-trimestre">{NOMBRE_TRIMESTRE[t.numero]}</span>
                     <span>
-                      del {fecha(t.fechaInicio)} al {fecha(t.fechaFin)}
+                      del {fechaCorta(t.fechaInicio)} al {fechaCorta(t.fechaFin)}
                     </span>
                     {t.estado === 'cerrado' && <span className="etiqueta">cerrado</span>}
                   </li>
@@ -117,6 +115,7 @@ export function SeccionCursos({ alumnoId }: Props) {
               <div className="acciones">
                 <button onClick={() => empezar({ modo: 'corregir', curso: activo })}>Corregir fechas o nivel</button>
               </div>
+              <EvaluacionInicial cursoId={activo.id} />
             </div>
           )}
 
