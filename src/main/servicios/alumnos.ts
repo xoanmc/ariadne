@@ -4,17 +4,10 @@ import { siguienteCodigo } from '../dominio/codigoInterno'
 import type { Fecha } from '../dominio/entidades'
 import type { BaseDatos } from '../persistencia/baseDatos'
 import * as repositorio from '../persistencia/repositorioAlumnos'
+import { esId } from './entrada'
+import { hoyLocal } from './fecha'
 
 const orden = new Intl.Collator('es', { sensitivity: 'base' })
-
-export function hoyLocal(ahora = new Date()): Fecha {
-  const dos = (n: number) => String(n).padStart(2, '0')
-  return `${ahora.getFullYear()}-${dos(ahora.getMonth() + 1)}-${dos(ahora.getDate())}`
-}
-
-function esId(valor: unknown): valor is number {
-  return Number.isInteger(valor) && (valor as number) > 0
-}
 
 /** Por nombre, como ella los piensa ("acabo de ver a Lucía"), con orden alfabético del español. */
 export function listarAlumnos(db: BaseDatos): FichaAlumno[] {

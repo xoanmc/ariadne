@@ -297,3 +297,98 @@ button.volver {
   font-size: 0.9rem;
   color: #b3261e;
 }
+
+/* Cursos */
+
+.tarjeta-curso {
+  margin-top: 1rem;
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border: 1px solid #e0dcd3;
+  border-radius: 6px;
+}
+
+.cabecera-curso {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.etiqueta {
+  font-size: 0.8rem;
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  background: #e4efe9;
+  color: #2f5d50;
+}
+
+.lista-trimestres {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+}
+
+.lista-trimestres li {
+  display: flex;
+  gap: 1rem;
+  padding: 0.3rem 0;
+}
+
+.nombre-trimestre {
+  min-width: 7.5rem;
+  color: #6f6a61;
+}
+
+.cursos-cerrados {
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem 0 0;
+  color: #5d584f;
+}
+
+.cursos-cerrados .etiqueta {
+  background: #ebe9e4;
+  color: #5d584f;
+}
+
+.trimestres {
+  border: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+
+.trimestres legend {
+  font-size: 0.9rem;
+  color: #4a463f;
+  padding: 0;
+}
+
+.fila-trimestre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin: 0.6rem 0;
+}
+
+.fila-trimestre input {
+  font: inherit;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #c9c4b9;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.fila-trimestre.con-problema input {
+  border-color: #b3261e;
+}
+
+.fila-trimestre .problema {
+  flex-basis: 100%;
+}
+
+.campo input[readonly] {
+  background: #ebe9e4;
+  color: #5d584f;
+}

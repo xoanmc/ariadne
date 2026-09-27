@@ -12,8 +12,58 @@ export const CANALES = {
   listarAlumnos: 'alumnos:listar',
   obtenerAlumno: 'alumnos:obtener',
   darDeAlta: 'alumnos:alta',
-  editarAlumno: 'alumnos:editar'
+  editarAlumno: 'alumnos:editar',
+  cursosDeAlumno: 'cursos:deAlumno',
+  proponerCurso: 'cursos:proponer',
+  abrirCurso: 'cursos:abrir',
+  corregirCurso: 'cursos:corregir'
 } as const
+
+export type NumeroTrimestre = 1 | 2 | 3
+
+export interface PeriodoTrimestre {
+  numero: NumeroTrimestre
+  fechaInicio: string
+  fechaFin: string
+}
+
+export interface VistaTrimestre extends PeriodoTrimestre {
+  id: number
+  estado: 'abierto' | 'cerrado'
+}
+
+export interface VistaCurso {
+  id: number
+  curso: string
+  nivelEducativo: string | null
+  estado: 'activo' | 'cerrado'
+  cursoAnterior: string | null
+  trimestres: VistaTrimestre[]
+}
+
+/** Lo que la aplicación propone al abrir curso, o por qué todavía no se puede abrir. */
+export type PropuestaCurso =
+  | { tipo: 'propuesta'; curso: string; periodos: PeriodoTrimestre[]; cursoAnterior: string | null }
+  | { tipo: 'curso_activo'; curso: string }
+  | { tipo: 'no_existe' }
+
+export interface DatosCurso {
+  curso: string
+  nivelEducativo: string | null
+  periodos: PeriodoTrimestre[]
+}
+
+export type CampoCurso = 'curso' | 'nivelEducativo' | 'trimestre1' | 'trimestre2' | 'trimestre3'
+
+export interface ProblemaCurso {
+  campo: CampoCurso
+  mensaje: string
+}
+
+export type ResultadoCurso =
+  | { tipo: 'guardado'; curso: VistaCurso }
+  | { tipo: 'invalido'; problemas: ProblemaCurso[] }
+  | { tipo: 'rechazado'; mensaje: string }
 
 export interface FichaAlumno {
   id: number
@@ -100,5 +150,11 @@ export interface AriadneApi {
     obtener(id: number): Promise<FichaAlumno | null>
     darDeAlta(datos: DatosAlumno, confirmarDuplicado: boolean): Promise<ResultadoAlta>
     editar(id: number, datos: DatosAlumno): Promise<ResultadoEdicion>
+  }
+  cursos: {
+    deAlumno(alumnoId: number): Promise<VistaCurso[]>
+    proponer(alumnoId: number, curso?: string): Promise<PropuestaCurso>
+    abrir(alumnoId: number, datos: DatosCurso): Promise<ResultadoCurso>
+    corregir(cursoId: number, datos: DatosCurso): Promise<ResultadoCurso>
   }
 }

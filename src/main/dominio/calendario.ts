@@ -15,7 +15,7 @@ export type ProblemaCalendario =
 
 /**
  * Dónde cae una fecha dentro del curso. `vacaciones` es el hueco legítimo entre dos trimestres
- * (Navidad, Semana Santa): las fechas propuestas por el centro lo tienen por definición.
+ * (Navidad, Semana Santa): el calendario real de cualquier centro lo tiene.
  */
 export type UbicacionFecha =
   | { tipo: 'dentro'; numero: NumeroTrimestre }

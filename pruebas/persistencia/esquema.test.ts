@@ -152,12 +152,25 @@ describe('cadena de arrastre', () => {
 
   it('la cadena de cursos tampoco se bifurca', () => {
     const alumnoId = insertar('alumno', { codigo_interno: 'A-01', nombre: 'Ana', apellidos: 'García' })
-    const anterior = insertar('curso_academico', { alumno_id: alumnoId, curso: '2024/2025' })
-    insertar('curso_academico', { alumno_id: alumnoId, curso: '2025/2026', curso_anterior_id: anterior })
+    // Cerrados, para que la única regla que pueda saltar sea la de la cadena y no la de un curso activo
+    const anterior = insertar('curso_academico', { alumno_id: alumnoId, curso: '2024/2025', estado: 'cerrado' })
+    insertar('curso_academico', { alumno_id: alumnoId, curso: '2025/2026', estado: 'cerrado', curso_anterior_id: anterior })
 
     expect(() =>
       insertar('curso_academico', { alumno_id: alumnoId, curso: '2026/2027', curso_anterior_id: anterior })
-    ).toThrow(/UNIQUE constraint failed/)
+    ).toThrow(/UNIQUE constraint failed: curso_academico.curso_anterior_id/)
+  })
+
+  it('un alumno no puede tener dos cursos activos a la vez', () => {
+    const alumnoId = insertar('alumno', { codigo_interno: 'A-01', nombre: 'Ana', apellidos: 'García' })
+    insertar('curso_academico', { alumno_id: alumnoId, curso: '2025/2026' })
+
+    expect(() => insertar('curso_academico', { alumno_id: alumnoId, curso: '2026/2027' })).toThrow(
+      /UNIQUE constraint failed: curso_academico.alumno_id/
+    )
+    expect(() =>
+      insertar('curso_academico', { alumno_id: alumnoId, curso: '2026/2027', estado: 'cerrado' })
+    ).not.toThrow()
   })
 })
 

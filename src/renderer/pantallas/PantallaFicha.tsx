@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { DatosAlumno, FichaAlumno, ProblemaCampo } from '../../compartido/ipc'
 import { FormularioAlumno } from '../componentes/FormularioAlumno'
+import { SeccionCursos } from '../componentes/SeccionCursos'
 
 interface Props {
   id: number
@@ -111,6 +112,8 @@ export function PantallaFicha({ id, recienCreado, onVolver }: Props) {
               Editar
             </button>
           </div>
+
+          <SeccionCursos alumnoId={alumno.id} />
         </>
       )}
     </main>

@@ -2,6 +2,7 @@ import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } f
 import { join } from 'node:path'
 import { CANALES, type ResultadoCambio, type ResultadoCopia, type ResultadoRestauracion } from '../../compartido/ipc'
 import * as alumnos from '../servicios/alumnos'
+import * as cursos from '../servicios/cursos'
 import type { UbicacionDatos } from '../servicios/ubicacionDatos'
 
 function ventanaDe(evento: IpcMainInvokeEvent): BrowserWindow {
@@ -85,5 +86,21 @@ export function registrarManejadoresIpc(datos: UbicacionDatos): void {
 
   ipcMain.handle(CANALES.editarAlumno, (_evento, id: unknown, entrada) =>
     alumnos.editarAlumno(datos.conexion(), id, entrada)
+  )
+
+  ipcMain.handle(CANALES.cursosDeAlumno, (_evento, alumnoId: unknown) =>
+    cursos.cursosDeAlumno(datos.conexion(), alumnoId)
+  )
+
+  ipcMain.handle(CANALES.proponerCurso, (_evento, alumnoId: unknown, curso: unknown) =>
+    cursos.proponerCurso(datos.conexion(), alumnoId, curso)
+  )
+
+  ipcMain.handle(CANALES.abrirCurso, (_evento, alumnoId: unknown, entrada) =>
+    cursos.abrirCurso(datos.conexion(), alumnoId, entrada)
+  )
+
+  ipcMain.handle(CANALES.corregirCurso, (_evento, cursoId: unknown, entrada) =>
+    cursos.corregirCurso(datos.conexion(), cursoId, entrada)
   )
 }

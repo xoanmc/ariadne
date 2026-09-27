@@ -187,7 +187,9 @@ Es también la única cadena que cruza de curso. `objetivo` cuelga de `programa_
 - Formato `A-01`, `A-02`… `A-99`, y después `A-100` sin más. No lleva nada que identifique: ni iniciales, ni año de nacimiento, ni curso. Solo el orden de alta.
 - Lo asigna la aplicación al dar de alta; ella no lo elige.
 - **Nunca cambia:** un disparador de la base rechaza cualquier modificación, aunque se intente por fuera de la aplicación.
-- **Nunca se reutiliza:** el último número entregado vive en `secuencia_codigo`, separado de los alumnos, y no puede retroceder. Aunque algún día se borre un alumno, su número no vuelve a darse. Es lo que da continuidad a sus registros: `A-07` es siempre la misma persona.
+- **Nunca se reutiliza:** el último número entregado vive en `secuencia_codigo`, separado de los alumnos, y no puede retroceder. Aunque algún día se borre un alumno, su número no vuelve a darse. Es lo que da continuidad a todo lo que sale del equipo: `A-07` es siempre la misma persona.
+
+**Un solo curso activo por alumno** (T2.3, `003_curso_activo_unico.sql`): un índice único parcial sobre `curso_academico (alumno_id) WHERE estado = 'activo'`. Para abrir el siguiente curso hay que cerrar antes el tercer trimestre del actual. Así cada pantalla sabe sin ambigüedad cuál es el curso vigente de un alumno.
 
 ---
 
