@@ -14,6 +14,7 @@ export const CANALES = {
   darDeAlta: 'alumnos:alta',
   editarAlumno: 'alumnos:editar',
   cursosDeAlumno: 'cursos:deAlumno',
+  obtenerCurso: 'cursos:obtener',
   proponerCurso: 'cursos:proponer',
   abrirCurso: 'cursos:abrir',
   corregirCurso: 'cursos:corregir',
@@ -59,6 +60,7 @@ export interface VistaTrimestre extends PeriodoTrimestre {
 
 export interface VistaCurso {
   id: number
+  alumnoId: number
   curso: string
   nivelEducativo: string | null
   estado: 'activo' | 'cerrado'
@@ -183,6 +185,7 @@ export interface AriadneApi {
   }
   cursos: {
     deAlumno(alumnoId: number): Promise<VistaCurso[]>
+    obtener(cursoId: number): Promise<VistaCurso | null>
     proponer(alumnoId: number, curso?: string): Promise<PropuestaCurso>
     abrir(alumnoId: number, datos: DatosCurso): Promise<ResultadoCurso>
     corregir(cursoId: number, datos: DatosCurso): Promise<ResultadoCurso>

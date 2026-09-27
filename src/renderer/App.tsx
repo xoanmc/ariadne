@@ -3,6 +3,7 @@ import type { EstadoDatos } from '../compartido/ipc'
 import { PantallaAlta } from './pantallas/PantallaAlta'
 import { PantallaAlumnos } from './pantallas/PantallaAlumnos'
 import { PantallaCopias } from './pantallas/PantallaCopias'
+import { PantallaCurso } from './pantallas/PantallaCurso'
 import { PantallaFicha } from './pantallas/PantallaFicha'
 import { PantallaSinDatos } from './pantallas/PantallaSinDatos'
 
@@ -10,6 +11,7 @@ type Vista =
   | { tipo: 'alumnos' }
   | { tipo: 'alta' }
   | { tipo: 'ficha'; id: number; recienCreado: boolean }
+  | { tipo: 'curso'; cursoId: number; recienAbierto: boolean }
   | { tipo: 'copias' }
 
 export function App() {
@@ -62,7 +64,21 @@ export function App() {
         <PantallaAlta onCreado={(id) => setVista({ tipo: 'ficha', id, recienCreado: true })} onCancelar={alumnos} />
       )}
       {vista.tipo === 'ficha' && (
-        <PantallaFicha key={vista.id} id={vista.id} recienCreado={vista.recienCreado} onVolver={alumnos} />
+        <PantallaFicha
+          key={vista.id}
+          id={vista.id}
+          recienCreado={vista.recienCreado}
+          onVolver={alumnos}
+          onAbrirCurso={(cursoId, recienAbierto) => setVista({ tipo: 'curso', cursoId, recienAbierto })}
+        />
+      )}
+      {vista.tipo === 'curso' && (
+        <PantallaCurso
+          key={vista.cursoId}
+          cursoId={vista.cursoId}
+          recienAbierto={vista.recienAbierto}
+          onVolver={(alumnoId) => setVista({ tipo: 'ficha', id: alumnoId, recienCreado: false })}
+        />
       )}
       {vista.tipo === 'copias' && (
         <PantallaCopias ruta={estado.ruta} avisoCopia={estado.avisoCopia} onEstado={setEstado} />

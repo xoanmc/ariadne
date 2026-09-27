@@ -24,6 +24,7 @@ const api: AriadneApi = {
   },
   cursos: {
     deAlumno: (alumnoId) => ipcRenderer.invoke(CANALES.cursosDeAlumno, alumnoId),
+    obtener: (cursoId) => ipcRenderer.invoke(CANALES.obtenerCurso, cursoId),
     proponer: (alumnoId, curso) => ipcRenderer.invoke(CANALES.proponerCurso, alumnoId, curso),
     abrir: (alumnoId, datos) => ipcRenderer.invoke(CANALES.abrirCurso, alumnoId, datos),
     corregir: (cursoId, datos) => ipcRenderer.invoke(CANALES.corregirCurso, cursoId, datos)

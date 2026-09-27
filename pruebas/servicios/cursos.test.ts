@@ -2,7 +2,7 @@ import type Database from 'better-sqlite3'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { DatosCurso, PeriodoTrimestre } from '../../src/compartido/ipc'
 import { darDeAlta } from '../../src/main/servicios/alumnos'
-import { abrirCurso, corregirCurso, cursosDeAlumno, proponerCurso } from '../../src/main/servicios/cursos'
+import { abrirCurso, corregirCurso, cursosDeAlumno, obtenerCurso, proponerCurso } from '../../src/main/servicios/cursos'
 import { crearBaseDePrueba } from '../ayudas/baseDePrueba'
 
 const HOY = '2026-09-27'
@@ -219,5 +219,43 @@ describe('lista de cursos del alumno', () => {
       '2025/2026 cerrado',
       '2024/2025 cerrado'
     ])
+  })
+})
+
+describe('historial del alumno', () => {
+  it('un alumno con tres cursos los muestra los tres en orden, cada uno enlazado con el anterior', () => {
+    cerrar(abrir('2024/2025').id)
+    cerrar(abrir('2025/2026').id)
+    abrir('2026/2027')
+
+    expect(cursosDeAlumno(db, alumnoId).map((c) => [c.curso, c.estado, c.cursoAnterior])).toEqual([
+      ['2026/2027', 'activo', '2025/2026'],
+      ['2025/2026', 'cerrado', '2024/2025'],
+      ['2024/2025', 'cerrado', null]
+    ])
+  })
+
+  it('se puede entrar en cualquiera de sus cursos, también en los cerrados', () => {
+    const antiguo = abrir('2025/2026')
+    cerrar(antiguo.id)
+
+    expect(obtenerCurso(db, antiguo.id)).toMatchObject({ alumnoId, curso: '2025/2026', estado: 'cerrado' })
+    expect(obtenerCurso(db, antiguo.id)?.trimestres).toHaveLength(3)
+  })
+
+  it('un curso que no existe se dice claramente', () => {
+    expect(obtenerCurso(db, 999)).toBeNull()
+    expect(obtenerCurso(db, 'uno')).toBeNull()
+  })
+
+  it('un curso cerrado se consulta, pero ya no se corrige', () => {
+    const curso = abrir('2025/2026', { nivelEducativo: '2.º de Primaria' })
+    cerrar(curso.id)
+
+    expect(corregirCurso(db, curso.id, datos('2025/2026', { nivelEducativo: '3.º de Primaria' }))).toEqual({
+      tipo: 'rechazado',
+      mensaje: 'El curso 2025/2026 está cerrado y ya no se modifica.'
+    })
+    expect(obtenerCurso(db, curso.id)?.nivelEducativo).toBe('2.º de Primaria')
   })
 })

@@ -7,6 +7,7 @@ interface Props {
   id: number
   recienCreado: boolean
   onVolver: () => void
+  onAbrirCurso: (cursoId: number, recienAbierto: boolean) => void
 }
 
 function fechaLegible(fecha: string): string {
@@ -18,7 +19,7 @@ function datosDe(alumno: FichaAlumno): DatosAlumno {
   return { nombre, apellidos, fechaNacimiento, diagnosticos, notas }
 }
 
-export function PantallaFicha({ id, recienCreado, onVolver }: Props) {
+export function PantallaFicha({ id, recienCreado, onVolver, onAbrirCurso }: Props) {
   const [alumno, setAlumno] = useState<FichaAlumno | null | undefined>(undefined)
   const [editando, setEditando] = useState(false)
   const [problemas, setProblemas] = useState<ProblemaCampo[]>([])
@@ -113,7 +114,7 @@ export function PantallaFicha({ id, recienCreado, onVolver }: Props) {
             </button>
           </div>
 
-          <SeccionCursos alumnoId={alumno.id} />
+          <SeccionCursos alumnoId={alumno.id} onAbrirCurso={onAbrirCurso} />
         </>
       )}
     </main>

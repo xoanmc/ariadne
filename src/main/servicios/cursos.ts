@@ -12,6 +12,7 @@ function vista(db: BaseDatos, curso: CursoAcademico): VistaCurso {
   const anterior = curso.cursoAnteriorId === null ? null : repositorio.obtenerCurso(db, curso.cursoAnteriorId)
   return {
     id: curso.id,
+    alumnoId: curso.alumnoId,
     curso: curso.curso,
     nivelEducativo: curso.nivelEducativo,
     estado: curso.estado,
@@ -48,6 +49,11 @@ function normalizar(entrada: Partial<DatosCurso> | null | undefined) {
 function siguienteA(curso: string): string {
   const [, fin] = extremosDeCurso(curso)!
   return `${fin}/${fin + 1}`
+}
+
+export function obtenerCurso(db: BaseDatos, cursoId: unknown): VistaCurso | null {
+  const curso = esId(cursoId) ? repositorio.obtenerCurso(db, cursoId) : null
+  return curso ? vista(db, curso) : null
 }
 
 /** Del más reciente al más antiguo. */
@@ -114,10 +120,16 @@ export function abrirCurso(db: BaseDatos, alumnoId: unknown, entrada: Partial<Da
   return { tipo: 'guardado', curso: vista(db, repositorio.obtenerCurso(db, id)!) }
 }
 
-/** Corrige el nivel y las fechas. El curso en sí no cambia, y un trimestre cerrado conserva sus fechas. */
+/**
+ * Corrige el nivel y las fechas de un curso activo. El curso en sí no cambia, un trimestre cerrado
+ * conserva sus fechas y un curso cerrado ya no se modifica: se consulta.
+ */
 export function corregirCurso(db: BaseDatos, cursoId: unknown, entrada: Partial<DatosCurso>): ResultadoCurso {
   const curso = esId(cursoId) ? repositorio.obtenerCurso(db, cursoId) : null
   if (!curso) return { tipo: 'rechazado', mensaje: 'Este curso no existe.' }
+  if (curso.estado === 'cerrado') {
+    return { tipo: 'rechazado', mensaje: `El curso ${curso.curso} está cerrado y ya no se modifica.` }
+  }
 
   const datos = normalizar(entrada)
   const problemas = validarCurso(curso.curso, datos.periodos)

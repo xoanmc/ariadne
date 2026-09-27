@@ -93,6 +93,8 @@ export function registrarManejadoresIpc(datos: UbicacionDatos): void {
     cursos.cursosDeAlumno(datos.conexion(), alumnoId)
   )
 
+  ipcMain.handle(CANALES.obtenerCurso, (_evento, cursoId: unknown) => cursos.obtenerCurso(datos.conexion(), cursoId))
+
   ipcMain.handle(CANALES.proponerCurso, (_evento, alumnoId: unknown, curso: unknown) =>
     cursos.proponerCurso(datos.conexion(), alumnoId, curso)
   )

@@ -4,9 +4,10 @@ import { fechaCorta, hoy } from '../fechas'
 
 interface Props {
   cursoId: number
+  editable: boolean
 }
 
-export function EvaluacionInicial({ cursoId }: Props) {
+export function EvaluacionInicial({ cursoId, editable }: Props) {
   const [evaluacion, setEvaluacion] = useState<VistaEvaluacion | null | undefined>(undefined)
   const [editando, setEditando] = useState<DatosEvaluacion | null>(null)
   const [sugerencias, setSugerencias] = useState<string[]>([])
@@ -54,7 +55,7 @@ export function EvaluacionInicial({ cursoId }: Props) {
 
   return (
     <div className="evaluacion">
-      <h3>Evaluación inicial</h3>
+      <h2>Evaluación inicial</h2>
 
       {editando ? (
         <form className="formulario" onSubmit={guardar} noValidate>
@@ -113,17 +114,21 @@ export function EvaluacionInicial({ cursoId }: Props) {
             {evaluacion.instrumento && ` · ${evaluacion.instrumento}`}
           </p>
           <p className="texto-largo">{evaluacion.contenido}</p>
-          <div className="acciones">
-            <button onClick={empezar}>Editar evaluación</button>
-          </div>
+          {editable && (
+            <div className="acciones">
+              <button onClick={empezar}>Editar evaluación</button>
+            </div>
+          )}
         </>
-      ) : (
+      ) : editable ? (
         <>
           <p className="apunte">Todavía no tiene la evaluación inicial de este curso.</p>
           <div className="acciones">
             <button onClick={empezar}>Registrar evaluación inicial</button>
           </div>
         </>
+      ) : (
+        <p className="apunte">En este curso no se registró evaluación inicial.</p>
       )}
     </div>
   )
