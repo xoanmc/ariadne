@@ -90,6 +90,20 @@ export function validarCurso(curso: string, periodos: readonly PeriodoTrimestre[
 }
 
 /**
+ * Para lo que se registra después de ocurrir (una evaluación, una reunión): tiene que ser una fecha
+ * válida, no futura y de los años del curso. Devuelve el problema, o null si no lo hay.
+ */
+export function problemaDeFechaPasada(fecha: string, curso: string, hoy: Fecha, queFecha: string): string | null {
+  if (!esFecha(fecha)) return `Indica la fecha ${queFecha}.`
+  if (fecha > hoy) return 'La fecha no puede ser posterior a hoy.'
+  const extremos = extremosDeCurso(curso)
+  if (extremos && !extremos.includes(Number(fecha.slice(0, 4)))) {
+    return `La fecha tiene que ser de ${extremos[0]} o de ${extremos[1]}, los años del curso.`
+  }
+  return null
+}
+
+/**
  * Solo se abre un curso posterior a los que ya tiene: el enlace al anterior forma una cadena que no
  * se puede bifurcar, y meter un curso en medio la rompería.
  */

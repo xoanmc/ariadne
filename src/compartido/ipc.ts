@@ -20,8 +20,34 @@ export const CANALES = {
   corregirCurso: 'cursos:corregir',
   evaluacionDeCurso: 'evaluaciones:deCurso',
   guardarEvaluacion: 'evaluaciones:guardar',
-  sugerenciasDeInstrumento: 'evaluaciones:instrumentos'
+  sugerenciasDeInstrumento: 'evaluaciones:instrumentos',
+  actasDeCurso: 'actas:deCurso',
+  registrarActa: 'actas:registrar',
+  corregirActa: 'actas:corregir'
 } as const
+
+export interface DatosActa {
+  fecha: string
+  asistentes: string | null
+  contenido: string | null
+  acuerdos: string | null
+}
+
+export interface VistaActa extends DatosActa {
+  id: number
+}
+
+export type CampoActa = keyof DatosActa
+
+export interface ProblemaActa {
+  campo: CampoActa
+  mensaje: string
+}
+
+export type ResultadoActa =
+  | { tipo: 'guardada'; acta: VistaActa }
+  | { tipo: 'invalida'; problemas: ProblemaActa[] }
+  | { tipo: 'rechazada'; mensaje: string }
 
 export interface DatosEvaluacion {
   fecha: string
@@ -194,5 +220,10 @@ export interface AriadneApi {
     deCurso(cursoId: number): Promise<VistaEvaluacion | null>
     guardar(cursoId: number, datos: DatosEvaluacion): Promise<ResultadoEvaluacion>
     sugerenciasDeInstrumento(): Promise<string[]>
+  }
+  actas: {
+    deCurso(cursoId: number): Promise<VistaActa[]>
+    registrar(cursoId: number, datos: DatosActa): Promise<ResultadoActa>
+    corregir(actaId: number, datos: DatosActa): Promise<ResultadoActa>
   }
 }

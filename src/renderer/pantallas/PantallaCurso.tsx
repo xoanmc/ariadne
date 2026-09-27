@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { DatosCurso, FichaAlumno, ProblemaCurso, VistaCurso } from '../../compartido/ipc'
+import { Actas } from '../componentes/Actas'
 import { EvaluacionInicial } from '../componentes/EvaluacionInicial'
 import { FormularioCurso, NOMBRE_TRIMESTRE } from '../componentes/FormularioCurso'
 import { fechaCorta } from '../fechas'
@@ -124,6 +125,10 @@ export function PantallaCurso({ cursoId, recienAbierto, onVolver }: Props) {
 
       <section className="seccion">
         <EvaluacionInicial cursoId={curso.id} editable={activo} />
+      </section>
+
+      <section className="seccion">
+        <Actas cursoId={curso.id} editable={activo} />
       </section>
     </main>
   )

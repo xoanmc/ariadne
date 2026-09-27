@@ -1,6 +1,7 @@
 import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } from 'electron'
 import { join } from 'node:path'
 import { CANALES, type ResultadoCambio, type ResultadoCopia, type ResultadoRestauracion } from '../../compartido/ipc'
+import * as actas from '../servicios/actas'
 import * as alumnos from '../servicios/alumnos'
 import * as cursos from '../servicios/cursos'
 import * as evaluaciones from '../servicios/evaluaciones'
@@ -116,4 +117,14 @@ export function registrarManejadoresIpc(datos: UbicacionDatos): void {
   )
 
   ipcMain.handle(CANALES.sugerenciasDeInstrumento, () => evaluaciones.sugerenciasDeInstrumento(datos.conexion()))
+
+  ipcMain.handle(CANALES.actasDeCurso, (_evento, cursoId: unknown) => actas.actasDeCurso(datos.conexion(), cursoId))
+
+  ipcMain.handle(CANALES.registrarActa, (_evento, cursoId: unknown, entrada) =>
+    actas.registrarActa(datos.conexion(), cursoId, entrada)
+  )
+
+  ipcMain.handle(CANALES.corregirActa, (_evento, actaId: unknown, entrada) =>
+    actas.corregirActa(datos.conexion(), actaId, entrada)
+  )
 }

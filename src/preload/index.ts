@@ -33,6 +33,11 @@ const api: AriadneApi = {
     deCurso: (cursoId) => ipcRenderer.invoke(CANALES.evaluacionDeCurso, cursoId),
     guardar: (cursoId, datos) => ipcRenderer.invoke(CANALES.guardarEvaluacion, cursoId, datos),
     sugerenciasDeInstrumento: () => ipcRenderer.invoke(CANALES.sugerenciasDeInstrumento)
+  },
+  actas: {
+    deCurso: (cursoId) => ipcRenderer.invoke(CANALES.actasDeCurso, cursoId),
+    registrar: (cursoId, datos) => ipcRenderer.invoke(CANALES.registrarActa, cursoId, datos),
+    corregir: (actaId, datos) => ipcRenderer.invoke(CANALES.corregirActa, actaId, datos)
   }
 }
 

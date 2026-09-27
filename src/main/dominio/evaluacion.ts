@@ -1,5 +1,4 @@
-import { esFecha } from './calendario'
-import { extremosDeCurso } from './curso'
+import { problemaDeFechaPasada } from './curso'
 import type { Fecha } from './entidades'
 
 export type CampoEvaluacion = 'fecha' | 'instrumento' | 'contenido'
@@ -31,15 +30,9 @@ export function normalizarEvaluacion(entrada: Partial<Record<CampoEvaluacion, un
 /** La evaluación ya se hizo: no puede ser futura, y tiene que caer en los años del curso. */
 export function validarEvaluacion(datos: DatosEvaluacion, curso: string, hoy: Fecha): ProblemaEvaluacion[] {
   const problemas: ProblemaEvaluacion[] = []
-  const extremos = extremosDeCurso(curso)
 
-  if (!esFecha(datos.fecha)) {
-    problemas.push({ campo: 'fecha', mensaje: 'Indica la fecha de la evaluación.' })
-  } else if (datos.fecha > hoy) {
-    problemas.push({ campo: 'fecha', mensaje: 'La fecha no puede ser posterior a hoy.' })
-  } else if (extremos && !extremos.includes(Number(datos.fecha.slice(0, 4)))) {
-    problemas.push({ campo: 'fecha', mensaje: `La fecha tiene que ser de ${extremos[0]} o de ${extremos[1]}, los años del curso.` })
-  }
+  const problemaFecha = problemaDeFechaPasada(datos.fecha, curso, hoy, 'de la evaluación')
+  if (problemaFecha) problemas.push({ campo: 'fecha', mensaje: problemaFecha })
 
   if (datos.contenido === '') {
     problemas.push({ campo: 'contenido', mensaje: 'Escribe el contenido de la evaluación.' })
