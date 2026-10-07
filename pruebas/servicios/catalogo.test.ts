@@ -17,18 +17,22 @@ function anadir(categoria: CategoriaCatalogo, ...nuevas: string[]) {
   return lista(listarCatalogo(db), categoria).opciones
 }
 
+describe('opciones iniciales', () => {
+  it('la aplicación trae un punto de partida que ella puede cambiar', () => {
+    db = crearBaseDePrueba()
+    expect(textos('estado_alumno')).toEqual(['Tranquilo', 'Cansado', 'Inquieto'])
+    expect(textos('respuesta_actividades')).toEqual(['Participa', 'Necesita apoyo', 'Se distrae'])
+    expect(lista(listarCatalogo(db), 'estado_alumno').opciones.every((o) => o.activa)).toBe(true)
+  })
+})
+
 beforeEach(() => {
   db = crearBaseDePrueba()
+  // El resto de pruebas mira la mecánica de las listas, así que parten de listas vacías
+  db.prepare('DELETE FROM opcion_catalogo').run()
 })
 
 describe('opciones del registro', () => {
-  it('empiezan vacías: la aplicación no trae palabras inventadas', () => {
-    expect(listarCatalogo(db)).toEqual([
-      { categoria: 'estado_alumno', nombre: 'Estado del alumno en la sesión', opciones: [] },
-      { categoria: 'respuesta_actividades', nombre: 'Respuesta a las actividades', opciones: [] }
-    ])
-  })
-
   it('se añaden al final de su lista, cada una en la suya', () => {
     anadir('estado_alumno', 'Tranquilo', 'Inquieto')
     anadir('respuesta_actividades', 'Participa')

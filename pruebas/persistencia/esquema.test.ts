@@ -34,6 +34,8 @@ function objetivo(programaId: number, enunciado = 'Mejorar la lectura'): number 
 
 beforeEach(() => {
   db = crearBaseDePrueba()
+  // Estas pruebas miran restricciones, no contenido: el catálogo parte vacío, sin las opciones iniciales
+  db.prepare('DELETE FROM opcion_catalogo').run()
 })
 
 describe('creación del esquema', () => {
