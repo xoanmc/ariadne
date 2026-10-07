@@ -90,3 +90,68 @@ export function asignacionesDePrograma(db: BaseDatos, programaId: number): FilaA
     )
     .all(programaId) as FilaAsignacionDePrograma[]
 }
+
+export interface ObjetivoGuardado {
+  id: number
+  programaId: number
+  enunciado: string
+}
+
+export interface AsignacionGuardada {
+  id: number
+  objetivoId: number
+  trimestreId: number
+  valoracion: Valoracion
+  asignacionAnteriorId: number | null
+}
+
+export function obtenerObjetivo(db: BaseDatos, id: number): ObjetivoGuardado | null {
+  return (
+    (db.prepare('SELECT id, programa_id AS programaId, enunciado FROM objetivo WHERE id = ?').get(id) as
+      | ObjetivoGuardado
+      | undefined) ?? null
+  )
+}
+
+export function obtenerAsignacion(db: BaseDatos, id: number): AsignacionGuardada | null {
+  return (
+    (db
+      .prepare(
+        `SELECT id, objetivo_id AS objetivoId, trimestre_id AS trimestreId, valoracion,
+                asignacion_anterior_id AS asignacionAnteriorId
+         FROM asignacion_trimestral WHERE id = ?`
+      )
+      .get(id) as AsignacionGuardada | undefined) ?? null
+  )
+}
+
+export function asignacionesDeObjetivo(db: BaseDatos, objetivoId: number): AsignacionGuardada[] {
+  return db
+    .prepare(
+      `SELECT id, objetivo_id AS objetivoId, trimestre_id AS trimestreId, valoracion,
+              asignacion_anterior_id AS asignacionAnteriorId
+       FROM asignacion_trimestral WHERE objetivo_id = ?`
+    )
+    .all(objetivoId) as AsignacionGuardada[]
+}
+
+export function tieneContinuacion(db: BaseDatos, asignacionId: number): boolean {
+  return db.prepare('SELECT 1 FROM asignacion_trimestral WHERE asignacion_anterior_id = ?').get(asignacionId) !== undefined
+}
+
+export function tieneSesiones(db: BaseDatos, objetivoId: number): boolean {
+  return db.prepare('SELECT 1 FROM sesion_objetivo WHERE objetivo_id = ?').get(objetivoId) !== undefined
+}
+
+export function actualizarEnunciado(db: BaseDatos, objetivoId: number, enunciado: string): void {
+  db.prepare('UPDATE objetivo SET enunciado = ? WHERE id = ?').run(enunciado, objetivoId)
+}
+
+export function cambiarTrimestre(db: BaseDatos, asignacionId: number, trimestreId: number): void {
+  db.prepare('UPDATE asignacion_trimestral SET trimestre_id = ? WHERE id = ?').run(trimestreId, asignacionId)
+}
+
+export function borrarObjetivo(db: BaseDatos, objetivoId: number): void {
+  db.prepare('DELETE FROM asignacion_trimestral WHERE objetivo_id = ?').run(objetivoId)
+  db.prepare('DELETE FROM objetivo WHERE id = ?').run(objetivoId)
+}

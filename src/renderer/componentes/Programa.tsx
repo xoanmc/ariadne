@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import type { PendientesAnteriores, ResultadoPrograma, VistaPrograma, VistaTrimestre } from '../../compartido/ipc'
+import type { PendientesAnteriores, ResultadoPrograma, VistaAsignacion, VistaPrograma, VistaTrimestre } from '../../compartido/ipc'
 import { fechaCorta, hoy } from '../fechas'
 import { NOMBRE_TRIMESTRE } from './FormularioCurso'
 
@@ -10,6 +10,12 @@ interface Props {
 }
 
 type Problemas = { campo: string; mensaje: string }[]
+
+/** Lo que se está haciendo con un objetivo concreto de la lista. */
+type Accion =
+  | { tipo: 'editar'; asignacionId: number; objetivoId: number; texto: string }
+  | { tipo: 'mover'; asignacionId: number; trimestreId: number }
+  | { tipo: 'quitar'; asignacionId: number; objetivoId: number }
 
 /** El trimestre en curso por la fecha de hoy o, si hoy cae fuera (vacaciones, verano), el primero abierto. */
 function trimestrePropuesto(abiertos: VistaTrimestre[]): number | null {
@@ -25,6 +31,7 @@ export function Programa({ cursoId, trimestres, editable }: Props) {
   const [rechazo, setRechazo] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
   const [pendientes, setPendientes] = useState<PendientesAnteriores | null>(null)
+  const [accion, setAccion] = useState<Accion | null>(null)
   const [elegidos, setElegidos] = useState<Set<number>>(new Set())
   const api = window.ariadne.programas
   const abiertos = trimestres.filter((t) => t.estado === 'abierto')
@@ -63,6 +70,97 @@ export function Programa({ cursoId, trimestres, editable }: Props) {
   }
 
   const problemaDe = (campo: string) => problemas.find((p) => p.campo === campo)?.mensaje
+
+  function empezarAccion(nueva: Accion) {
+    setProblemas([])
+    setRechazo(null)
+    setNuevo(null)
+    setAccion(nueva)
+  }
+
+  /** Los botones de un objetivo, o el formulario de la acción en curso sobre él. */
+  function accionesDe(a: VistaAsignacion) {
+    const enCurso = accion?.asignacionId === a.asignacionId ? accion : null
+    const destinos = abiertos.filter((t) => t.id !== a.trimestreId)
+    const error = enCurso && (problemas[0]?.mensaje ?? rechazo)
+
+    if (enCurso?.tipo === 'editar') {
+      return (
+        <div className="acciones-objetivo">
+          <button
+            className="principal"
+            disabled={ocupado}
+            onClick={() => aplicar(api.editarObjetivo(a.objetivoId, enCurso.texto), () => setAccion(null))}
+          >
+            Guardar
+          </button>
+          <button onClick={() => setAccion(null)} disabled={ocupado}>Cancelar</button>
+          {error && <p className="problema">{error}</p>}
+        </div>
+      )
+    }
+    if (enCurso?.tipo === 'mover') {
+      return (
+        <div className="acciones-objetivo">
+          <label>
+            Llevar al{' '}
+            <select
+              aria-label="Trimestre de destino"
+              value={enCurso.trimestreId}
+              onChange={(e) => setAccion({ ...enCurso, trimestreId: Number(e.target.value) })}
+            >
+              {destinos.map((t) => (
+                <option key={t.id} value={t.id}>{NOMBRE_TRIMESTRE[t.numero]}</option>
+              ))}
+            </select>
+          </label>
+          <button
+            className="principal"
+            disabled={ocupado}
+            onClick={() => aplicar(api.moverObjetivo(a.asignacionId, enCurso.trimestreId), () => setAccion(null))}
+          >
+            Mover
+          </button>
+          <button onClick={() => setAccion(null)} disabled={ocupado}>Cancelar</button>
+          {error && <p className="problema">{error}</p>}
+        </div>
+      )
+    }
+    if (enCurso?.tipo === 'quitar') {
+      return (
+        <div className="acciones-objetivo">
+          <span>¿Quitar este objetivo del programa?</span>
+          <button
+            className="principal"
+            disabled={ocupado}
+            onClick={() => aplicar(api.quitarObjetivo(a.objetivoId), () => setAccion(null))}
+          >
+            Quitar
+          </button>
+          <button onClick={() => setAccion(null)} disabled={ocupado}>Cancelar</button>
+          {error && <p className="problema">{error}</p>}
+        </div>
+      )
+    }
+    if (accion) return null
+    return (
+      <div className="acciones-objetivo">
+        <button className="enlace" onClick={() => empezarAccion({ tipo: 'editar', asignacionId: a.asignacionId, objetivoId: a.objetivoId, texto: a.enunciado })}>
+          Editar
+        </button>
+        {a.puedeMoverse && destinos.length > 0 && (
+          <button className="enlace" onClick={() => empezarAccion({ tipo: 'mover', asignacionId: a.asignacionId, trimestreId: destinos[0].id })}>
+            Mover de trimestre
+          </button>
+        )}
+        {a.puedeQuitarse && (
+          <button className="enlace" onClick={() => empezarAccion({ tipo: 'quitar', asignacionId: a.asignacionId, objetivoId: a.objetivoId })}>
+            Quitar
+          </button>
+        )}
+      </div>
+    )
+  }
 
   if (programa === undefined) return null
 
@@ -177,12 +275,26 @@ export function Programa({ cursoId, trimestres, editable }: Props) {
             <p className="subtitulo">{NOMBRE_TRIMESTRE[t.numero]}</p>
             <ul className="lista-objetivos">
               {delTrimestre.map((a) => (
-                <li key={a.asignacionId}>
-                  <span className="texto-largo">{a.enunciado}</span>
-                  <span className="detalle-objetivo">
-                    {a.arrastrado && <span className="etiqueta etiqueta-apagada">arrastrado</span>}
-                    <span className={`valoracion valoracion-${a.valoracion}`}>{a.etiquetaValoracion}</span>
-                  </span>
+                <li key={a.asignacionId} className="objetivo">
+                  <div className="fila-objetivo">
+                    {accion?.tipo === 'editar' && accion.asignacionId === a.asignacionId ? (
+                      <textarea
+                        className="editar-enunciado"
+                        aria-label="Enunciado del objetivo"
+                        rows={2}
+                        value={accion.texto}
+                        onChange={(e) => setAccion({ ...accion, texto: e.target.value })}
+                        autoFocus
+                      />
+                    ) : (
+                      <span className="texto-largo">{a.enunciado}</span>
+                    )}
+                    <span className="detalle-objetivo">
+                      {a.arrastrado && <span className="etiqueta etiqueta-apagada">arrastrado</span>}
+                      <span className={`valoracion valoracion-${a.valoracion}`}>{a.etiquetaValoracion}</span>
+                    </span>
+                  </div>
+                  {editable && accionesDe(a)}
                 </li>
               ))}
             </ul>
@@ -236,6 +348,7 @@ export function Programa({ cursoId, trimestres, editable }: Props) {
                 onClick={() => {
                   setProblemas([])
                   setRechazo(null)
+                  setAccion(null)
                   setNuevo({ enunciado: '', trimestreId: trimestrePropuesto(abiertos) })
                 }}
               >

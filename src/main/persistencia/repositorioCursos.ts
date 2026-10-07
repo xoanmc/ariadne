@@ -60,6 +60,11 @@ export function obtenerCurso(db: BaseDatos, id: number): CursoAcademico | null {
   return fila ? aCurso(fila) : null
 }
 
+export function obtenerTrimestre(db: BaseDatos, id: number): Trimestre | null {
+  const fila = db.prepare('SELECT * FROM trimestre WHERE id = ?').get(id) as FilaTrimestre | undefined
+  return fila ? aTrimestre(fila) : null
+}
+
 export function trimestresDeCurso(db: BaseDatos, cursoId: number): Trimestre[] {
   const filas = db
     .prepare('SELECT * FROM trimestre WHERE curso_academico_id = ? ORDER BY numero')

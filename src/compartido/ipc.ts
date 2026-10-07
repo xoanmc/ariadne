@@ -28,7 +28,10 @@ export const CANALES = {
   crearPrograma: 'programas:crear',
   editarContenidoPrograma: 'programas:editarContenido',
   anadirObjetivo: 'programas:anadirObjetivo',
-  pendientesDelCursoAnterior: 'programas:pendientesAnteriores'
+  pendientesDelCursoAnterior: 'programas:pendientesAnteriores',
+  editarObjetivo: 'programas:editarObjetivo',
+  moverObjetivo: 'programas:moverObjetivo',
+  quitarObjetivo: 'programas:quitarObjetivo'
 } as const
 
 export type Valoracion = 'sin_valorar' | 'conseguido' | 'no_conseguido' | 'pendiente_desarrollar'
@@ -43,6 +46,8 @@ export interface VistaAsignacion {
   valoracion: Valoracion
   etiquetaValoracion: string
   arrastrado: boolean
+  puedeMoverse: boolean
+  puedeQuitarse: boolean
 }
 
 export interface VistaPrograma {
@@ -275,5 +280,8 @@ export interface AriadneApi {
     crear(cursoId: number, contenido: string | null, arrastrar: number[]): Promise<ResultadoPrograma>
     editarContenido(programaId: number, contenido: string | null): Promise<ResultadoPrograma>
     anadirObjetivo(programaId: number, datos: DatosObjetivo): Promise<ResultadoPrograma>
+    editarObjetivo(objetivoId: number, enunciado: string): Promise<ResultadoPrograma>
+    moverObjetivo(asignacionId: number, trimestreId: number): Promise<ResultadoPrograma>
+    quitarObjetivo(objetivoId: number): Promise<ResultadoPrograma>
   }
 }

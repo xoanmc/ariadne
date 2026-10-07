@@ -23,12 +23,12 @@ En construcción:
 | 0 — Viabilidad en Windows | ✅ Cerrado |
 | 1 — Cimientos | ✅ Cerrado |
 | 2 — Alumnos y ciclo académico | ✅ Cerrado |
-| 3 — Programa de intervención | En curso: T3.1 (programa y objetivos) y T3.2 (partir del curso anterior) hechas |
+| 3 — Programa de intervención | En curso: T3.1 a T3.3 hechas (programa y objetivos, partir del curso anterior, editar y mover objetivos); queda T3.4 |
 | 4 a 7 | Pendientes |
 
 Los cimientos están completos: empaquetado para Windows, base de datos con migraciones, el esquema entero, copias de seguridad con restauración y la capa de dominio con las reglas centrales.
 
-Hoy la aplicación abre la **lista de alumnos**, con los que tienen curso activo arriba, los demás en una sección plegada y una búsqueda por nombre o código. Permite dar de alta a un alumno, que recibe su código interno (`A-01`, `A-02`…), y consultar y editar su ficha. La ficha muestra el historial de cursos del alumno, y cada curso tiene su propia pantalla: sus tres trimestres, con fechas propuestas que ella corrige, su evaluación inicial, su programa de intervención con los objetivos de cada trimestre y sus actas de reunión. Los cursos cerrados se consultan igual, sin poder modificarse. En una esquina, **Copias de seguridad** muestra dónde viven los datos, permite cambiarlos de sitio y gestiona las copias. La edición de objetivos, las sesiones, el cierre de trimestre y los documentos llegan en las tareas siguientes.
+Hoy la aplicación abre la **lista de alumnos**, con los que tienen curso activo arriba, los demás en una sección plegada y una búsqueda por nombre o código. Permite dar de alta a un alumno, que recibe su código interno (`A-01`, `A-02`…), y consultar y editar su ficha. La ficha muestra el historial de cursos del alumno, y cada curso tiene su propia pantalla: sus tres trimestres, con fechas propuestas que ella corrige, su evaluación inicial, su programa de intervención con los objetivos de cada trimestre y sus actas de reunión. Los cursos cerrados se consultan igual, sin poder modificarse. En una esquina, **Copias de seguridad** muestra dónde viven los datos, permite cambiarlos de sitio y gestiona las copias. Las sesiones, el cierre de trimestre y los documentos llegan en los hitos siguientes.
 
 Los cimientos están probados en un equipo Windows real con el paquete zip, incluida la base de datos SQLite empaquetada. Lo del Hito 2 está probado en el Mac, pendiente de probar allí.
 

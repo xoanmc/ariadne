@@ -503,10 +503,6 @@ button.fila-curso.activo {
 }
 
 .lista-objetivos li {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
   padding: 0.6rem 0.9rem;
   margin-bottom: 0.4rem;
   background: #fff;
@@ -578,4 +574,37 @@ label.pendiente {
 
 label.pendiente .texto-largo {
   flex: 1;
+}
+
+.fila-objetivo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.editar-enunciado {
+  flex: 1;
+  font: inherit;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #c9c4b9;
+  border-radius: 4px;
+}
+
+.acciones-objetivo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.acciones-objetivo button.enlace {
+  color: #5d584f;
+  text-decoration: underline;
+}
+
+.acciones-objetivo .problema {
+  flex-basis: 100%;
 }
