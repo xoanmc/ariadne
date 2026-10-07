@@ -131,8 +131,12 @@ export function registrarManejadoresIpc(datos: UbicacionDatos): void {
 
   ipcMain.handle(CANALES.programaDeCurso, (_evento, cursoId: unknown) => programas.programaDeCurso(datos.conexion(), cursoId))
 
-  ipcMain.handle(CANALES.crearPrograma, (_evento, cursoId: unknown, contenido: unknown) =>
-    programas.crearPrograma(datos.conexion(), cursoId, contenido)
+  ipcMain.handle(CANALES.crearPrograma, (_evento, cursoId: unknown, contenido: unknown, arrastrar: unknown) =>
+    programas.crearPrograma(datos.conexion(), cursoId, contenido, arrastrar)
+  )
+
+  ipcMain.handle(CANALES.pendientesDelCursoAnterior, (_evento, cursoId: unknown) =>
+    programas.pendientesDelCursoAnterior(datos.conexion(), cursoId)
   )
 
   ipcMain.handle(CANALES.editarContenidoPrograma, (_evento, programaId: unknown, contenido: unknown) =>

@@ -23,7 +23,7 @@ En construcción:
 | 0 — Viabilidad en Windows | ✅ Cerrado |
 | 1 — Cimientos | ✅ Cerrado |
 | 2 — Alumnos y ciclo académico | ✅ Cerrado |
-| 3 — Programa de intervención | En curso: T3.1 (programa y objetivos) hecha |
+| 3 — Programa de intervención | En curso: T3.1 (programa y objetivos) y T3.2 (partir del curso anterior) hechas |
 | 4 a 7 | Pendientes |
 
 Los cimientos están completos: empaquetado para Windows, base de datos con migraciones, el esquema entero, copias de seguridad con restauración y la capa de dominio con las reglas centrales.

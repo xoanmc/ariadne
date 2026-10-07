@@ -1,4 +1,4 @@
-import type { Valoracion } from './vocabulario'
+import { esArrastrable, type Valoracion } from './vocabulario'
 
 /**
  * El recorrido histórico de un objetivo se obtiene siempre recorriendo asignaciones, nunca la tabla
@@ -56,4 +56,19 @@ export function rachaPendienteDesarrollar(cadena: readonly Eslabon[]): number {
 /** RF-20: el aviso salta al segundo trimestre consecutivo sin abordar, y sigue saltando si la racha continúa. */
 export function estaEstancado(cadena: readonly Eslabon[]): boolean {
   return rachaPendienteDesarrollar(cadena) >= 2
+}
+
+/** Las asignaciones que no tienen continuación: el último eslabón de cada cadena. */
+export function finalesDeCadena<T extends Eslabon>(asignaciones: readonly T[]): T[] {
+  const continuadas = new Set(asignaciones.map((a) => a.asignacionAnteriorId).filter((id) => id !== null))
+  return asignaciones.filter((a) => !continuadas.has(a.id))
+}
+
+/**
+ * Lo que queda pendiente al acabar un curso: los objetivos que llegaron al tercer trimestre y no se
+ * consiguieron o no se abordaron. Lo que ella dejó caer a mitad de curso fue una decisión suya y no
+ * se vuelve a ofrecer.
+ */
+export function pendientesAlAcabarCurso<T extends Eslabon & { numeroTrimestre: number }>(asignaciones: readonly T[]): T[] {
+  return finalesDeCadena(asignaciones).filter((a) => a.numeroTrimestre === 3 && esArrastrable(a.valoracion))
 }

@@ -41,7 +41,8 @@ const api: AriadneApi = {
   },
   programas: {
     deCurso: (cursoId) => ipcRenderer.invoke(CANALES.programaDeCurso, cursoId),
-    crear: (cursoId, contenido) => ipcRenderer.invoke(CANALES.crearPrograma, cursoId, contenido),
+    pendientesDelCursoAnterior: (cursoId) => ipcRenderer.invoke(CANALES.pendientesDelCursoAnterior, cursoId),
+    crear: (cursoId, contenido, arrastrar) => ipcRenderer.invoke(CANALES.crearPrograma, cursoId, contenido, arrastrar),
     editarContenido: (programaId, contenido) => ipcRenderer.invoke(CANALES.editarContenidoPrograma, programaId, contenido),
     anadirObjetivo: (programaId, datos) => ipcRenderer.invoke(CANALES.anadirObjetivo, programaId, datos)
   }

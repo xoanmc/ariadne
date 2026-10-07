@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import type { ResultadoPrograma, VistaPrograma, VistaTrimestre } from '../../compartido/ipc'
+import type { PendientesAnteriores, ResultadoPrograma, VistaPrograma, VistaTrimestre } from '../../compartido/ipc'
 import { fechaCorta, hoy } from '../fechas'
 import { NOMBRE_TRIMESTRE } from './FormularioCurso'
 
@@ -24,6 +24,8 @@ export function Programa({ cursoId, trimestres, editable }: Props) {
   const [problemas, setProblemas] = useState<Problemas>([])
   const [rechazo, setRechazo] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
+  const [pendientes, setPendientes] = useState<PendientesAnteriores | null>(null)
+  const [elegidos, setElegidos] = useState<Set<number>>(new Set())
   const api = window.ariadne.programas
   const abiertos = trimestres.filter((t) => t.estado === 'abierto')
 
@@ -48,7 +50,7 @@ export function Programa({ cursoId, trimestres, editable }: Props) {
     if (editandoContenido === null) return
     const peticion = programa
       ? api.editarContenido(programa.id, editandoContenido)
-      : api.crear(cursoId, editandoContenido)
+      : api.crear(cursoId, editandoContenido, [...elegidos])
     aplicar(peticion, () => setEditandoContenido(null))
   }
 
@@ -66,6 +68,31 @@ export function Programa({ cursoId, trimestres, editable }: Props) {
 
   const formularioContenido = editandoContenido !== null && (
     <form className="formulario" onSubmit={guardarContenido} noValidate>
+      {!programa && pendientes && (
+        <fieldset className="pendientes">
+          <legend>Objetivos pendientes del curso {pendientes.curso}</legend>
+          <p className="apunte">
+            Acabaron el curso sin conseguirse o sin abordarse. Los marcados pasan al 1.er trimestre de este curso, enlazados
+            con su historia; luego puedes reformularlos sin tocar lo del año pasado.
+          </p>
+          {pendientes.objetivos.map((o) => (
+            <label key={o.asignacionId} className="pendiente">
+              <input
+                type="checkbox"
+                checked={elegidos.has(o.asignacionId)}
+                onChange={(e) => {
+                  const siguiente = new Set(elegidos)
+                  if (e.target.checked) siguiente.add(o.asignacionId)
+                  else siguiente.delete(o.asignacionId)
+                  setElegidos(siguiente)
+                }}
+              />
+              <span className="texto-largo">{o.enunciado}</span>
+              <span className={`valoracion valoracion-${o.valoracion}`}>{o.etiquetaValoracion}</span>
+            </label>
+          ))}
+        </fieldset>
+      )}
       <div className="campo">
         <label htmlFor="contenidoPrograma">Contenido general (opcional)</label>
         <textarea
@@ -96,7 +123,16 @@ export function Programa({ cursoId, trimestres, editable }: Props) {
             <>
               <p className="apunte">Este curso todavía no tiene programa de intervención.</p>
               <div className="acciones">
-                <button className="principal" onClick={() => setEditandoContenido('')}>
+                <button
+                  className="principal"
+                  onClick={async () => {
+                    // Lo normal es continuar con lo pendiente: vienen todos marcados y ella desmarca
+                    const anteriores = await api.pendientesDelCursoAnterior(cursoId)
+                    setPendientes(anteriores)
+                    setElegidos(new Set(anteriores?.objetivos.map((o) => o.asignacionId) ?? []))
+                    setEditandoContenido('')
+                  }}
+                >
                   Crear programa
                 </button>
               </div>

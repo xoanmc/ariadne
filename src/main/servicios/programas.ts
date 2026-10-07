@@ -1,4 +1,5 @@
-import type { DatosObjetivo, ResultadoPrograma, VistaPrograma } from '../../compartido/ipc'
+import type { DatosObjetivo, PendientesAnteriores, ResultadoPrograma, VistaPrograma } from '../../compartido/ipc'
+import { pendientesAlAcabarCurso } from '../dominio/arrastre'
 import type { CursoAcademico, Fecha, ProgramaIntervencion } from '../dominio/entidades'
 import { normalizarEnunciado, validarEnunciado } from '../dominio/programa'
 import { ETIQUETAS_VALORACION } from '../dominio/vocabulario'
@@ -45,7 +46,45 @@ export function programaDeCurso(db: BaseDatos, cursoId: unknown): VistaPrograma 
   return programa ? vista(db, programa) : null
 }
 
-export function crearPrograma(db: BaseDatos, cursoId: unknown, contenido: unknown, hoy: Fecha = hoyLocal()): ResultadoPrograma {
+/** Los objetivos del 3.er trimestre del curso anterior que acabaron sin conseguir o sin abordar. */
+function pendientesDe(db: BaseDatos, curso: CursoAcademico) {
+  if (curso.cursoAnteriorId === null) return null
+  const anterior = obtenerCurso(db, curso.cursoAnteriorId)!
+  const programaAnterior = repositorio.programaDeCurso(db, anterior.id)
+  const asignaciones = programaAnterior ? repositorio.asignacionesDePrograma(db, programaAnterior.id) : []
+  const pendientes = pendientesAlAcabarCurso(
+    asignaciones.map((a) => ({ ...a, id: a.asignacionId }))
+  )
+  return { anterior, pendientes }
+}
+
+export function pendientesDelCursoAnterior(db: BaseDatos, cursoId: unknown): PendientesAnteriores | null {
+  const curso = esId(cursoId) ? obtenerCurso(db, cursoId) : null
+  const encontrados = curso && pendientesDe(db, curso)
+  if (!encontrados || encontrados.pendientes.length === 0) return null
+  return {
+    curso: encontrados.anterior.curso,
+    objetivos: encontrados.pendientes.map((p) => ({
+      asignacionId: p.asignacionId,
+      enunciado: p.enunciado,
+      valoracion: p.valoracion,
+      etiquetaValoracion: ETIQUETAS_VALORACION[p.valoracion]
+    }))
+  }
+}
+
+/**
+ * Crea el programa y, si ella los marca, continúa los objetivos pendientes del curso anterior: cada
+ * uno se crea como objetivo nuevo de este curso, con el enunciado copiado, en el 1.er trimestre y
+ * enlazado a su último trimestre del curso anterior. Reformularlo después no toca el del año pasado.
+ */
+export function crearPrograma(
+  db: BaseDatos,
+  cursoId: unknown,
+  contenido: unknown,
+  arrastrar: unknown = [],
+  hoy: Fecha = hoyLocal()
+): ResultadoPrograma {
   const curso = esId(cursoId) ? obtenerCurso(db, cursoId) : null
   if (!curso) return { tipo: 'rechazado', mensaje: 'Este curso no existe.' }
   const motivo = cerrado(curso)
@@ -54,7 +93,21 @@ export function crearPrograma(db: BaseDatos, cursoId: unknown, contenido: unknow
     return { tipo: 'rechazado', mensaje: `El curso ${curso.curso} ya tiene programa de intervención.` }
   }
 
-  const id = repositorio.insertarPrograma(db, curso.id, textoOpcional(contenido), hoy)
+  const pedidos = Array.isArray(arrastrar) ? arrastrar.filter(esId) : []
+  const pendientes = pendientesDe(db, curso)?.pendientes ?? []
+  const elegidos = pendientes.filter((p) => pedidos.includes(p.asignacionId))
+  if (elegidos.length !== new Set(pedidos).size) {
+    return { tipo: 'rechazado', mensaje: 'Alguno de los objetivos elegidos no está pendiente del curso anterior.' }
+  }
+  const primerTrimestre = trimestresDeCurso(db, curso.id).find((t) => t.numero === 1)!
+
+  const id = db.transaction(() => {
+    const nuevo = repositorio.insertarPrograma(db, curso.id, textoOpcional(contenido), hoy)
+    for (const p of elegidos) {
+      repositorio.insertarObjetivoConAsignacion(db, nuevo, p.enunciado, primerTrimestre.id, hoy, p.asignacionId)
+    }
+    return nuevo
+  })()
   return { tipo: 'guardado', programa: vista(db, repositorio.obtenerPrograma(db, id)!) }
 }
 

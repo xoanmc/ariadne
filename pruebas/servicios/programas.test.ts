@@ -32,7 +32,7 @@ function trimestre(numero: 1 | 2 | 3, de = curso): number {
 }
 
 function programa(contenido: string | null = null) {
-  const resultado = crearPrograma(db, curso.id, contenido, HOY)
+  const resultado = crearPrograma(db, curso.id, contenido, [], HOY)
   if (resultado.tipo !== 'guardado') throw new Error(`creación fallida: ${JSON.stringify(resultado)}`)
   return resultado.programa
 }
@@ -58,7 +58,7 @@ describe('programa de intervención', () => {
 
   it('un curso tiene un solo programa', () => {
     programa()
-    expect(crearPrograma(db, curso.id, null, HOY)).toEqual({
+    expect(crearPrograma(db, curso.id, null, [], HOY)).toEqual({
       tipo: 'rechazado',
       mensaje: 'El curso 2026/2027 ya tiene programa de intervención.'
     })
@@ -126,13 +126,13 @@ describe('curso cerrado', () => {
 
   it('en un curso cerrado no se crea programa', () => {
     db.prepare("UPDATE curso_academico SET estado = 'cerrado' WHERE id = ?").run(curso.id)
-    expect(crearPrograma(db, curso.id, null, HOY).tipo).toBe('rechazado')
+    expect(crearPrograma(db, curso.id, null, [], HOY).tipo).toBe('rechazado')
   })
 })
 
 describe('casos raros', () => {
   it('un curso o un programa que no existen se dicen claramente', () => {
-    expect(crearPrograma(db, 999, null, HOY)).toEqual({ tipo: 'rechazado', mensaje: 'Este curso no existe.' })
+    expect(crearPrograma(db, 999, null, [], HOY)).toEqual({ tipo: 'rechazado', mensaje: 'Este curso no existe.' })
     expect(anadirObjetivo(db, 999, { enunciado: 'x', trimestreId: 1 }, HOY)).toEqual({
       tipo: 'rechazado',
       mensaje: 'Este programa no existe.'

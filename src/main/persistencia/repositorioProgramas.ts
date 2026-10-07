@@ -64,14 +64,15 @@ export function insertarObjetivoConAsignacion(
   programaId: number,
   enunciado: string,
   trimestreId: number,
-  fecha: string
+  fecha: string,
+  asignacionAnteriorId: number | null = null
 ): number {
   const objetivo = db
     .prepare('INSERT INTO objetivo (programa_id, enunciado, fecha_creacion) VALUES (?, ?, ?)')
     .run(programaId, enunciado, fecha)
   const asignacion = db
-    .prepare('INSERT INTO asignacion_trimestral (objetivo_id, trimestre_id) VALUES (?, ?)')
-    .run(objetivo.lastInsertRowid, trimestreId)
+    .prepare('INSERT INTO asignacion_trimestral (objetivo_id, trimestre_id, asignacion_anterior_id) VALUES (?, ?, ?)')
+    .run(objetivo.lastInsertRowid, trimestreId, asignacionAnteriorId)
   return Number(asignacion.lastInsertRowid)
 }
 

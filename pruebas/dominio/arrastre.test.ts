@@ -3,6 +3,8 @@ import {
   ErrorCadena,
   estaCompleta,
   estaEstancado,
+  finalesDeCadena,
+  pendientesAlAcabarCurso,
   rachaPendienteDesarrollar,
   recorrerCadena,
   type Eslabon
@@ -91,5 +93,29 @@ describe('objetivos estancados', () => {
     ]
     expect(rachaPendienteDesarrollar(cadena)).toBe(0)
     expect(estaEstancado(cadena)).toBe(false)
+  })
+})
+
+describe('pendientes al acabar el curso', () => {
+  const en = (id: number, numeroTrimestre: number, valoracion: Valoracion, anterior: number | null = null) => ({
+    ...eslabon(id, valoracion, anterior),
+    numeroTrimestre
+  })
+
+  it('el final de cada cadena es la asignación que nadie continúa', () => {
+    const asignaciones = [eslabon(1, 'no_conseguido'), eslabon(2, 'conseguido', 1), eslabon(3, 'pendiente_desarrollar')]
+    expect(finalesDeCadena(asignaciones).map((a) => a.id)).toEqual([2, 3])
+  })
+
+  it('solo cuenta lo que llegó al tercer trimestre sin conseguirse o sin abordarse', () => {
+    const asignaciones = [
+      en(1, 1, 'no_conseguido'),
+      en(2, 2, 'no_conseguido', 1),
+      en(3, 3, 'no_conseguido', 2), // arrastrado hasta el final: pendiente
+      en(4, 3, 'pendiente_desarrollar'), // sin abordar en el tercero: pendiente
+      en(5, 3, 'conseguido'), // conseguido: no
+      en(6, 2, 'no_conseguido') // se dejó caer en el segundo trimestre: decisión suya, no
+    ]
+    expect(pendientesAlAcabarCurso(asignaciones).map((a) => a.id)).toEqual([3, 4])
   })
 })

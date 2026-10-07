@@ -27,7 +27,8 @@ export const CANALES = {
   programaDeCurso: 'programas:deCurso',
   crearPrograma: 'programas:crear',
   editarContenidoPrograma: 'programas:editarContenido',
-  anadirObjetivo: 'programas:anadirObjetivo'
+  anadirObjetivo: 'programas:anadirObjetivo',
+  pendientesDelCursoAnterior: 'programas:pendientesAnteriores'
 } as const
 
 export type Valoracion = 'sin_valorar' | 'conseguido' | 'no_conseguido' | 'pendiente_desarrollar'
@@ -50,6 +51,12 @@ export interface VistaPrograma {
   fechaRevision: string | null
   contenido: string | null
   asignaciones: VistaAsignacion[]
+}
+
+/** Lo que quedó pendiente al acabar el curso anterior, para continuarlo en el nuevo. */
+export interface PendientesAnteriores {
+  curso: string
+  objetivos: { asignacionId: number; enunciado: string; valoracion: Valoracion; etiquetaValoracion: string }[]
 }
 
 export interface DatosObjetivo {
@@ -264,7 +271,8 @@ export interface AriadneApi {
   }
   programas: {
     deCurso(cursoId: number): Promise<VistaPrograma | null>
-    crear(cursoId: number, contenido: string | null): Promise<ResultadoPrograma>
+    pendientesDelCursoAnterior(cursoId: number): Promise<PendientesAnteriores | null>
+    crear(cursoId: number, contenido: string | null, arrastrar: number[]): Promise<ResultadoPrograma>
     editarContenido(programaId: number, contenido: string | null): Promise<ResultadoPrograma>
     anadirObjetivo(programaId: number, datos: DatosObjetivo): Promise<ResultadoPrograma>
   }
