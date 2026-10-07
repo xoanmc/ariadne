@@ -36,7 +36,8 @@ export const CANALES = {
   anadirOpcion: 'catalogo:anadir',
   renombrarOpcion: 'catalogo:renombrar',
   activarOpcion: 'catalogo:activar',
-  moverOpcion: 'catalogo:mover'
+  moverOpcion: 'catalogo:mover',
+  registrarSesion: 'sesiones:registrar'
 } as const
 
 export type Valoracion = 'sin_valorar' | 'conseguido' | 'no_conseguido' | 'pendiente_desarrollar'
@@ -86,6 +87,20 @@ export interface ListaDeOpciones {
 export type ResultadoCatalogo =
   | { tipo: 'guardado'; listas: ListaDeOpciones[] }
   | { tipo: 'invalido'; mensaje: string }
+
+export interface DatosSesion {
+  fecha: string
+  estadoAlumno: string[]
+  respuestaActividades: string[]
+  observaciones: string | null
+  incidencias: string | null
+  saludMedicacion: string | null
+}
+
+export type ResultadoSesion =
+  | { tipo: 'registrada'; sesionId: number; resumen: string }
+  | { tipo: 'invalida'; problemas: { campo: 'fecha' | 'contenido'; mensaje: string }[] }
+  | { tipo: 'rechazada'; mensaje: string }
 
 export interface DatosObjetivo {
   enunciado: string
@@ -315,5 +330,8 @@ export interface AriadneApi {
     renombrar(opcionId: number, texto: string): Promise<ResultadoCatalogo>
     activar(opcionId: number, activa: boolean): Promise<ResultadoCatalogo>
     mover(opcionId: number, hacia: 'arriba' | 'abajo'): Promise<ResultadoCatalogo>
+  }
+  sesiones: {
+    registrar(alumnoId: number, datos: DatosSesion): Promise<ResultadoSesion>
   }
 }

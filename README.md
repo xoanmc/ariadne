@@ -24,12 +24,12 @@ En construcción:
 | 1 — Cimientos | ✅ Cerrado |
 | 2 — Alumnos y ciclo académico | ✅ Cerrado |
 | 3 — Programa de intervención | ✅ Cerrado |
-| 4 — Registro de sesión | En curso: T4.1 (opciones del registro) hecha |
+| 4 — Registro de sesión | En curso: T4.1 (opciones del registro) y T4.2 (registro rápido) hechas |
 | 5 a 7 | Pendientes |
 
 Los cimientos están completos: empaquetado para Windows, base de datos con migraciones, el esquema entero, copias de seguridad con restauración y la capa de dominio con las reglas centrales.
 
-Hoy la aplicación abre la **lista de alumnos**, con los que tienen curso activo arriba, los demás en una sección plegada y una búsqueda por nombre o código. Permite dar de alta a un alumno, que recibe su código interno (`A-01`, `A-02`…), y consultar y editar su ficha. La ficha muestra el historial de cursos del alumno, y cada curso tiene su propia pantalla: arriba, el trimestre en curso con sus objetivos; después sus tres trimestres, con fechas propuestas que ella corrige, su evaluación inicial, su programa de intervención con los objetivos de cada trimestre y sus actas de reunión. Los cursos cerrados se consultan igual, sin poder modificarse. En una esquina, **Opciones del registro** guarda las palabras que ella pulsará al registrar una sesión, y **Copias de seguridad** muestra dónde viven los datos, permite cambiarlos de sitio y gestiona las copias. Las sesiones, el cierre de trimestre y los documentos llegan en los hitos siguientes.
+Hoy la aplicación abre la **lista de alumnos**, con los que tienen curso activo arriba, los demás en una sección plegada y una búsqueda por nombre o código. Cada alumno con curso activo tiene su botón **Registrar sesión**: alumno y fecha ya puestos, sus palabras como botones que se marcan, y el trimestre deducido sin preguntar. Permite dar de alta a un alumno, que recibe su código interno (`A-01`, `A-02`…), y consultar y editar su ficha. La ficha muestra el historial de cursos del alumno, y cada curso tiene su propia pantalla: arriba, el trimestre en curso con sus objetivos; después sus tres trimestres, con fechas propuestas que ella corrige, su evaluación inicial, su programa de intervención con los objetivos de cada trimestre y sus actas de reunión. Los cursos cerrados se consultan igual, sin poder modificarse. En una esquina, **Opciones del registro** guarda las palabras que ella pulsará al registrar una sesión, y **Copias de seguridad** muestra dónde viven los datos, permite cambiarlos de sitio y gestiona las copias. Las sesiones, el cierre de trimestre y los documentos llegan en los hitos siguientes.
 
 Los cimientos están probados en un equipo Windows real con el paquete zip, incluida la base de datos SQLite empaquetada. Lo de los hitos 2 y 3 está probado en el Mac, pendiente de probar allí.
 

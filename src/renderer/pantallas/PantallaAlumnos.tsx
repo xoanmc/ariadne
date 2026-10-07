@@ -3,13 +3,22 @@ import { coincideBusqueda } from '../../compartido/busqueda'
 import type { AlumnoEnLista } from '../../compartido/ipc'
 
 interface Props {
+  aviso?: string
   onAbrir: (id: number) => void
   onAlta: () => void
+  onRegistrar: (id: number) => void
 }
 
-function Fila({ alumno, onAbrir, marcarSinCurso = false }: { alumno: AlumnoEnLista; onAbrir: (id: number) => void; marcarSinCurso?: boolean }) {
+interface PropsFila {
+  alumno: AlumnoEnLista
+  onAbrir: (id: number) => void
+  onRegistrar: (id: number) => void
+  marcarSinCurso?: boolean
+}
+
+function Fila({ alumno, onAbrir, onRegistrar, marcarSinCurso = false }: PropsFila) {
   return (
-    <li>
+    <li className="fila-con-accion">
       <button className="fila-alumno" onClick={() => onAbrir(alumno.id)}>
         <span className="nombre-alumno">
           {alumno.nombre} {alumno.apellidos}
@@ -20,11 +29,16 @@ function Fila({ alumno, onAbrir, marcarSinCurso = false }: { alumno: AlumnoEnLis
           <span className="codigo">{alumno.codigoInterno}</span>
         </span>
       </button>
+      {alumno.cursoActivo && (
+        <button className="registrar" onClick={() => onRegistrar(alumno.id)}>
+          Registrar sesión
+        </button>
+      )}
     </li>
   )
 }
 
-export function PantallaAlumnos({ onAbrir, onAlta }: Props) {
+export function PantallaAlumnos({ aviso, onAbrir, onAlta, onRegistrar }: Props) {
   const [alumnos, setAlumnos] = useState<AlumnoEnLista[] | null>(null)
   const [consulta, setConsulta] = useState('')
   const [verSinCurso, setVerSinCurso] = useState(false)
@@ -56,6 +70,8 @@ export function PantallaAlumnos({ onAbrir, onAlta }: Props) {
         </button>
       </div>
 
+      {aviso && <p className="confirmacion">{aviso}</p>}
+
       {alumnos.length === 0 ? (
         <div className="vacio">
           <p>Todavía no hay ningún alumno.</p>
@@ -82,7 +98,7 @@ export function PantallaAlumnos({ onAbrir, onAlta }: Props) {
                 <p className="apunte">Pulsa Intro para abrir el primero.</p>
                 <ul className="lista-alumnos">
                   {resultados.map((a) => (
-                    <Fila key={a.id} alumno={a} onAbrir={onAbrir} marcarSinCurso />
+                    <Fila key={a.id} alumno={a} onAbrir={onAbrir} onRegistrar={onRegistrar} marcarSinCurso />
                   ))}
                 </ul>
               </>
@@ -92,7 +108,7 @@ export function PantallaAlumnos({ onAbrir, onAlta }: Props) {
               {activos.length > 0 ? (
                 <ul className="lista-alumnos">
                   {activos.map((a) => (
-                    <Fila key={a.id} alumno={a} onAbrir={onAbrir} />
+                    <Fila key={a.id} alumno={a} onAbrir={onAbrir} onRegistrar={onRegistrar} />
                   ))}
                 </ul>
               ) : (
@@ -109,7 +125,7 @@ export function PantallaAlumnos({ onAbrir, onAlta }: Props) {
                   {sinCursoVisible && (
                     <ul className="lista-alumnos">
                       {sinCurso.map((a) => (
-                        <Fila key={a.id} alumno={a} onAbrir={onAbrir} />
+                        <Fila key={a.id} alumno={a} onAbrir={onAbrir} onRegistrar={onRegistrar} />
                       ))}
                     </ul>
                   )}

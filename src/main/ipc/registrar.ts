@@ -7,6 +7,7 @@ import * as catalogo from '../servicios/catalogo'
 import * as cursos from '../servicios/cursos'
 import * as evaluaciones from '../servicios/evaluaciones'
 import * as programas from '../servicios/programas'
+import * as sesiones from '../servicios/sesiones'
 import type { UbicacionDatos } from '../servicios/ubicacionDatos'
 
 function ventanaDe(evento: IpcMainInvokeEvent): BrowserWindow {
@@ -174,5 +175,9 @@ export function registrarManejadoresIpc(datos: UbicacionDatos): void {
 
   ipcMain.handle(CANALES.moverOpcion, (_evento, opcionId: unknown, hacia: unknown) =>
     catalogo.moverOpcion(datos.conexion(), opcionId, hacia)
+  )
+
+  ipcMain.handle(CANALES.registrarSesion, (_evento, alumnoId: unknown, entrada) =>
+    sesiones.registrarSesion(datos.conexion(), alumnoId, entrada)
   )
 }

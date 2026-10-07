@@ -704,3 +704,75 @@ button.flecha {
   margin-top: 0.75rem;
   max-width: 28rem;
 }
+
+/* Registro de sesión */
+
+.fila-con-accion {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+  margin-bottom: 0.4rem;
+}
+
+.fila-con-accion button.fila-alumno {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+button.registrar {
+  white-space: nowrap;
+  border-color: #2f5d50;
+  color: #2f5d50;
+}
+
+.registro .opciones-sesion {
+  border: none;
+  padding: 0;
+  margin: 0.5rem 0 1.1rem;
+}
+
+.opciones-sesion legend {
+  font-size: 0.9rem;
+  color: #4a463f;
+  padding: 0;
+  margin-bottom: 0.4rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+button.chip {
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+}
+
+button.chip.marcada {
+  background: #2f5d50;
+  border-color: #2f5d50;
+  color: #fff;
+}
+
+details.plegado {
+  margin-bottom: 0.75rem;
+}
+
+details.plegado summary {
+  cursor: pointer;
+  color: #4a463f;
+  font-size: 0.95rem;
+  padding: 0.25rem 0;
+}
+
+details.plegado textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 0.4rem;
+  font: inherit;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #c9c4b9;
+  border-radius: 4px;
+}

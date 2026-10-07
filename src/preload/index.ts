@@ -55,6 +55,9 @@ const api: AriadneApi = {
     renombrar: (opcionId, texto) => ipcRenderer.invoke(CANALES.renombrarOpcion, opcionId, texto),
     activar: (opcionId, activa) => ipcRenderer.invoke(CANALES.activarOpcion, opcionId, activa),
     mover: (opcionId, hacia) => ipcRenderer.invoke(CANALES.moverOpcion, opcionId, hacia)
+  },
+  sesiones: {
+    registrar: (alumnoId, datos) => ipcRenderer.invoke(CANALES.registrarSesion, alumnoId, datos)
   }
 }
 

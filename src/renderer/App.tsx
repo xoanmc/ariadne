@@ -6,10 +6,12 @@ import { PantallaCopias } from './pantallas/PantallaCopias'
 import { PantallaCurso } from './pantallas/PantallaCurso'
 import { PantallaFicha } from './pantallas/PantallaFicha'
 import { PantallaOpciones } from './pantallas/PantallaOpciones'
+import { PantallaRegistro } from './pantallas/PantallaRegistro'
 import { PantallaSinDatos } from './pantallas/PantallaSinDatos'
 
 type Vista =
-  | { tipo: 'alumnos' }
+  | { tipo: 'alumnos'; aviso?: string }
+  | { tipo: 'registro'; alumnoId: number | null }
   | { tipo: 'alta' }
   | { tipo: 'ficha'; id: number; recienCreado: boolean }
   | { tipo: 'curso'; cursoId: number; recienAbierto: boolean }
@@ -65,8 +67,10 @@ export function App() {
 
       {vista.tipo === 'alumnos' && (
         <PantallaAlumnos
+          aviso={vista.aviso}
           onAbrir={(id) => setVista({ tipo: 'ficha', id, recienCreado: false })}
           onAlta={() => setVista({ tipo: 'alta' })}
+          onRegistrar={(alumnoId) => setVista({ tipo: 'registro', alumnoId })}
         />
       )}
       {vista.tipo === 'alta' && (
@@ -87,6 +91,15 @@ export function App() {
           cursoId={vista.cursoId}
           recienAbierto={vista.recienAbierto}
           onVolver={(alumnoId) => setVista({ tipo: 'ficha', id: alumnoId, recienCreado: false })}
+          onRegistrar={(alumnoId) => setVista({ tipo: 'registro', alumnoId })}
+        />
+      )}
+      {vista.tipo === 'registro' && (
+        <PantallaRegistro
+          alumnoId={vista.alumnoId}
+          onRegistrada={(resumen) => setVista({ tipo: 'alumnos', aviso: resumen })}
+          onCancelar={alumnos}
+          onOpciones={() => setVista({ tipo: 'opciones' })}
         />
       )}
       {vista.tipo === 'opciones' && <PantallaOpciones />}

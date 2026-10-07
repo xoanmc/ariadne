@@ -133,7 +133,7 @@ asignacion_trimestral
 sesion
   id · alumno_id · trimestre_id · fecha
   estado_alumno · respuesta_actividades
-  incidencias · salud_medicacion
+  observaciones · incidencias · salud_medicacion
 
 sesion_objetivo
   sesion_id · objetivo_id

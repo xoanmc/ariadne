@@ -11,10 +11,11 @@ interface Props {
   cursoId: number
   recienAbierto: boolean
   onVolver: (alumnoId: number) => void
+  onRegistrar: (alumnoId: number) => void
 }
 
 /** Todo lo de un curso. Uno cerrado se consulta igual, pero ya no se modifica. */
-export function PantallaCurso({ cursoId, recienAbierto, onVolver }: Props) {
+export function PantallaCurso({ cursoId, recienAbierto, onVolver, onRegistrar }: Props) {
   const [curso, setCurso] = useState<VistaCurso | null | undefined>(undefined)
   const [alumno, setAlumno] = useState<FichaAlumno | null>(null)
   const [programa, setPrograma] = useState<VistaPrograma | null | undefined>(undefined)
@@ -77,6 +78,14 @@ export function PantallaCurso({ cursoId, recienAbierto, onVolver }: Props) {
       {!activo && <p className="apunte">Este curso está cerrado: se puede consultar, pero ya no se modifica.</p>}
 
       {confirmacion && !corrigiendo && <p className="confirmacion">{confirmacion}</p>}
+
+      {activo && (
+        <div className="acciones">
+          <button className="principal" onClick={() => onRegistrar(curso.alumnoId)}>
+            Registrar sesión
+          </button>
+        </div>
+      )}
 
       {activo && programa !== undefined && <TrimestreEnCurso curso={curso} programa={programa} />}
 
