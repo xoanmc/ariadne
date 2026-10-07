@@ -37,7 +37,8 @@ export const CANALES = {
   renombrarOpcion: 'catalogo:renombrar',
   activarOpcion: 'catalogo:activar',
   moverOpcion: 'catalogo:mover',
-  registrarSesion: 'sesiones:registrar'
+  registrarSesion: 'sesiones:registrar',
+  objetivosParaSesion: 'sesiones:objetivos'
 } as const
 
 export type Valoracion = 'sin_valorar' | 'conseguido' | 'no_conseguido' | 'pendiente_desarrollar'
@@ -90,11 +91,19 @@ export type ResultadoCatalogo =
 
 export interface DatosSesion {
   fecha: string
+  /** Objetivos trabajados, opcional: solo los del trimestre en el que cae la sesión. */
+  objetivos: number[]
   estadoAlumno: string[]
   respuestaActividades: string[]
   observaciones: string | null
   incidencias: string | null
   saludMedicacion: string | null
+}
+
+/** Los objetivos que se pueden marcar en una sesión de esa fecha; null si la fecha no cae en un trimestre abierto. */
+export interface ObjetivosParaSesion {
+  trimestre: string
+  objetivos: { objetivoId: number; enunciado: string; arrastrado: boolean }[]
 }
 
 export type ResultadoSesion =
@@ -333,5 +342,6 @@ export interface AriadneApi {
   }
   sesiones: {
     registrar(alumnoId: number, datos: DatosSesion): Promise<ResultadoSesion>
+    objetivosPara(alumnoId: number, fecha: string): Promise<ObjetivosParaSesion | null>
   }
 }

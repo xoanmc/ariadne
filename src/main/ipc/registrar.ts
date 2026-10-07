@@ -180,4 +180,8 @@ export function registrarManejadoresIpc(datos: UbicacionDatos): void {
   ipcMain.handle(CANALES.registrarSesion, (_evento, alumnoId: unknown, entrada) =>
     sesiones.registrarSesion(datos.conexion(), alumnoId, entrada)
   )
+
+  ipcMain.handle(CANALES.objetivosParaSesion, (_evento, alumnoId: unknown, fecha: unknown) =>
+    sesiones.objetivosParaSesion(datos.conexion(), alumnoId, fecha)
+  )
 }

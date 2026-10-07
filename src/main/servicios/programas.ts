@@ -13,6 +13,9 @@ import { hoyLocal } from './fecha'
 function motivoParaNoMover(db: BaseDatos, asignacion: repositorio.AsignacionGuardada, trimestre: Trimestre): string | null {
   if (trimestre.estado === 'cerrado') return `El trimestre ${trimestre.numero} está cerrado.`
   if (asignacion.valoracion !== 'sin_valorar') return 'Ya está valorado en este trimestre: se trabajó aquí, así que no se mueve.'
+  if (repositorio.trabajadoEnTrimestre(db, asignacion.objetivoId, trimestre.id)) {
+    return 'Ya se trabajó en alguna sesión de este trimestre, así que no se mueve.'
+  }
   if (repositorio.tieneContinuacion(db, asignacion.id)) return 'Ya continúa en otro trimestre.'
   return null
 }

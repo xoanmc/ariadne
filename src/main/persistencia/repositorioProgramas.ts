@@ -155,3 +155,15 @@ export function borrarObjetivo(db: BaseDatos, objetivoId: number): void {
   db.prepare('DELETE FROM asignacion_trimestral WHERE objetivo_id = ?').run(objetivoId)
   db.prepare('DELETE FROM objetivo WHERE id = ?').run(objetivoId)
 }
+
+/** Si el objetivo se trabajó en alguna sesión de ese trimestre. */
+export function trabajadoEnTrimestre(db: BaseDatos, objetivoId: number, trimestreId: number): boolean {
+  return (
+    db
+      .prepare(
+        `SELECT 1 FROM sesion_objetivo so JOIN sesion s ON s.id = so.sesion_id
+         WHERE so.objetivo_id = ? AND s.trimestre_id = ?`
+      )
+      .get(objetivoId, trimestreId) !== undefined
+  )
+}

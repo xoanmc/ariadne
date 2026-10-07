@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import type { AlumnoEnLista, CategoriaCatalogo, DatosSesion, ListaDeOpciones } from '../../compartido/ipc'
+import type { AlumnoEnLista, CategoriaCatalogo, DatosSesion, ListaDeOpciones, ObjetivosParaSesion } from '../../compartido/ipc'
 import { hoy } from '../fechas'
 
 interface Props {
@@ -26,6 +26,7 @@ export function PantallaRegistro({ alumnoId, onRegistrada, onCancelar, onOpcione
   const [alumno, setAlumno] = useState<number | null>(alumnoId)
   const [datos, setDatos] = useState<DatosSesion>({
     fecha: hoy(),
+    objetivos: [],
     estadoAlumno: [],
     respuestaActividades: [],
     observaciones: null,
@@ -35,6 +36,7 @@ export function PantallaRegistro({ alumnoId, onRegistrada, onCancelar, onOpcione
   const [problemas, setProblemas] = useState<Problemas>([])
   const [rechazo, setRechazo] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
+  const [delTrimestre, setDelTrimestre] = useState<ObjetivosParaSesion | null>(null)
 
   useEffect(() => {
     Promise.all([window.ariadne.alumnos.listar(), window.ariadne.catalogo.listar()]).then(([todos, opciones]) => {
@@ -48,6 +50,23 @@ export function PantallaRegistro({ alumnoId, onRegistrada, onCancelar, onOpcione
     setDatos((actual) => ({ ...actual, ...cambios }))
     const campo = 'fecha' in cambios ? 'fecha' : 'contenido'
     setProblemas((actuales) => actuales.filter((p) => p.campo !== campo))
+  }
+
+  // Los objetivos que se ofrecen son los del trimestre en el que cae la fecha: si cambia alumno o fecha, cambian
+  useEffect(() => {
+    if (alumno === null) return setDelTrimestre(null)
+    window.ariadne.sesiones.objetivosPara(alumno, datos.fecha).then((encontrados) => {
+      setDelTrimestre(encontrados)
+      const validos = new Set(encontrados?.objetivos.map((o) => o.objetivoId) ?? [])
+      setDatos((actual) => ({ ...actual, objetivos: actual.objetivos.filter((id) => validos.has(id)) }))
+    })
+  }, [alumno, datos.fecha])
+
+  function alternarObjetivo(id: number) {
+    setDatos((actual) => ({
+      ...actual,
+      objetivos: actual.objetivos.includes(id) ? actual.objetivos.filter((o) => o !== id) : [...actual.objetivos, id]
+    }))
   }
 
   function alternar(campo: 'estadoAlumno' | 'respuestaActividades', opcion: string) {
@@ -141,6 +160,23 @@ export function PantallaRegistro({ alumnoId, onRegistrada, onCancelar, onOpcione
             </fieldset>
           )
         })}
+
+        {delTrimestre && delTrimestre.objetivos.length > 0 && (
+          <fieldset className="objetivos-sesion">
+            <legend>Objetivos trabajados (opcional) · {delTrimestre.trimestre}</legend>
+            {delTrimestre.objetivos.map((o) => (
+              <label key={o.objetivoId} className="pendiente">
+                <input
+                  type="checkbox"
+                  checked={datos.objetivos.includes(o.objetivoId)}
+                  onChange={() => alternarObjetivo(o.objetivoId)}
+                />
+                <span className="texto-largo">{o.enunciado}</span>
+                {o.arrastrado && <span className="etiqueta etiqueta-arrastrado">arrastrado</span>}
+              </label>
+            ))}
+          </fieldset>
+        )}
 
         <div className={problemaDe('contenido') ? 'campo con-problema' : 'campo'}>
           <label htmlFor="observaciones">Observaciones</label>

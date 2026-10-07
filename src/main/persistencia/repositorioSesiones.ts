@@ -21,3 +21,25 @@ export function insertarSesion(db: BaseDatos, sesion: NuevaSesion): number {
       .run(sesion).lastInsertRowid
   )
 }
+
+export interface ObjetivoDeTrimestre {
+  objetivoId: number
+  enunciado: string
+  arrastrado: boolean
+}
+
+export function objetivosDeTrimestre(db: BaseDatos, trimestreId: number): ObjetivoDeTrimestre[] {
+  const filas = db
+    .prepare(
+      `SELECT o.id AS objetivoId, o.enunciado, a.asignacion_anterior_id IS NOT NULL AS arrastrado
+       FROM asignacion_trimestral a JOIN objetivo o ON o.id = a.objetivo_id
+       WHERE a.trimestre_id = ? ORDER BY o.id`
+    )
+    .all(trimestreId) as { objetivoId: number; enunciado: string; arrastrado: number }[]
+  return filas.map((f) => ({ ...f, arrastrado: f.arrastrado === 1 }))
+}
+
+export function asociarObjetivos(db: BaseDatos, sesionId: number, objetivoIds: readonly number[]): void {
+  const insertar = db.prepare('INSERT INTO sesion_objetivo (sesion_id, objetivo_id) VALUES (?, ?)')
+  objetivoIds.forEach((id) => insertar.run(sesionId, id))
+}

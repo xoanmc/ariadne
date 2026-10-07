@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import type { DatosSesion, VistaCurso } from '../../src/compartido/ipc'
 import { darDeAlta } from '../../src/main/servicios/alumnos'
 import { abrirCurso } from '../../src/main/servicios/cursos'
-import { registrarSesion } from '../../src/main/servicios/sesiones'
+import { anadirObjetivo, crearPrograma, moverObjetivo, programaDeCurso, quitarObjetivo } from '../../src/main/servicios/programas'
+import { objetivosParaSesion, registrarSesion } from '../../src/main/servicios/sesiones'
 import { crearBaseDePrueba } from '../ayudas/baseDePrueba'
 
 const HOY = '2027-02-15'
@@ -35,6 +36,7 @@ function abrir(id: number): VistaCurso {
 function sesion(extra: Partial<DatosSesion> = {}): DatosSesion {
   return {
     fecha: '2027-02-10',
+    objetivos: [],
     estadoAlumno: ['Cansado', 'Inquieto'],
     respuestaActividades: ['Participa'],
     observaciones: null,
@@ -129,5 +131,77 @@ describe('registro de sesión', () => {
   it('las opciones repetidas o vacías no se guardan dos veces', () => {
     registrarSesion(db, alumnoId, sesion({ estadoAlumno: ['Cansado', ' Cansado ', ''] }), HOY)
     expect((guardadas() as { estado_alumno: string }[])[0].estado_alumno).toBe('Cansado')
+  })
+})
+
+describe('objetivos trabajados en la sesión (T4.3)', () => {
+  const trimestre = (n: 1 | 2 | 3) => curso.trimestres.find((t) => t.numero === n)!.id
+
+  function objetivos() {
+    const programa = crearPrograma(db, curso.id, null, [], HOY)
+    if (programa.tipo !== 'guardado') throw new Error('programa fallido')
+    const id = (enunciado: string, n: 1 | 2 | 3) => {
+      const r = anadirObjetivo(db, programa.programa.id, { enunciado, trimestreId: trimestre(n) }, HOY)
+      if (r.tipo !== 'guardado') throw new Error('objetivo fallido')
+      return r.programa.asignaciones.find((a) => a.enunciado === enunciado)!.objetivoId
+    }
+    return { fluidez: id('Mejorar la fluidez lectora', 2), atencion: id('Mantener la atención', 2), vocales: id('Reconocer las vocales', 3) }
+  }
+
+  const asociados = () => (db.prepare('SELECT objetivo_id FROM sesion_objetivo ORDER BY objetivo_id').all() as { objetivo_id: number }[]).map((f) => f.objetivo_id)
+
+  it('se ofrecen solo los objetivos del trimestre en el que cae la fecha', () => {
+    const { fluidez, atencion } = objetivos()
+    expect(objetivosParaSesion(db, alumnoId, '2027-02-10')).toEqual({
+      trimestre: '2.º trimestre',
+      objetivos: [
+        { objetivoId: fluidez, enunciado: 'Mejorar la fluidez lectora', arrastrado: false },
+        { objetivoId: atencion, enunciado: 'Mantener la atención', arrastrado: false }
+      ]
+    })
+    expect(objetivosParaSesion(db, alumnoId, '2027-05-10')?.objetivos.map((o) => o.enunciado)).toEqual(['Reconocer las vocales'])
+  })
+
+  it('en vacaciones no se ofrece ninguno', () => {
+    objetivos()
+    expect(objetivosParaSesion(db, alumnoId, '2026-12-28')).toBeNull()
+  })
+
+  it('se marcan objetivos y la asociación queda guardada', () => {
+    const { fluidez, atencion } = objetivos()
+    expect(registrarSesion(db, alumnoId, sesion({ objetivos: [fluidez, atencion] }), HOY).tipo).toBe('registrada')
+    expect(asociados()).toEqual([fluidez, atencion].sort((a, b) => a - b))
+  })
+
+  it('es opcional: sin objetivos la sesión se registra igual', () => {
+    objetivos()
+    expect(registrarSesion(db, alumnoId, sesion({ objetivos: [] }), HOY).tipo).toBe('registrada')
+    expect(asociados()).toEqual([])
+  })
+
+  it('no admite un objetivo de otro trimestre, y entonces no guarda la sesión', () => {
+    const { vocales } = objetivos()
+    const r = registrarSesion(db, alumnoId, sesion({ objetivos: [vocales] }), HOY)
+    expect(r).toEqual({ tipo: 'rechazada', mensaje: 'Alguno de los objetivos marcados no es del 2.º trimestre de este alumno.' })
+    expect(db.prepare('SELECT COUNT(*) AS n FROM sesion').get()).toEqual({ n: 0 })
+  })
+
+  it('una vez trabajado en una sesión, el objetivo ya no se puede quitar del programa', () => {
+    const { fluidez } = objetivos()
+    registrarSesion(db, alumnoId, sesion({ objetivos: [fluidez] }), HOY)
+    expect(quitarObjetivo(db, fluidez, HOY)).toEqual({ tipo: 'rechazado', mensaje: 'Tiene sesiones asociadas.' })
+  })
+
+  it('una vez trabajado en una sesión del trimestre, tampoco se mueve a otro', () => {
+    const { fluidez, atencion } = objetivos()
+    registrarSesion(db, alumnoId, sesion({ objetivos: [fluidez] }), HOY)
+    const asignacion = (id: number) => programaDeCurso(db, curso.id)!.asignaciones.find((a) => a.objetivoId === id)!
+
+    expect(asignacion(fluidez).puedeMoverse).toBe(false)
+    expect(moverObjetivo(db, asignacion(fluidez).asignacionId, trimestre(3), HOY)).toEqual({
+      tipo: 'rechazado',
+      mensaje: 'Ya se trabajó en alguna sesión de este trimestre, así que no se mueve.'
+    })
+    expect(asignacion(atencion).puedeMoverse).toBe(true)
   })
 })

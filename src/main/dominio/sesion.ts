@@ -5,6 +5,7 @@ export type CampoSesion = 'fecha' | 'contenido'
 
 export interface DatosSesion {
   fecha: Fecha
+  objetivos: number[]
   estadoAlumno: string[]
   respuestaActividades: string[]
   observaciones: string | null
@@ -32,6 +33,9 @@ function opciones(valor: unknown): string[] {
 export function normalizarSesion(entrada: Partial<Record<keyof DatosSesion, unknown>>): DatosSesion {
   return {
     fecha: texto(entrada.fecha),
+    objetivos: Array.isArray(entrada.objetivos)
+      ? [...new Set(entrada.objetivos.filter((id): id is number => Number.isInteger(id) && id > 0))]
+      : [],
     estadoAlumno: opciones(entrada.estadoAlumno),
     respuestaActividades: opciones(entrada.respuestaActividades),
     observaciones: texto(entrada.observaciones) || null,

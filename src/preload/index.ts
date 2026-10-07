@@ -57,7 +57,8 @@ const api: AriadneApi = {
     mover: (opcionId, hacia) => ipcRenderer.invoke(CANALES.moverOpcion, opcionId, hacia)
   },
   sesiones: {
-    registrar: (alumnoId, datos) => ipcRenderer.invoke(CANALES.registrarSesion, alumnoId, datos)
+    registrar: (alumnoId, datos) => ipcRenderer.invoke(CANALES.registrarSesion, alumnoId, datos),
+    objetivosPara: (alumnoId, fecha) => ipcRenderer.invoke(CANALES.objetivosParaSesion, alumnoId, fecha)
   }
 }
 
