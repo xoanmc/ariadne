@@ -86,3 +86,23 @@ export function situarFecha(periodos: readonly PeriodoTrimestre[], fecha: Fecha)
   const siguiente = curso.find((p) => p.fechaInicio > fecha)!
   return { tipo: 'vacaciones', trasNumero: anterior.numero, antesDeNumero: siguiente.numero }
 }
+
+export interface TrimestreConEstado extends PeriodoTrimestre {
+  id: number
+  estado: 'abierto' | 'cerrado'
+}
+
+/**
+ * El trimestre en el que está trabajando: el abierto que contiene la fecha de hoy. En vacaciones o
+ * antes de empezar, el siguiente abierto; si ya no queda ninguno por delante, el último abierto.
+ * Manda la fecha: si el anterior sigue sin cerrar, no por eso deja de estar en el siguiente.
+ */
+export function trimestreEnCurso<T extends TrimestreConEstado>(trimestres: readonly T[], hoy: Fecha): T | null {
+  const abiertos = [...trimestres].sort((a, b) => a.numero - b.numero).filter((t) => t.estado === 'abierto')
+  return (
+    abiertos.find((t) => t.fechaInicio <= hoy && hoy <= t.fechaFin) ??
+    abiertos.find((t) => t.fechaInicio > hoy) ??
+    abiertos.at(-1) ??
+    null
+  )
+}

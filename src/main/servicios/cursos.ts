@@ -1,5 +1,6 @@
 import type { DatosCurso, PropuestaCurso, ResultadoCurso, VistaCurso } from '../../compartido/ipc'
 import type { PeriodoTrimestre } from '../dominio/calendario'
+import { trimestreEnCurso } from '../dominio/calendario'
 import { cursoDeFecha, esPosteriorATodos, extremosDeCurso, fechasPropuestas, validarCurso } from '../dominio/curso'
 import type { CursoAcademico, Fecha, NumeroTrimestre } from '../dominio/entidades'
 import type { BaseDatos } from '../persistencia/baseDatos'
@@ -8,8 +9,9 @@ import * as repositorio from '../persistencia/repositorioCursos'
 import { esId, textoOpcional } from './entrada'
 import { hoyLocal } from './fecha'
 
-function vista(db: BaseDatos, curso: CursoAcademico): VistaCurso {
+function vista(db: BaseDatos, curso: CursoAcademico, hoy: Fecha = hoyLocal()): VistaCurso {
   const anterior = curso.cursoAnteriorId === null ? null : repositorio.obtenerCurso(db, curso.cursoAnteriorId)
+  const trimestres = repositorio.trimestresDeCurso(db, curso.id)
   return {
     id: curso.id,
     alumnoId: curso.alumnoId,
@@ -17,13 +19,14 @@ function vista(db: BaseDatos, curso: CursoAcademico): VistaCurso {
     nivelEducativo: curso.nivelEducativo,
     estado: curso.estado,
     cursoAnterior: anterior?.curso ?? null,
-    trimestres: repositorio.trimestresDeCurso(db, curso.id).map((t) => ({
+    trimestres: trimestres.map((t) => ({
       id: t.id,
       numero: t.numero,
       fechaInicio: t.fechaInicio,
       fechaFin: t.fechaFin,
       estado: t.estado
-    }))
+    })),
+    trimestreEnCursoId: trimestreEnCurso(trimestres, hoy)?.id ?? null
   }
 }
 
@@ -51,9 +54,9 @@ function siguienteA(curso: string): string {
   return `${fin}/${fin + 1}`
 }
 
-export function obtenerCurso(db: BaseDatos, cursoId: unknown): VistaCurso | null {
+export function obtenerCurso(db: BaseDatos, cursoId: unknown, hoy: Fecha = hoyLocal()): VistaCurso | null {
   const curso = esId(cursoId) ? repositorio.obtenerCurso(db, cursoId) : null
-  return curso ? vista(db, curso) : null
+  return curso ? vista(db, curso, hoy) : null
 }
 
 /** Del más reciente al más antiguo. */

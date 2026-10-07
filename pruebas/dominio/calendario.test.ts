@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   esFecha,
   situarFecha,
+  trimestreEnCurso,
   validarCalendario,
   type PeriodoTrimestre
 } from '../../src/main/dominio/calendario'
@@ -73,5 +74,43 @@ describe('situarFecha', () => {
   it('distingue lo anterior y lo posterior al curso', () => {
     expect(situarFecha(CURSO, '2025-09-01')).toEqual({ tipo: 'antes_del_curso' })
     expect(situarFecha(CURSO, '2026-07-01')).toEqual({ tipo: 'despues_del_curso' })
+  })
+})
+
+describe('trimestre en curso', () => {
+  const t = (id: number, numero: 1 | 2 | 3, fechaInicio: string, fechaFin: string, estado: 'abierto' | 'cerrado' = 'abierto') => ({
+    id,
+    numero,
+    fechaInicio,
+    fechaFin,
+    estado
+  })
+  const curso = [t(1, 1, '2026-09-10', '2026-12-22'), t(2, 2, '2027-01-08', '2027-03-26'), t(3, 3, '2027-04-06', '2027-06-23')]
+
+  it('es el abierto que contiene la fecha de hoy', () => {
+    expect(trimestreEnCurso(curso, '2026-10-07')?.id).toBe(1)
+    expect(trimestreEnCurso(curso, '2027-02-15')?.id).toBe(2)
+  })
+
+  it('manda la fecha: aunque el anterior siga sin cerrar, ya está en el siguiente', () => {
+    expect(trimestreEnCurso(curso, '2027-01-12')?.id).toBe(2)
+  })
+
+  it('en vacaciones o antes de empezar, es el siguiente que va a empezar', () => {
+    expect(trimestreEnCurso(curso, '2026-12-28')?.id).toBe(2)
+    expect(trimestreEnCurso(curso, '2026-09-01')?.id).toBe(1)
+  })
+
+  it('pasado el curso, el último que siga abierto', () => {
+    expect(trimestreEnCurso(curso, '2027-07-15')?.id).toBe(3)
+  })
+
+  it('no cuenta los cerrados', () => {
+    const conPrimeroCerrado = [{ ...curso[0], estado: 'cerrado' as const }, curso[1], curso[2]]
+    expect(trimestreEnCurso(conPrimeroCerrado, '2026-12-20')?.id).toBe(2)
+  })
+
+  it('si todos están cerrados, no hay trimestre en curso', () => {
+    expect(trimestreEnCurso(curso.map((x) => ({ ...x, estado: 'cerrado' as const })), '2027-02-01')).toBeNull()
   })
 })

@@ -140,6 +140,8 @@ export interface VistaCurso {
   estado: 'activo' | 'cerrado'
   cursoAnterior: string | null
   trimestres: VistaTrimestre[]
+  /** Por la fecha de hoy; null si el curso ya no tiene trimestres abiertos. */
+  trimestreEnCursoId: number | null
 }
 
 /** Lo que la aplicación propone al abrir curso, o por qué todavía no se puede abrir. */

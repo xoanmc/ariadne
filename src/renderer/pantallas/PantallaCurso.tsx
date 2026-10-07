@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import type { DatosCurso, FichaAlumno, ProblemaCurso, VistaCurso } from '../../compartido/ipc'
+import type { DatosCurso, FichaAlumno, ProblemaCurso, VistaCurso, VistaPrograma } from '../../compartido/ipc'
 import { Actas } from '../componentes/Actas'
 import { EvaluacionInicial } from '../componentes/EvaluacionInicial'
 import { FormularioCurso, NOMBRE_TRIMESTRE } from '../componentes/FormularioCurso'
 import { Programa } from '../componentes/Programa'
+import { TrimestreEnCurso } from '../componentes/TrimestreEnCurso'
 import { fechaCorta } from '../fechas'
 
 interface Props {
@@ -16,6 +17,7 @@ interface Props {
 export function PantallaCurso({ cursoId, recienAbierto, onVolver }: Props) {
   const [curso, setCurso] = useState<VistaCurso | null | undefined>(undefined)
   const [alumno, setAlumno] = useState<FichaAlumno | null>(null)
+  const [programa, setPrograma] = useState<VistaPrograma | null | undefined>(undefined)
   const [corrigiendo, setCorrigiendo] = useState(false)
   const [problemas, setProblemas] = useState<ProblemaCurso[]>([])
   const [rechazo, setRechazo] = useState<string | null>(null)
@@ -27,7 +29,10 @@ export function PantallaCurso({ cursoId, recienAbierto, onVolver }: Props) {
   useEffect(() => {
     window.ariadne.cursos.obtener(cursoId).then(async (encontrado) => {
       setCurso(encontrado)
-      if (encontrado) setAlumno(await window.ariadne.alumnos.obtener(encontrado.alumnoId))
+      if (encontrado) {
+        setAlumno(await window.ariadne.alumnos.obtener(encontrado.alumnoId))
+        setPrograma(await window.ariadne.programas.deCurso(encontrado.id))
+      }
     })
   }, [cursoId])
 
@@ -72,6 +77,8 @@ export function PantallaCurso({ cursoId, recienAbierto, onVolver }: Props) {
       {!activo && <p className="apunte">Este curso está cerrado: se puede consultar, pero ya no se modifica.</p>}
 
       {confirmacion && !corrigiendo && <p className="confirmacion">{confirmacion}</p>}
+
+      {activo && programa !== undefined && <TrimestreEnCurso curso={curso} programa={programa} />}
 
       <section className="seccion">
         <h2>Trimestres</h2>
@@ -129,7 +136,13 @@ export function PantallaCurso({ cursoId, recienAbierto, onVolver }: Props) {
       </section>
 
       <section className="seccion">
-        <Programa cursoId={curso.id} trimestres={curso.trimestres} editable={activo} />
+        <Programa
+          cursoId={curso.id}
+          trimestres={curso.trimestres}
+          editable={activo}
+          programa={programa}
+          onPrograma={setPrograma}
+        />
       </section>
 
       <section className="seccion">

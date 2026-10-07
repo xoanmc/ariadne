@@ -259,3 +259,17 @@ describe('historial del alumno', () => {
     expect(obtenerCurso(db, curso.id)?.nivelEducativo).toBe('2.º de Primaria')
   })
 })
+
+describe('trimestre en curso del curso', () => {
+  it('la vista del curso dice cuál es por la fecha de hoy', () => {
+    const curso = abrir('2026/2027')
+    const segundo = curso.trimestres.find((t) => t.numero === 2)!.id
+    expect(obtenerCurso(db, curso.id, '2027-02-01')?.trimestreEnCursoId).toBe(segundo)
+  })
+
+  it('un curso cerrado no tiene trimestre en curso', () => {
+    const curso = abrir('2025/2026')
+    cerrar(curso.id)
+    expect(obtenerCurso(db, curso.id, '2026-02-01')?.trimestreEnCursoId).toBeNull()
+  })
+})

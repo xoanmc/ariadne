@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import type { PendientesAnteriores, ResultadoPrograma, VistaAsignacion, VistaPrograma, VistaTrimestre } from '../../compartido/ipc'
 import { fechaCorta, hoy } from '../fechas'
 import { NOMBRE_TRIMESTRE } from './FormularioCurso'
@@ -7,6 +7,9 @@ interface Props {
   cursoId: number
   trimestres: VistaTrimestre[]
   editable: boolean
+  /** Lo carga la pantalla del curso, que lo comparte con el recuadro del trimestre en curso. */
+  programa: VistaPrograma | null | undefined
+  onPrograma: (programa: VistaPrograma) => void
 }
 
 type Problemas = { campo: string; mensaje: string }[]
@@ -23,8 +26,7 @@ function trimestrePropuesto(abiertos: VistaTrimestre[]): number | null {
   return (abiertos.find((t) => t.fechaInicio <= hoyMismo && hoyMismo <= t.fechaFin) ?? abiertos[0])?.id ?? null
 }
 
-export function Programa({ cursoId, trimestres, editable }: Props) {
-  const [programa, setPrograma] = useState<VistaPrograma | null | undefined>(undefined)
+export function Programa({ cursoId, trimestres, editable, programa, onPrograma }: Props) {
   const [editandoContenido, setEditandoContenido] = useState<string | null>(null)
   const [nuevo, setNuevo] = useState<{ enunciado: string; trimestreId: number | null } | null>(null)
   const [problemas, setProblemas] = useState<Problemas>([])
@@ -36,17 +38,13 @@ export function Programa({ cursoId, trimestres, editable }: Props) {
   const api = window.ariadne.programas
   const abiertos = trimestres.filter((t) => t.estado === 'abierto')
 
-  useEffect(() => {
-    api.deCurso(cursoId).then(setPrograma)
-  }, [cursoId])
-
   async function aplicar(peticion: Promise<ResultadoPrograma>, alTerminar: () => void) {
     setOcupado(true)
     const resultado = await peticion
     setOcupado(false)
     if (resultado.tipo === 'invalido') return setProblemas(resultado.problemas)
     if (resultado.tipo === 'rechazado') return setRechazo(resultado.mensaje)
-    setPrograma(resultado.programa)
+    onPrograma(resultado.programa)
     setProblemas([])
     setRechazo(null)
     alTerminar()
@@ -290,7 +288,7 @@ export function Programa({ cursoId, trimestres, editable }: Props) {
                       <span className="texto-largo">{a.enunciado}</span>
                     )}
                     <span className="detalle-objetivo">
-                      {a.arrastrado && <span className="etiqueta etiqueta-apagada">arrastrado</span>}
+                      {a.arrastrado && <span className="etiqueta etiqueta-arrastrado">arrastrado</span>}
                       <span className={`valoracion valoracion-${a.valoracion}`}>{a.etiquetaValoracion}</span>
                     </span>
                   </div>

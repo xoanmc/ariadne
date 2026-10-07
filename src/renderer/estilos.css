@@ -608,3 +608,33 @@ label.pendiente .texto-largo {
 .acciones-objetivo .problema {
   flex-basis: 100%;
 }
+
+/* Trimestre en curso, destacado al principio de la pantalla del curso */
+
+.en-curso {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border: 1px solid #c8dcd2;
+  border-left: 4px solid #2f5d50;
+  border-radius: 6px;
+}
+
+.en-curso h2 {
+  font-size: 1.1rem;
+  margin: 0 0 0.75rem;
+}
+
+.en-curso h2 .apunte {
+  font-weight: normal;
+  font-size: 0.95rem;
+}
+
+.en-curso .lista-objetivos li {
+  background: #fbfaf7;
+}
+
+.etiqueta-arrastrado {
+  background: #e8e4f3;
+  color: #4a3f73;
+}
