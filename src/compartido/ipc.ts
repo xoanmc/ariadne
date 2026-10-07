@@ -31,7 +31,12 @@ export const CANALES = {
   pendientesDelCursoAnterior: 'programas:pendientesAnteriores',
   editarObjetivo: 'programas:editarObjetivo',
   moverObjetivo: 'programas:moverObjetivo',
-  quitarObjetivo: 'programas:quitarObjetivo'
+  quitarObjetivo: 'programas:quitarObjetivo',
+  catalogo: 'catalogo:listar',
+  anadirOpcion: 'catalogo:anadir',
+  renombrarOpcion: 'catalogo:renombrar',
+  activarOpcion: 'catalogo:activar',
+  moverOpcion: 'catalogo:mover'
 } as const
 
 export type Valoracion = 'sin_valorar' | 'conseguido' | 'no_conseguido' | 'pendiente_desarrollar'
@@ -63,6 +68,24 @@ export interface PendientesAnteriores {
   curso: string
   objetivos: { asignacionId: number; enunciado: string; valoracion: Valoracion; etiquetaValoracion: string }[]
 }
+
+export type CategoriaCatalogo = 'estado_alumno' | 'respuesta_actividades'
+
+export interface VistaOpcion {
+  id: number
+  texto: string
+  activa: boolean
+}
+
+export interface ListaDeOpciones {
+  categoria: CategoriaCatalogo
+  nombre: string
+  opciones: VistaOpcion[]
+}
+
+export type ResultadoCatalogo =
+  | { tipo: 'guardado'; listas: ListaDeOpciones[] }
+  | { tipo: 'invalido'; mensaje: string }
 
 export interface DatosObjetivo {
   enunciado: string
@@ -285,5 +308,12 @@ export interface AriadneApi {
     editarObjetivo(objetivoId: number, enunciado: string): Promise<ResultadoPrograma>
     moverObjetivo(asignacionId: number, trimestreId: number): Promise<ResultadoPrograma>
     quitarObjetivo(objetivoId: number): Promise<ResultadoPrograma>
+  }
+  catalogo: {
+    listar(): Promise<ListaDeOpciones[]>
+    anadir(categoria: CategoriaCatalogo, texto: string): Promise<ResultadoCatalogo>
+    renombrar(opcionId: number, texto: string): Promise<ResultadoCatalogo>
+    activar(opcionId: number, activa: boolean): Promise<ResultadoCatalogo>
+    mover(opcionId: number, hacia: 'arriba' | 'abajo'): Promise<ResultadoCatalogo>
   }
 }

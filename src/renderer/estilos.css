@@ -638,3 +638,69 @@ label.pendiente .texto-largo {
   background: #e8e4f3;
   color: #4a3f73;
 }
+
+/* Opciones del registro */
+
+.lista-opciones {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+}
+
+.opcion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.45rem 0.8rem;
+  margin-bottom: 0.35rem;
+  background: #fff;
+  border: 1px solid #e0dcd3;
+  border-radius: 4px;
+}
+
+.opcion.desactivada .texto-opcion {
+  color: #8a857b;
+}
+
+.texto-opcion {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.acciones-opcion {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+}
+
+.acciones-opcion button.enlace {
+  color: #5d584f;
+  text-decoration: underline;
+}
+
+button.flecha {
+  padding: 0.1rem 0.5rem;
+  line-height: 1.2;
+}
+
+.fila-opcion {
+  display: flex;
+  gap: 0.6rem;
+  flex: 1;
+}
+
+.fila-opcion input {
+  flex: 1;
+  font: inherit;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #c9c4b9;
+  border-radius: 4px;
+}
+
+.nueva-opcion {
+  margin-top: 0.75rem;
+  max-width: 28rem;
+}

@@ -48,6 +48,13 @@ const api: AriadneApi = {
     editarObjetivo: (objetivoId, enunciado) => ipcRenderer.invoke(CANALES.editarObjetivo, objetivoId, enunciado),
     moverObjetivo: (asignacionId, trimestreId) => ipcRenderer.invoke(CANALES.moverObjetivo, asignacionId, trimestreId),
     quitarObjetivo: (objetivoId) => ipcRenderer.invoke(CANALES.quitarObjetivo, objetivoId)
+  },
+  catalogo: {
+    listar: () => ipcRenderer.invoke(CANALES.catalogo),
+    anadir: (categoria, texto) => ipcRenderer.invoke(CANALES.anadirOpcion, categoria, texto),
+    renombrar: (opcionId, texto) => ipcRenderer.invoke(CANALES.renombrarOpcion, opcionId, texto),
+    activar: (opcionId, activa) => ipcRenderer.invoke(CANALES.activarOpcion, opcionId, activa),
+    mover: (opcionId, hacia) => ipcRenderer.invoke(CANALES.moverOpcion, opcionId, hacia)
   }
 }
 

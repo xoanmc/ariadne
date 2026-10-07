@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { CANALES, type ResultadoCambio, type ResultadoCopia, type ResultadoRestauracion } from '../../compartido/ipc'
 import * as actas from '../servicios/actas'
 import * as alumnos from '../servicios/alumnos'
+import * as catalogo from '../servicios/catalogo'
 import * as cursos from '../servicios/cursos'
 import * as evaluaciones from '../servicios/evaluaciones'
 import * as programas from '../servicios/programas'
@@ -155,5 +156,23 @@ export function registrarManejadoresIpc(datos: UbicacionDatos): void {
 
   ipcMain.handle(CANALES.anadirObjetivo, (_evento, programaId: unknown, entrada) =>
     programas.anadirObjetivo(datos.conexion(), programaId, entrada)
+  )
+
+  ipcMain.handle(CANALES.catalogo, () => catalogo.listarCatalogo(datos.conexion()))
+
+  ipcMain.handle(CANALES.anadirOpcion, (_evento, categoria: unknown, texto: unknown) =>
+    catalogo.anadirOpcion(datos.conexion(), categoria, texto)
+  )
+
+  ipcMain.handle(CANALES.renombrarOpcion, (_evento, opcionId: unknown, texto: unknown) =>
+    catalogo.renombrarOpcion(datos.conexion(), opcionId, texto)
+  )
+
+  ipcMain.handle(CANALES.activarOpcion, (_evento, opcionId: unknown, activa: unknown) =>
+    catalogo.activarOpcion(datos.conexion(), opcionId, activa)
+  )
+
+  ipcMain.handle(CANALES.moverOpcion, (_evento, opcionId: unknown, hacia: unknown) =>
+    catalogo.moverOpcion(datos.conexion(), opcionId, hacia)
   )
 }

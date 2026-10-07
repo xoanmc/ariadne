@@ -5,6 +5,7 @@ import { PantallaAlumnos } from './pantallas/PantallaAlumnos'
 import { PantallaCopias } from './pantallas/PantallaCopias'
 import { PantallaCurso } from './pantallas/PantallaCurso'
 import { PantallaFicha } from './pantallas/PantallaFicha'
+import { PantallaOpciones } from './pantallas/PantallaOpciones'
 import { PantallaSinDatos } from './pantallas/PantallaSinDatos'
 
 type Vista =
@@ -13,6 +14,7 @@ type Vista =
   | { tipo: 'ficha'; id: number; recienCreado: boolean }
   | { tipo: 'curso'; cursoId: number; recienAbierto: boolean }
   | { tipo: 'copias' }
+  | { tipo: 'opciones' }
 
 export function App() {
   const [estado, setEstado] = useState<EstadoDatos | null>(null)
@@ -26,16 +28,23 @@ export function App() {
   if (estado.tipo !== 'lista') return <PantallaSinDatos estado={estado} onEstado={setEstado} />
 
   const alumnos = () => setVista({ tipo: 'alumnos' })
+  const enEsquina = vista.tipo === 'copias' || vista.tipo === 'opciones'
 
   return (
     <>
       <header className="barra">
         <span className="marca">Ariadne</span>
         <nav>
-          <button className={vista.tipo === 'copias' ? 'enlace' : 'enlace activo'} onClick={alumnos}>
+          <button className={enEsquina ? 'enlace' : 'enlace activo'} onClick={alumnos}>
             Alumnos
           </button>
         </nav>
+        <button
+          className={vista.tipo === 'opciones' ? 'enlace discreto activo' : 'enlace discreto'}
+          onClick={() => setVista({ tipo: 'opciones' })}
+        >
+          Opciones del registro
+        </button>
         <button
           className={vista.tipo === 'copias' ? 'enlace discreto activo' : 'enlace discreto'}
           onClick={() => setVista({ tipo: 'copias' })}
@@ -80,6 +89,7 @@ export function App() {
           onVolver={(alumnoId) => setVista({ tipo: 'ficha', id: alumnoId, recienCreado: false })}
         />
       )}
+      {vista.tipo === 'opciones' && <PantallaOpciones />}
       {vista.tipo === 'copias' && (
         <PantallaCopias ruta={estado.ruta} avisoCopia={estado.avisoCopia} onEstado={setEstado} />
       )}
