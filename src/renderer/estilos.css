@@ -488,3 +488,70 @@ button.fila-curso.activo {
 .acta button {
   margin-top: 0.5rem;
 }
+
+/* Programa de intervención */
+
+.titulo-objetivos {
+  font-size: 1rem;
+  margin: 1.5rem 0 0.25rem;
+}
+
+.lista-objetivos {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.lista-objetivos li {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 0.4rem;
+  background: #fff;
+  border: 1px solid #e0dcd3;
+  border-radius: 4px;
+}
+
+.detalle-objetivo {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.valoracion {
+  font-size: 0.8rem;
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.valoracion-sin_valorar {
+  background: #ebe9e4;
+  color: #5d584f;
+}
+
+.valoracion-conseguido {
+  background: #e4efe9;
+  color: #2f5d50;
+}
+
+.valoracion-no_conseguido {
+  background: #fbe9e7;
+  color: #8a2a1e;
+}
+
+.valoracion-pendiente_desarrollar {
+  background: #fbf3dc;
+  color: #7a5a12;
+}
+
+.campo select {
+  font: inherit;
+  padding: 0.45rem 0.5rem;
+  border: 1px solid #c9c4b9;
+  border-radius: 4px;
+  background: #fff;
+  max-width: 16rem;
+}

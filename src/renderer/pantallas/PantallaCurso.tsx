@@ -3,6 +3,7 @@ import type { DatosCurso, FichaAlumno, ProblemaCurso, VistaCurso } from '../../c
 import { Actas } from '../componentes/Actas'
 import { EvaluacionInicial } from '../componentes/EvaluacionInicial'
 import { FormularioCurso, NOMBRE_TRIMESTRE } from '../componentes/FormularioCurso'
+import { Programa } from '../componentes/Programa'
 import { fechaCorta } from '../fechas'
 
 interface Props {
@@ -125,6 +126,10 @@ export function PantallaCurso({ cursoId, recienAbierto, onVolver }: Props) {
 
       <section className="seccion">
         <EvaluacionInicial cursoId={curso.id} editable={activo} />
+      </section>
+
+      <section className="seccion">
+        <Programa cursoId={curso.id} trimestres={curso.trimestres} editable={activo} />
       </section>
 
       <section className="seccion">

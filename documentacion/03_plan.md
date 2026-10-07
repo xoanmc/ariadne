@@ -278,7 +278,7 @@ Lo que sí falló, al probar temprano con un paquete vacío, fue la desinstalaci
 
 1. Esqueleto y paquete portable funcionando en un equipo Windows real ✅
 2. Persistencia, migraciones y copias de seguridad ✅
-3. Alumnos y ciclo de curso ✅ *(el programa en la pantalla del curso llega con T3.1)*
+3. Alumnos y ciclo de curso ✅
 4. Programa de intervención y objetivos
 5. **Registro rápido de sesión** — con medición contra el criterio de los dos minutos
 6. Cierre de trimestre, verificación y arrastre

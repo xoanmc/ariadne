@@ -5,6 +5,7 @@ import * as actas from '../servicios/actas'
 import * as alumnos from '../servicios/alumnos'
 import * as cursos from '../servicios/cursos'
 import * as evaluaciones from '../servicios/evaluaciones'
+import * as programas from '../servicios/programas'
 import type { UbicacionDatos } from '../servicios/ubicacionDatos'
 
 function ventanaDe(evento: IpcMainInvokeEvent): BrowserWindow {
@@ -126,5 +127,19 @@ export function registrarManejadoresIpc(datos: UbicacionDatos): void {
 
   ipcMain.handle(CANALES.corregirActa, (_evento, actaId: unknown, entrada) =>
     actas.corregirActa(datos.conexion(), actaId, entrada)
+  )
+
+  ipcMain.handle(CANALES.programaDeCurso, (_evento, cursoId: unknown) => programas.programaDeCurso(datos.conexion(), cursoId))
+
+  ipcMain.handle(CANALES.crearPrograma, (_evento, cursoId: unknown, contenido: unknown) =>
+    programas.crearPrograma(datos.conexion(), cursoId, contenido)
+  )
+
+  ipcMain.handle(CANALES.editarContenidoPrograma, (_evento, programaId: unknown, contenido: unknown) =>
+    programas.editarContenido(datos.conexion(), programaId, contenido)
+  )
+
+  ipcMain.handle(CANALES.anadirObjetivo, (_evento, programaId: unknown, entrada) =>
+    programas.anadirObjetivo(datos.conexion(), programaId, entrada)
   )
 }

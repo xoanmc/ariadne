@@ -23,8 +23,44 @@ export const CANALES = {
   sugerenciasDeInstrumento: 'evaluaciones:instrumentos',
   actasDeCurso: 'actas:deCurso',
   registrarActa: 'actas:registrar',
-  corregirActa: 'actas:corregir'
+  corregirActa: 'actas:corregir',
+  programaDeCurso: 'programas:deCurso',
+  crearPrograma: 'programas:crear',
+  editarContenidoPrograma: 'programas:editarContenido',
+  anadirObjetivo: 'programas:anadirObjetivo'
 } as const
+
+export type Valoracion = 'sin_valorar' | 'conseguido' | 'no_conseguido' | 'pendiente_desarrollar'
+
+/** Un objetivo puesto en un trimestre. La etiqueta viene del dominio, que es la única fuente del vocabulario. */
+export interface VistaAsignacion {
+  asignacionId: number
+  objetivoId: number
+  enunciado: string
+  trimestreId: number
+  numeroTrimestre: NumeroTrimestre
+  valoracion: Valoracion
+  etiquetaValoracion: string
+  arrastrado: boolean
+}
+
+export interface VistaPrograma {
+  id: number
+  fechaCreacion: string
+  fechaRevision: string | null
+  contenido: string | null
+  asignaciones: VistaAsignacion[]
+}
+
+export interface DatosObjetivo {
+  enunciado: string
+  trimestreId: number
+}
+
+export type ResultadoPrograma =
+  | { tipo: 'guardado'; programa: VistaPrograma }
+  | { tipo: 'invalido'; problemas: { campo: 'enunciado' | 'trimestre'; mensaje: string }[] }
+  | { tipo: 'rechazado'; mensaje: string }
 
 export interface DatosActa {
   fecha: string
@@ -225,5 +261,11 @@ export interface AriadneApi {
     deCurso(cursoId: number): Promise<VistaActa[]>
     registrar(cursoId: number, datos: DatosActa): Promise<ResultadoActa>
     corregir(actaId: number, datos: DatosActa): Promise<ResultadoActa>
+  }
+  programas: {
+    deCurso(cursoId: number): Promise<VistaPrograma | null>
+    crear(cursoId: number, contenido: string | null): Promise<ResultadoPrograma>
+    editarContenido(programaId: number, contenido: string | null): Promise<ResultadoPrograma>
+    anadirObjetivo(programaId: number, datos: DatosObjetivo): Promise<ResultadoPrograma>
   }
 }

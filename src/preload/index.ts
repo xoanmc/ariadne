@@ -38,6 +38,12 @@ const api: AriadneApi = {
     deCurso: (cursoId) => ipcRenderer.invoke(CANALES.actasDeCurso, cursoId),
     registrar: (cursoId, datos) => ipcRenderer.invoke(CANALES.registrarActa, cursoId, datos),
     corregir: (actaId, datos) => ipcRenderer.invoke(CANALES.corregirActa, actaId, datos)
+  },
+  programas: {
+    deCurso: (cursoId) => ipcRenderer.invoke(CANALES.programaDeCurso, cursoId),
+    crear: (cursoId, contenido) => ipcRenderer.invoke(CANALES.crearPrograma, cursoId, contenido),
+    editarContenido: (programaId, contenido) => ipcRenderer.invoke(CANALES.editarContenidoPrograma, programaId, contenido),
+    anadirObjetivo: (programaId, datos) => ipcRenderer.invoke(CANALES.anadirObjetivo, programaId, datos)
   }
 }
 
