@@ -43,3 +43,49 @@ export function asociarObjetivos(db: BaseDatos, sesionId: number, objetivoIds: r
   const insertar = db.prepare('INSERT INTO sesion_objetivo (sesion_id, objetivo_id) VALUES (?, ?)')
   objetivoIds.forEach((id) => insertar.run(sesionId, id))
 }
+
+export interface SesionGuardada extends NuevaSesion {
+  id: number
+}
+
+const COLUMNAS = `id, alumno_id AS alumnoId, trimestre_id AS trimestreId, fecha, estado_alumno AS estadoAlumno,
+  respuesta_actividades AS respuestaActividades, observaciones, incidencias, salud_medicacion AS saludMedicacion`
+
+export function obtenerSesion(db: BaseDatos, id: number): SesionGuardada | null {
+  return (db.prepare(`SELECT ${COLUMNAS} FROM sesion WHERE id = ?`).get(id) as SesionGuardada | undefined) ?? null
+}
+
+/** En orden cronológico, como el diario que llevaba. */
+export function sesionesDeCurso(db: BaseDatos, cursoId: number): SesionGuardada[] {
+  return db
+    .prepare(
+      `SELECT ${COLUMNAS} FROM sesion
+       WHERE trimestre_id IN (SELECT id FROM trimestre WHERE curso_academico_id = ?)
+       ORDER BY fecha, id`
+    )
+    .all(cursoId) as SesionGuardada[]
+}
+
+export function objetivosDeSesion(db: BaseDatos, sesionId: number): { objetivoId: number; enunciado: string }[] {
+  return db
+    .prepare(
+      `SELECT o.id AS objetivoId, o.enunciado FROM sesion_objetivo so JOIN objetivo o ON o.id = so.objetivo_id
+       WHERE so.sesion_id = ? ORDER BY o.id`
+    )
+    .all(sesionId) as { objetivoId: number; enunciado: string }[]
+}
+
+export function actualizarSesion(db: BaseDatos, id: number, sesion: NuevaSesion): void {
+  db.prepare(
+    `UPDATE sesion SET alumno_id = @alumnoId, trimestre_id = @trimestreId, fecha = @fecha, estado_alumno = @estadoAlumno,
+       respuesta_actividades = @respuestaActividades, observaciones = @observaciones, incidencias = @incidencias,
+       salud_medicacion = @saludMedicacion
+     WHERE id = @id`
+  ).run({ id, ...sesion })
+  db.prepare('DELETE FROM sesion_objetivo WHERE sesion_id = ?').run(id)
+}
+
+/** Sus objetivos trabajados se van con ella (ON DELETE CASCADE). */
+export function borrarSesion(db: BaseDatos, id: number): void {
+  db.prepare('DELETE FROM sesion WHERE id = ?').run(id)
+}

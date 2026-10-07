@@ -789,3 +789,45 @@ details.plegado textarea {
   padding: 0;
   margin-bottom: 0.2rem;
 }
+
+/* Sesiones del curso */
+
+.selector-trimestre {
+  display: flex;
+  gap: 0.4rem;
+  margin: 0.25rem 0 1rem;
+}
+
+button.pestana {
+  border-radius: 999px;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.9rem;
+}
+
+button.pestana.activa {
+  background: #2f5d50;
+  border-color: #2f5d50;
+  color: #fff;
+}
+
+.lista-sesiones {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sesion {
+  padding: 0.8rem 1.1rem;
+  margin-bottom: 0.6rem;
+  background: #fff;
+  border: 1px solid #e0dcd3;
+  border-radius: 6px;
+}
+
+.sesion p {
+  margin: 0.25rem 0;
+}
+
+.subtitulo-linea {
+  color: #6f6a61;
+}

@@ -21,6 +21,8 @@ export function normalizarOpcion(valor: unknown): string {
 
 export function problemaDeOpcion(texto: string): string | null {
   if (texto === '') return 'Escribe la opción.'
+  // Las opciones marcadas se guardan separadas por comas: una coma dentro de una opción la partiría en dos
+  if (texto.includes(',')) return 'Una opción no puede llevar comas.'
   if (texto.length > LONGITUD_MAXIMA) return `Una opción tiene que ser corta: como mucho ${LONGITUD_MAXIMA} caracteres.`
   return null
 }

@@ -38,7 +38,11 @@ export const CANALES = {
   activarOpcion: 'catalogo:activar',
   moverOpcion: 'catalogo:mover',
   registrarSesion: 'sesiones:registrar',
-  objetivosParaSesion: 'sesiones:objetivos'
+  objetivosParaSesion: 'sesiones:objetivos',
+  sesionesDeCurso: 'sesiones:deCurso',
+  obtenerSesion: 'sesiones:obtener',
+  corregirSesion: 'sesiones:corregir',
+  borrarSesion: 'sesiones:borrar'
 } as const
 
 export type Valoracion = 'sin_valorar' | 'conseguido' | 'no_conseguido' | 'pendiente_desarrollar'
@@ -104,6 +108,21 @@ export interface DatosSesion {
 export interface ObjetivosParaSesion {
   trimestre: string
   objetivos: { objetivoId: number; enunciado: string; arrastrado: boolean }[]
+}
+
+export interface VistaSesion {
+  id: number
+  alumnoId: number
+  trimestreId: number
+  fecha: string
+  estadoAlumno: string[]
+  respuestaActividades: string[]
+  observaciones: string | null
+  incidencias: string | null
+  saludMedicacion: string | null
+  objetivos: { objetivoId: number; enunciado: string }[]
+  /** Solo mientras su trimestre siga abierto. */
+  modificable: boolean
 }
 
 export type ResultadoSesion =
@@ -343,5 +362,9 @@ export interface AriadneApi {
   sesiones: {
     registrar(alumnoId: number, datos: DatosSesion): Promise<ResultadoSesion>
     objetivosPara(alumnoId: number, fecha: string): Promise<ObjetivosParaSesion | null>
+    deCurso(cursoId: number): Promise<VistaSesion[]>
+    obtener(sesionId: number): Promise<VistaSesion | null>
+    corregir(sesionId: number, alumnoId: number, datos: DatosSesion): Promise<ResultadoSesion>
+    borrar(sesionId: number): Promise<{ tipo: 'borrada' } | { tipo: 'rechazada'; mensaje: string }>
   }
 }

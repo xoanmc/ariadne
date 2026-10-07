@@ -11,10 +11,10 @@ import { PantallaSinDatos } from './pantallas/PantallaSinDatos'
 
 type Vista =
   | { tipo: 'alumnos'; aviso?: string }
-  | { tipo: 'registro'; alumnoId: number | null }
+  | { tipo: 'registro'; alumnoId: number | null; sesionId?: number; cursoVuelta?: number }
   | { tipo: 'alta' }
   | { tipo: 'ficha'; id: number; recienCreado: boolean }
-  | { tipo: 'curso'; cursoId: number; recienAbierto: boolean }
+  | { tipo: 'curso'; cursoId: number; recienAbierto: boolean; aviso?: string }
   | { tipo: 'copias' }
   | { tipo: 'opciones' }
 
@@ -90,15 +90,27 @@ export function App() {
           key={vista.cursoId}
           cursoId={vista.cursoId}
           recienAbierto={vista.recienAbierto}
+          aviso={vista.aviso}
           onVolver={(alumnoId) => setVista({ tipo: 'ficha', id: alumnoId, recienCreado: false })}
           onRegistrar={(alumnoId) => setVista({ tipo: 'registro', alumnoId })}
+          onCorregirSesion={(sesionId, cursoId) => setVista({ tipo: 'registro', alumnoId: null, sesionId, cursoVuelta: cursoId })}
         />
       )}
       {vista.tipo === 'registro' && (
         <PantallaRegistro
+          key={vista.sesionId ?? 'nueva'}
           alumnoId={vista.alumnoId}
-          onRegistrada={(resumen) => setVista({ tipo: 'alumnos', aviso: resumen })}
-          onCancelar={alumnos}
+          sesionId={vista.sesionId}
+          onRegistrada={(resumen) =>
+            setVista(
+              vista.cursoVuelta !== undefined
+                ? { tipo: 'curso', cursoId: vista.cursoVuelta, recienAbierto: false, aviso: resumen }
+                : { tipo: 'alumnos', aviso: resumen }
+            )
+          }
+          onCancelar={() =>
+            vista.cursoVuelta !== undefined ? setVista({ tipo: 'curso', cursoId: vista.cursoVuelta, recienAbierto: false }) : alumnos()
+          }
           onOpciones={() => setVista({ tipo: 'opciones' })}
         />
       )}

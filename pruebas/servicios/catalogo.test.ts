@@ -54,7 +54,8 @@ describe('opciones del registro', () => {
     expect(r.tipo === 'invalido' && r.mensaje).toMatch(/desactivada: puedes reactivarla/)
   })
 
-  it('no admite una opción vacía ni demasiado larga', () => {
+  it('no admite una opción vacía, demasiado larga o con comas', () => {
+    expect(anadirOpcion(db, 'estado_alumno', 'Cansado, pero atento')).toEqual({ tipo: 'invalido', mensaje: 'Una opción no puede llevar comas.' })
     expect(anadirOpcion(db, 'estado_alumno', '   ').tipo).toBe('invalido')
     expect(anadirOpcion(db, 'estado_alumno', 'x'.repeat(61)).tipo).toBe('invalido')
   })

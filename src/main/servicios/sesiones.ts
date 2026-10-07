@@ -1,26 +1,24 @@
-import type { DatosSesion, ObjetivosParaSesion, ResultadoSesion } from '../../compartido/ipc'
+import type { DatosSesion, ObjetivosParaSesion, ResultadoSesion, VistaSesion } from '../../compartido/ipc'
 import { situarFecha } from '../dominio/calendario'
-import type { Fecha } from '../dominio/entidades'
-import { normalizarSesion, problemaDeUbicacion, unirOpciones, validarSesion } from '../dominio/sesion'
+import type { Alumno, Fecha, Trimestre } from '../dominio/entidades'
+import { normalizarSesion, problemaDeUbicacion, unirOpciones, validarSesion, type DatosSesion as Datos } from '../dominio/sesion'
 import type { BaseDatos } from '../persistencia/baseDatos'
 import { obtenerAlumno } from '../persistencia/repositorioAlumnos'
-import { cursosActivos, trimestresDeCurso } from '../persistencia/repositorioCursos'
-import { asociarObjetivos, insertarSesion, objetivosDeTrimestre } from '../persistencia/repositorioSesiones'
+import { cursosActivos, obtenerCurso, obtenerTrimestre, trimestresDeCurso } from '../persistencia/repositorioCursos'
+import * as repositorio from '../persistencia/repositorioSesiones'
 import { esId } from './entrada'
 import { hoyLocal } from './fecha'
 
 const NOMBRE = { 1: '1.er trimestre', 2: '2.º trimestre', 3: '3.er trimestre' } as const
 
+type Preparada = { alumno: Alumno; trimestre: Trimestre; datos: Datos }
+
 /**
- * Registra una sesión. Ella elige alumno y fecha; el trimestre lo deduce la aplicación del curso
- * activo del alumno y de la fecha, de modo que alumno y trimestre no pueden divergir.
+ * Lo común a registrar y corregir: el alumno tiene curso activo, el contenido es válido, la fecha cae
+ * en un trimestre abierto de ese curso y los objetivos marcados son de ese trimestre. El trimestre lo
+ * deduce la aplicación, de modo que alumno y trimestre no pueden divergir.
  */
-export function registrarSesion(
-  db: BaseDatos,
-  alumnoId: unknown,
-  entrada: Partial<DatosSesion>,
-  hoy: Fecha = hoyLocal()
-): ResultadoSesion {
+function preparar(db: BaseDatos, alumnoId: unknown, entrada: Partial<DatosSesion>, hoy: Fecha): Preparada | ResultadoSesion {
   const alumno = esId(alumnoId) ? obtenerAlumno(db, alumnoId) : null
   if (!alumno) return { tipo: 'rechazada', mensaje: 'Elige un alumno.' }
   const curso = cursosActivos(db).get(alumno.id)
@@ -37,36 +35,113 @@ export function registrarSesion(
 
   const trimestre = trimestres.find((t) => ubicacion.tipo === 'dentro' && t.numero === ubicacion.numero)!
   if (trimestre.estado === 'cerrado') {
-    return {
-      tipo: 'invalida',
-      problemas: [{ campo: 'fecha', mensaje: `Esa fecha es del ${NOMBRE[trimestre.numero]}, que ya está cerrado.` }]
-    }
+    return { tipo: 'invalida', problemas: [{ campo: 'fecha', mensaje: `Esa fecha es del ${NOMBRE[trimestre.numero]}, que ya está cerrado.` }] }
   }
 
-  const disponibles = new Set(objetivosDeTrimestre(db, trimestre.id).map((o) => o.objetivoId))
+  const disponibles = new Set(repositorio.objetivosDeTrimestre(db, trimestre.id).map((o) => o.objetivoId))
   if (datos.objetivos.some((id) => !disponibles.has(id))) {
     return { tipo: 'rechazada', mensaje: `Alguno de los objetivos marcados no es del ${NOMBRE[trimestre.numero]} de este alumno.` }
   }
+  return { alumno, trimestre, datos }
+}
+
+function filaDe({ alumno, trimestre, datos }: Preparada): repositorio.NuevaSesion {
+  return {
+    alumnoId: alumno.id,
+    trimestreId: trimestre.id,
+    fecha: datos.fecha,
+    estadoAlumno: unirOpciones(datos.estadoAlumno),
+    respuestaActividades: unirOpciones(datos.respuestaActividades),
+    observaciones: datos.observaciones,
+    incidencias: datos.incidencias,
+    saludMedicacion: datos.saludMedicacion
+  }
+}
+
+/** Una sesión solo se toca mientras su trimestre esté abierto: cerrado, respalda una valoración. */
+function motivoParaNoTocar(db: BaseDatos, sesion: repositorio.SesionGuardada): string | null {
+  const trimestre = obtenerTrimestre(db, sesion.trimestreId)!
+  const curso = obtenerCurso(db, trimestre.cursoAcademicoId)!
+  if (trimestre.estado === 'cerrado' || curso.estado === 'cerrado') {
+    return `Esta sesión es del ${NOMBRE[trimestre.numero]}, que ya está cerrado: no se modifica.`
+  }
+  return null
+}
+
+export function registrarSesion(db: BaseDatos, alumnoId: unknown, entrada: Partial<DatosSesion>, hoy: Fecha = hoyLocal()): ResultadoSesion {
+  const preparada = preparar(db, alumnoId, entrada, hoy)
+  if ('tipo' in preparada) return preparada
 
   const id = db.transaction(() => {
-    const nueva = insertarSesion(db, {
-      alumnoId: alumno.id,
-      trimestreId: trimestre.id,
-      fecha: datos.fecha,
-      estadoAlumno: unirOpciones(datos.estadoAlumno),
-      respuestaActividades: unirOpciones(datos.respuestaActividades),
-      observaciones: datos.observaciones,
-      incidencias: datos.incidencias,
-    saludMedicacion: datos.saludMedicacion
-    })
-    asociarObjetivos(db, nueva, datos.objetivos)
+    const nueva = repositorio.insertarSesion(db, filaDe(preparada))
+    repositorio.asociarObjetivos(db, nueva, preparada.datos.objetivos)
     return nueva
   })()
+  const { alumno, trimestre } = preparada
+  return { tipo: 'registrada', sesionId: id, resumen: `Sesión registrada: ${alumno.nombre} ${alumno.apellidos}, ${NOMBRE[trimestre.numero]}.` }
+}
+
+/**
+ * Corrige una sesión con las mismas reglas que al registrarla. Si cambia la fecha o el alumno, la
+ * sesión pasa al trimestre que corresponda, siempre que esté abierto.
+ */
+export function corregirSesion(
+  db: BaseDatos,
+  sesionId: unknown,
+  alumnoId: unknown,
+  entrada: Partial<DatosSesion>,
+  hoy: Fecha = hoyLocal()
+): ResultadoSesion {
+  const sesion = esId(sesionId) ? repositorio.obtenerSesion(db, sesionId) : null
+  if (!sesion) return { tipo: 'rechazada', mensaje: 'Esta sesión no existe.' }
+  const motivo = motivoParaNoTocar(db, sesion)
+  if (motivo) return { tipo: 'rechazada', mensaje: motivo }
+
+  const preparada = preparar(db, alumnoId, entrada, hoy)
+  if ('tipo' in preparada) return preparada
+
+  db.transaction(() => {
+    repositorio.actualizarSesion(db, sesion.id, filaDe(preparada))
+    repositorio.asociarObjetivos(db, sesion.id, preparada.datos.objetivos)
+  })()
+  const { alumno, trimestre } = preparada
+  return { tipo: 'registrada', sesionId: sesion.id, resumen: `Sesión corregida: ${alumno.nombre} ${alumno.apellidos}, ${NOMBRE[trimestre.numero]}.` }
+}
+
+export function borrarSesion(db: BaseDatos, sesionId: unknown): { tipo: 'borrada' } | { tipo: 'rechazada'; mensaje: string } {
+  const sesion = esId(sesionId) ? repositorio.obtenerSesion(db, sesionId) : null
+  if (!sesion) return { tipo: 'rechazada', mensaje: 'Esta sesión no existe.' }
+  const motivo = motivoParaNoTocar(db, sesion)
+  if (motivo) return { tipo: 'rechazada', mensaje: motivo }
+  repositorio.borrarSesion(db, sesion.id)
+  return { tipo: 'borrada' }
+}
+
+const separar = (texto: string | null) => (texto ? texto.split(', ') : [])
+
+function vista(db: BaseDatos, sesion: repositorio.SesionGuardada): VistaSesion {
   return {
-    tipo: 'registrada',
-    sesionId: id,
-    resumen: `Sesión registrada: ${alumno.nombre} ${alumno.apellidos}, ${NOMBRE[trimestre.numero]}.`
+    id: sesion.id,
+    alumnoId: sesion.alumnoId,
+    trimestreId: sesion.trimestreId,
+    fecha: sesion.fecha,
+    estadoAlumno: separar(sesion.estadoAlumno),
+    respuestaActividades: separar(sesion.respuestaActividades),
+    observaciones: sesion.observaciones,
+    incidencias: sesion.incidencias,
+    saludMedicacion: sesion.saludMedicacion,
+    objetivos: repositorio.objetivosDeSesion(db, sesion.id),
+    modificable: motivoParaNoTocar(db, sesion) === null
   }
+}
+
+export function sesionesDeCurso(db: BaseDatos, cursoId: unknown): VistaSesion[] {
+  return esId(cursoId) ? repositorio.sesionesDeCurso(db, cursoId).map((s) => vista(db, s)) : []
+}
+
+export function obtenerSesion(db: BaseDatos, sesionId: unknown): VistaSesion | null {
+  const sesion = esId(sesionId) ? repositorio.obtenerSesion(db, sesionId) : null
+  return sesion ? vista(db, sesion) : null
 }
 
 /**
@@ -82,5 +157,5 @@ export function objetivosParaSesion(db: BaseDatos, alumnoId: unknown, fecha: unk
   if (ubicacion.tipo !== 'dentro') return null
   const trimestre = trimestres.find((t) => t.numero === ubicacion.numero)!
   if (trimestre.estado === 'cerrado') return null
-  return { trimestre: NOMBRE[trimestre.numero], objetivos: objetivosDeTrimestre(db, trimestre.id) }
+  return { trimestre: NOMBRE[trimestre.numero], objetivos: repositorio.objetivosDeTrimestre(db, trimestre.id) }
 }

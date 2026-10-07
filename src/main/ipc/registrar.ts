@@ -181,6 +181,16 @@ export function registrarManejadoresIpc(datos: UbicacionDatos): void {
     sesiones.registrarSesion(datos.conexion(), alumnoId, entrada)
   )
 
+  ipcMain.handle(CANALES.sesionesDeCurso, (_evento, cursoId: unknown) => sesiones.sesionesDeCurso(datos.conexion(), cursoId))
+
+  ipcMain.handle(CANALES.obtenerSesion, (_evento, sesionId: unknown) => sesiones.obtenerSesion(datos.conexion(), sesionId))
+
+  ipcMain.handle(CANALES.corregirSesion, (_evento, sesionId: unknown, alumnoId: unknown, entrada) =>
+    sesiones.corregirSesion(datos.conexion(), sesionId, alumnoId, entrada)
+  )
+
+  ipcMain.handle(CANALES.borrarSesion, (_evento, sesionId: unknown) => sesiones.borrarSesion(datos.conexion(), sesionId))
+
   ipcMain.handle(CANALES.objetivosParaSesion, (_evento, alumnoId: unknown, fecha: unknown) =>
     sesiones.objetivosParaSesion(datos.conexion(), alumnoId, fecha)
   )

@@ -4,7 +4,7 @@ import type { DatosSesion, VistaCurso } from '../../src/compartido/ipc'
 import { darDeAlta } from '../../src/main/servicios/alumnos'
 import { abrirCurso } from '../../src/main/servicios/cursos'
 import { anadirObjetivo, crearPrograma, moverObjetivo, programaDeCurso, quitarObjetivo } from '../../src/main/servicios/programas'
-import { objetivosParaSesion, registrarSesion } from '../../src/main/servicios/sesiones'
+import { borrarSesion, corregirSesion, objetivosParaSesion, obtenerSesion, registrarSesion, sesionesDeCurso } from '../../src/main/servicios/sesiones'
 import { crearBaseDePrueba } from '../ayudas/baseDePrueba'
 
 const HOY = '2027-02-15'
@@ -203,5 +203,80 @@ describe('objetivos trabajados en la sesión (T4.3)', () => {
       mensaje: 'Ya se trabajó en alguna sesión de este trimestre, así que no se mueve.'
     })
     expect(asignacion(atencion).puedeMoverse).toBe(true)
+  })
+})
+
+describe('consultar, corregir y borrar sesiones (T4.4)', () => {
+  const trimestre = (n: 1 | 2 | 3) => curso.trimestres.find((t) => t.numero === n)!.id
+  function registrar(extra: Partial<DatosSesion>) {
+    const r = registrarSesion(db, alumnoId, sesion(extra), HOY)
+    if (r.tipo !== 'registrada') throw new Error(JSON.stringify(r))
+    return r.sesionId
+  }
+
+  it('se listan las sesiones del trimestre con su contenido, en orden cronológico', () => {
+    registrar({ fecha: '2027-02-10', observaciones: 'Segunda' })
+    registrar({ fecha: '2027-01-20', observaciones: 'Primera', incidencias: 'Llegó tarde' })
+    registrar({ fecha: '2026-11-03', observaciones: 'Del primer trimestre' })
+
+    const delSegundo = sesionesDeCurso(db, curso.id).filter((s) => s.trimestreId === trimestre(2))
+    expect(delSegundo.map((s) => [s.fecha, s.observaciones])).toEqual([
+      ['2027-01-20', 'Primera'],
+      ['2027-02-10', 'Segunda']
+    ])
+    expect(delSegundo[0]).toMatchObject({
+      estadoAlumno: ['Cansado', 'Inquieto'],
+      respuestaActividades: ['Participa'],
+      incidencias: 'Llegó tarde',
+      modificable: true
+    })
+  })
+
+  it('corregir cambia el contenido con las mismas reglas que al registrar', () => {
+    const id = registrar({})
+    const r = corregirSesion(db, id, alumnoId, sesion({ estadoAlumno: ['Tranquilo'], observaciones: 'Corregida' }), HOY)
+
+    expect(r).toMatchObject({ tipo: 'registrada', resumen: 'Sesión corregida: Lucía García, 2.º trimestre.' })
+    expect(obtenerSesion(db, id)).toMatchObject({ estadoAlumno: ['Tranquilo'], observaciones: 'Corregida' })
+    expect(corregirSesion(db, id, alumnoId, sesion({ fecha: '2026-12-28' }), HOY).tipo).toBe('invalida')
+  })
+
+  it('si se corrige la fecha a otro trimestre abierto, la sesión pasa a ese trimestre', () => {
+    const id = registrar({ fecha: '2027-02-10' })
+    corregirSesion(db, id, alumnoId, sesion({ fecha: '2026-11-03' }), HOY)
+    expect(obtenerSesion(db, id)?.trimestreId).toBe(trimestre(1))
+  })
+
+  it('si era de otro alumno, se corrige el alumno y el trimestre sale de su curso', () => {
+    const mario = alta('Mario')
+    const cursoMario = abrir(mario)
+    const id = registrar({})
+
+    corregirSesion(db, id, mario, sesion(), HOY)
+
+    const corregida = obtenerSesion(db, id)!
+    expect(corregida.alumnoId).toBe(mario)
+    expect(cursoMario.trimestres.map((t) => t.id)).toContain(corregida.trimestreId)
+  })
+
+  it('borrar elimina la sesión y lo que tenía asociado', () => {
+    const id = registrar({})
+    expect(borrarSesion(db, id)).toEqual({ tipo: 'borrada' })
+    expect(obtenerSesion(db, id)).toBeNull()
+  })
+
+  it('una sesión de un trimestre cerrado se consulta, pero no se corrige ni se borra', () => {
+    const id = registrar({ fecha: '2026-11-03' })
+    db.prepare("UPDATE trimestre SET estado = 'cerrado' WHERE id = ?").run(trimestre(1))
+    const mensaje = 'Esta sesión es del 1.er trimestre, que ya está cerrado: no se modifica.'
+
+    expect(obtenerSesion(db, id)?.modificable).toBe(false)
+    expect(corregirSesion(db, id, alumnoId, sesion({ fecha: '2027-02-10' }), HOY)).toEqual({ tipo: 'rechazada', mensaje })
+    expect(borrarSesion(db, id)).toEqual({ tipo: 'rechazada', mensaje })
+  })
+
+  it('una sesión que no existe se dice claramente', () => {
+    expect(borrarSesion(db, 999)).toEqual({ tipo: 'rechazada', mensaje: 'Esta sesión no existe.' })
+    expect(corregirSesion(db, 999, alumnoId, sesion(), HOY).tipo).toBe('rechazada')
   })
 })

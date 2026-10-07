@@ -58,7 +58,11 @@ const api: AriadneApi = {
   },
   sesiones: {
     registrar: (alumnoId, datos) => ipcRenderer.invoke(CANALES.registrarSesion, alumnoId, datos),
-    objetivosPara: (alumnoId, fecha) => ipcRenderer.invoke(CANALES.objetivosParaSesion, alumnoId, fecha)
+    objetivosPara: (alumnoId, fecha) => ipcRenderer.invoke(CANALES.objetivosParaSesion, alumnoId, fecha),
+    deCurso: (cursoId) => ipcRenderer.invoke(CANALES.sesionesDeCurso, cursoId),
+    obtener: (sesionId) => ipcRenderer.invoke(CANALES.obtenerSesion, sesionId),
+    corregir: (sesionId, alumnoId, datos) => ipcRenderer.invoke(CANALES.corregirSesion, sesionId, alumnoId, datos),
+    borrar: (sesionId) => ipcRenderer.invoke(CANALES.borrarSesion, sesionId)
   }
 }
 

@@ -4,6 +4,8 @@ import { hoy } from '../fechas'
 
 interface Props {
   alumnoId: number | null
+  /** Si viene, se corrige esa sesión en lugar de registrar una nueva. */
+  sesionId?: number
   onRegistrada: (resumen: string) => void
   onCancelar: () => void
   onOpciones: () => void
@@ -20,7 +22,7 @@ const CAMPO: Record<CategoriaCatalogo, 'estadoAlumno' | 'respuestaActividades'> 
  * La pantalla en la que se juega el criterio de los dos minutos: todo a la vista, nada que buscar en
  * menús, el trimestre deducido. Lo poco frecuente (incidencias, salud) va plegado.
  */
-export function PantallaRegistro({ alumnoId, onRegistrada, onCancelar, onOpciones }: Props) {
+export function PantallaRegistro({ alumnoId, sesionId, onRegistrada, onCancelar, onOpciones }: Props) {
   const [alumnos, setAlumnos] = useState<AlumnoEnLista[] | null>(null)
   const [listas, setListas] = useState<ListaDeOpciones[] | null>(null)
   const [alumno, setAlumno] = useState<number | null>(alumnoId)
@@ -39,11 +41,26 @@ export function PantallaRegistro({ alumnoId, onRegistrada, onCancelar, onOpcione
   const [delTrimestre, setDelTrimestre] = useState<ObjetivosParaSesion | null>(null)
 
   useEffect(() => {
-    Promise.all([window.ariadne.alumnos.listar(), window.ariadne.catalogo.listar()]).then(([todos, opciones]) => {
+    Promise.all([window.ariadne.alumnos.listar(), window.ariadne.catalogo.listar()]).then(async ([todos, opciones]) => {
+      if (sesionId !== undefined) {
+        const sesion = await window.ariadne.sesiones.obtener(sesionId)
+        if (sesion) {
+          setAlumno(sesion.alumnoId)
+          setDatos({
+            fecha: sesion.fecha,
+            objetivos: sesion.objetivos.map((o) => o.objetivoId),
+            estadoAlumno: sesion.estadoAlumno,
+            respuestaActividades: sesion.respuestaActividades,
+            observaciones: sesion.observaciones,
+            incidencias: sesion.incidencias,
+            saludMedicacion: sesion.saludMedicacion
+          })
+        }
+      }
       setAlumnos(todos.filter((a) => a.cursoActivo))
       setListas(opciones)
     })
-  }, [])
+  }, [sesionId])
 
   /** Un aviso se va en cuanto ella toca lo que lo provocó: no puede quedarse acusando algo ya corregido. */
   function cambiar(cambios: Partial<DatosSesion>) {
@@ -81,7 +98,10 @@ export function PantallaRegistro({ alumnoId, onRegistrada, onCancelar, onOpcione
     evento.preventDefault()
     if (alumno === null) return setRechazo('Elige un alumno.')
     setOcupado(true)
-    const resultado = await window.ariadne.sesiones.registrar(alumno, datos)
+    const resultado =
+      sesionId !== undefined
+        ? await window.ariadne.sesiones.corregir(sesionId, alumno, datos)
+        : await window.ariadne.sesiones.registrar(alumno, datos)
     setOcupado(false)
     if (resultado.tipo === 'registrada') return onRegistrada(resultado.resumen)
     if (resultado.tipo === 'invalida') {
@@ -98,7 +118,7 @@ export function PantallaRegistro({ alumnoId, onRegistrada, onCancelar, onOpcione
 
   return (
     <main className="pantalla">
-      <h1>Registrar sesión</h1>
+      <h1>{sesionId !== undefined ? 'Corregir sesión' : 'Registrar sesión'}</h1>
 
       <form className="formulario registro" onSubmit={registrar} noValidate>
         <div className="fila-campos">
@@ -127,8 +147,13 @@ export function PantallaRegistro({ alumnoId, onRegistrada, onCancelar, onOpcione
         </div>
 
         {listas.map((lista) => {
-          const activas = lista.opciones.filter((o) => o.activa)
           const campo = CAMPO[lista.categoria]
+          // Al corregir, una opción ya marcada que ella desactivó o corrigió sigue apareciendo marcada: no se pierde
+          const enLista = new Set(lista.opciones.filter((o) => o.activa).map((o) => o.texto))
+          const activas = [
+            ...lista.opciones.filter((o) => o.activa).map((o) => ({ id: `o${o.id}`, texto: o.texto })),
+            ...datos[campo].filter((t) => !enLista.has(t)).map((t) => ({ id: `m${t}`, texto: t }))
+          ]
           return (
             <fieldset key={lista.categoria} className="opciones-sesion">
               <legend>{lista.nombre}</legend>
@@ -211,7 +236,7 @@ export function PantallaRegistro({ alumnoId, onRegistrada, onCancelar, onOpcione
 
         <div className="acciones">
           <button type="submit" className="principal" disabled={ocupado}>
-            Registrar sesión
+            {sesionId !== undefined ? 'Guardar cambios' : 'Registrar sesión'}
           </button>
           <button type="button" onClick={onCancelar} disabled={ocupado}>
             Cancelar

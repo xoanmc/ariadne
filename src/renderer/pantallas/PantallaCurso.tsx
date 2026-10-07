@@ -4,18 +4,21 @@ import { Actas } from '../componentes/Actas'
 import { EvaluacionInicial } from '../componentes/EvaluacionInicial'
 import { FormularioCurso, NOMBRE_TRIMESTRE } from '../componentes/FormularioCurso'
 import { Programa } from '../componentes/Programa'
+import { SesionesDelCurso } from '../componentes/SesionesDelCurso'
 import { TrimestreEnCurso } from '../componentes/TrimestreEnCurso'
 import { fechaCorta } from '../fechas'
 
 interface Props {
   cursoId: number
   recienAbierto: boolean
+  aviso?: string
   onVolver: (alumnoId: number) => void
   onRegistrar: (alumnoId: number) => void
+  onCorregirSesion: (sesionId: number, cursoId: number) => void
 }
 
 /** Todo lo de un curso. Uno cerrado se consulta igual, pero ya no se modifica. */
-export function PantallaCurso({ cursoId, recienAbierto, onVolver, onRegistrar }: Props) {
+export function PantallaCurso({ cursoId, recienAbierto, aviso, onVolver, onRegistrar, onCorregirSesion }: Props) {
   const [curso, setCurso] = useState<VistaCurso | null | undefined>(undefined)
   const [alumno, setAlumno] = useState<FichaAlumno | null>(null)
   const [programa, setPrograma] = useState<VistaPrograma | null | undefined>(undefined)
@@ -23,7 +26,7 @@ export function PantallaCurso({ cursoId, recienAbierto, onVolver, onRegistrar }:
   const [problemas, setProblemas] = useState<ProblemaCurso[]>([])
   const [rechazo, setRechazo] = useState<string | null>(null)
   const [confirmacion, setConfirmacion] = useState<string | null>(
-    recienAbierto ? 'Curso abierto, con sus tres trimestres. Ya puedes registrar su evaluación inicial.' : null
+    recienAbierto ? 'Curso abierto, con sus tres trimestres. Ya puedes registrar su evaluación inicial.' : (aviso ?? null)
   )
   const [ocupado, setOcupado] = useState(false)
 
@@ -142,6 +145,10 @@ export function PantallaCurso({ cursoId, recienAbierto, onVolver, onRegistrar }:
 
       <section className="seccion">
         <EvaluacionInicial cursoId={curso.id} editable={activo} />
+      </section>
+
+      <section className="seccion">
+        <SesionesDelCurso curso={curso} onCorregir={(sesionId) => onCorregirSesion(sesionId, curso.id)} />
       </section>
 
       <section className="seccion">
