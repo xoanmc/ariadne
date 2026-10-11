@@ -275,8 +275,8 @@ Lo que sí falló, al probar temprano con un paquete vacío, fue la desinstalaci
 3. Alumnos y ciclo de curso ✅
 4. Programa de intervención y objetivos ✅
 5. **Registro rápido de sesión** — con medición contra el criterio de los dos minutos ✅
-6. Exportación del trimestre a fichero de texto
-7. Cierre de trimestre, verificación y arrastre
+6. Cierre de trimestre, verificación y arrastre
+7. Exportación del trimestre a fichero de texto
 8. Exportación completa de los datos y aceptación final
 
 Los informes y documentos sobre plantillas de Word estaban previstos aquí y se retiraron el 2026-10-11.
