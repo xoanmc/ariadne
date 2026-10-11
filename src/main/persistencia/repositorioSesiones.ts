@@ -7,18 +7,18 @@ export interface NuevaSesion {
   estadoAlumno: string | null
   respuestaActividades: string | null
   observaciones: string | null
-  incidencias: string | null
   saludMedicacion: string | null
+  falta: boolean
 }
 
 export function insertarSesion(db: BaseDatos, sesion: NuevaSesion): number {
   return Number(
     db
       .prepare(
-        `INSERT INTO sesion (alumno_id, trimestre_id, fecha, estado_alumno, respuesta_actividades, observaciones, incidencias, salud_medicacion)
-         VALUES (@alumnoId, @trimestreId, @fecha, @estadoAlumno, @respuestaActividades, @observaciones, @incidencias, @saludMedicacion)`
+        `INSERT INTO sesion (alumno_id, trimestre_id, fecha, estado_alumno, respuesta_actividades, observaciones, salud_medicacion, falta)
+         VALUES (@alumnoId, @trimestreId, @fecha, @estadoAlumno, @respuestaActividades, @observaciones, @saludMedicacion, @falta)`
       )
-      .run(sesion).lastInsertRowid
+      .run({ ...sesion, falta: sesion.falta ? 1 : 0 }).lastInsertRowid
   )
 }
 
@@ -49,21 +49,26 @@ export interface SesionGuardada extends NuevaSesion {
 }
 
 const COLUMNAS = `id, alumno_id AS alumnoId, trimestre_id AS trimestreId, fecha, estado_alumno AS estadoAlumno,
-  respuesta_actividades AS respuestaActividades, observaciones, incidencias, salud_medicacion AS saludMedicacion`
+  respuesta_actividades AS respuestaActividades, observaciones, salud_medicacion AS saludMedicacion, falta`
+
+type Fila = Omit<SesionGuardada, 'falta'> & { falta: number }
+const deFila = (fila: Fila): SesionGuardada => ({ ...fila, falta: fila.falta === 1 })
 
 export function obtenerSesion(db: BaseDatos, id: number): SesionGuardada | null {
-  return (db.prepare(`SELECT ${COLUMNAS} FROM sesion WHERE id = ?`).get(id) as SesionGuardada | undefined) ?? null
+  const fila = db.prepare(`SELECT ${COLUMNAS} FROM sesion WHERE id = ?`).get(id) as Fila | undefined
+  return fila ? deFila(fila) : null
 }
 
 /** En orden cronológico, como el diario que llevaba. */
 export function sesionesDeCurso(db: BaseDatos, cursoId: number): SesionGuardada[] {
-  return db
+  const filas = db
     .prepare(
       `SELECT ${COLUMNAS} FROM sesion
        WHERE trimestre_id IN (SELECT id FROM trimestre WHERE curso_academico_id = ?)
        ORDER BY fecha, id`
     )
-    .all(cursoId) as SesionGuardada[]
+    .all(cursoId) as Fila[]
+  return filas.map(deFila)
 }
 
 export function objetivosDeSesion(db: BaseDatos, sesionId: number): { objetivoId: number; enunciado: string }[] {
@@ -75,14 +80,15 @@ export function objetivosDeSesion(db: BaseDatos, sesionId: number): { objetivoId
     .all(sesionId) as { objetivoId: number; enunciado: string }[]
 }
 
+/** Quita antes sus objetivos trabajados: si pasa a ser falta, la base no admite que los conserve. */
 export function actualizarSesion(db: BaseDatos, id: number, sesion: NuevaSesion): void {
+  db.prepare('DELETE FROM sesion_objetivo WHERE sesion_id = ?').run(id)
   db.prepare(
     `UPDATE sesion SET alumno_id = @alumnoId, trimestre_id = @trimestreId, fecha = @fecha, estado_alumno = @estadoAlumno,
-       respuesta_actividades = @respuestaActividades, observaciones = @observaciones, incidencias = @incidencias,
-       salud_medicacion = @saludMedicacion
+       respuesta_actividades = @respuestaActividades, observaciones = @observaciones,
+       salud_medicacion = @saludMedicacion, falta = @falta
      WHERE id = @id`
-  ).run({ id, ...sesion })
-  db.prepare('DELETE FROM sesion_objetivo WHERE sesion_id = ?').run(id)
+  ).run({ id, ...sesion, falta: sesion.falta ? 1 : 0 })
 }
 
 /** Sus objetivos trabajados se van con ella (ON DELETE CASCADE). */

@@ -53,8 +53,8 @@ function filaDe({ alumno, trimestre, datos }: Preparada): repositorio.NuevaSesio
     estadoAlumno: unirOpciones(datos.estadoAlumno),
     respuestaActividades: unirOpciones(datos.respuestaActividades),
     observaciones: datos.observaciones,
-    incidencias: datos.incidencias,
-    saludMedicacion: datos.saludMedicacion
+    saludMedicacion: datos.saludMedicacion,
+    falta: datos.falta
   }
 }
 
@@ -78,7 +78,7 @@ export function registrarSesion(db: BaseDatos, alumnoId: unknown, entrada: Parti
     return nueva
   })()
   const { alumno, trimestre } = preparada
-  return { tipo: 'registrada', sesionId: id, resumen: `Sesión registrada: ${alumno.nombre} ${alumno.apellidos}, ${NOMBRE[trimestre.numero]}.` }
+  return { tipo: 'registrada', sesionId: id, resumen: `${preparada.datos.falta ? 'Falta registrada' : 'Sesión registrada'}: ${alumno.nombre} ${alumno.apellidos}, ${NOMBRE[trimestre.numero]}.` }
 }
 
 /**
@@ -105,7 +105,7 @@ export function corregirSesion(
     repositorio.asociarObjetivos(db, sesion.id, preparada.datos.objetivos)
   })()
   const { alumno, trimestre } = preparada
-  return { tipo: 'registrada', sesionId: sesion.id, resumen: `Sesión corregida: ${alumno.nombre} ${alumno.apellidos}, ${NOMBRE[trimestre.numero]}.` }
+  return { tipo: 'registrada', sesionId: sesion.id, resumen: `${preparada.datos.falta ? 'Falta corregida' : 'Sesión corregida'}: ${alumno.nombre} ${alumno.apellidos}, ${NOMBRE[trimestre.numero]}.` }
 }
 
 export function borrarSesion(db: BaseDatos, sesionId: unknown): { tipo: 'borrada' } | { tipo: 'rechazada'; mensaje: string } {
@@ -128,8 +128,8 @@ function vista(db: BaseDatos, sesion: repositorio.SesionGuardada): VistaSesion {
     estadoAlumno: separar(sesion.estadoAlumno),
     respuestaActividades: separar(sesion.respuestaActividades),
     observaciones: sesion.observaciones,
-    incidencias: sesion.incidencias,
     saludMedicacion: sesion.saludMedicacion,
+    falta: sesion.falta,
     objetivos: repositorio.objetivosDeSesion(db, sesion.id),
     modificable: motivoParaNoTocar(db, sesion) === null
   }

@@ -81,8 +81,10 @@ export interface Sesion {
   fecha: Fecha
   estadoAlumno: string | null
   respuestaActividades: string | null
-  incidencias: string | null
+  observaciones: string | null
   saludMedicacion: string | null
+  /** El alumno no acudió: no hay estado, respuesta, salud ni objetivos trabajados. */
+  falta: boolean
 }
 
 export interface ActaReunion {

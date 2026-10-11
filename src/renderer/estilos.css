@@ -831,3 +831,32 @@ button.pestana.activa {
 .subtitulo-linea {
   color: #6f6a61;
 }
+
+/* Faltas */
+
+.registro .fila-campos {
+  grid-template-columns: 1fr 1fr auto;
+  align-items: end;
+}
+
+/* A la altura del campo de fecha: misma altura y el mismo margen inferior que un .campo */
+label.casilla-falta {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  height: 2.75rem;
+  margin-bottom: 1rem;
+  padding: 0 0.2rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.etiqueta-falta {
+  margin-left: 0.6rem;
+  background: #f6e7dc;
+  color: #8a4b22;
+}
+
+.sesion.falta {
+  background: #fbf8f4;
+}

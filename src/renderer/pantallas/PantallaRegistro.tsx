@@ -20,7 +20,7 @@ const CAMPO: Record<CategoriaCatalogo, 'estadoAlumno' | 'respuestaActividades'> 
 
 /**
  * La pantalla en la que se juega el criterio de los dos minutos: todo a la vista, nada que buscar en
- * menús, el trimestre deducido. Lo poco frecuente (incidencias, salud) va plegado.
+ * menús, el trimestre deducido. Lo poco frecuente (salud) va plegado, y una falta se anota con una casilla.
  */
 export function PantallaRegistro({ alumnoId, sesionId, onRegistrada, onCancelar, onOpciones }: Props) {
   const [alumnos, setAlumnos] = useState<AlumnoEnLista[] | null>(null)
@@ -32,8 +32,8 @@ export function PantallaRegistro({ alumnoId, sesionId, onRegistrada, onCancelar,
     estadoAlumno: [],
     respuestaActividades: [],
     observaciones: null,
-    incidencias: null,
-    saludMedicacion: null
+    saludMedicacion: null,
+    falta: false
   })
   const [problemas, setProblemas] = useState<Problemas>([])
   const [rechazo, setRechazo] = useState<string | null>(null)
@@ -52,8 +52,8 @@ export function PantallaRegistro({ alumnoId, sesionId, onRegistrada, onCancelar,
             estadoAlumno: sesion.estadoAlumno,
             respuestaActividades: sesion.respuestaActividades,
             observaciones: sesion.observaciones,
-            incidencias: sesion.incidencias,
-            saludMedicacion: sesion.saludMedicacion
+            saludMedicacion: sesion.saludMedicacion,
+            falta: sesion.falta
           })
         }
       }
@@ -144,49 +144,54 @@ export function PantallaRegistro({ alumnoId, sesionId, onRegistrada, onCancelar,
             />
             {problemaDe('fecha') && <p className="problema">{problemaDe('fecha')}</p>}
           </div>
+          <label className="casilla-falta">
+            <input type="checkbox" checked={datos.falta} onChange={(e) => cambiar({ falta: e.target.checked })} />
+            No acudió
+          </label>
         </div>
 
-        {listas.map((lista) => {
-          const campo = CAMPO[lista.categoria]
-          // Al corregir, una opción ya marcada que ella desactivó o corrigió sigue apareciendo marcada: no se pierde
-          const enLista = new Set(lista.opciones.filter((o) => o.activa).map((o) => o.texto))
-          const activas = [
-            ...lista.opciones.filter((o) => o.activa).map((o) => ({ id: `o${o.id}`, texto: o.texto })),
-            ...datos[campo].filter((t) => !enLista.has(t)).map((t) => ({ id: `m${t}`, texto: t }))
-          ]
-          return (
-            <fieldset key={lista.categoria} className="opciones-sesion">
-              <legend>{lista.nombre}</legend>
-              {activas.length === 0 ? (
-                <p className="apunte">
-                  Sin opciones todavía.{' '}
-                  <button type="button" className="enlace" onClick={onOpciones}>
-                    Añadir opciones
-                  </button>
-                </p>
-              ) : (
-                <div className="chips">
-                  {activas.map((o) => {
-                    const marcada = datos[campo].includes(o.texto)
-                    return (
-                      <button
-                        key={o.id}
-                        type="button"
-                        className={marcada ? 'chip marcada' : 'chip'}
-                        aria-pressed={marcada}
-                        onClick={() => alternar(campo, o.texto)}
-                      >
-                        {o.texto}
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-            </fieldset>
-          )
-        })}
+        {!datos.falta &&
+          listas.map((lista) => {
+            const campo = CAMPO[lista.categoria]
+            // Al corregir, una opción ya marcada que ella desactivó o corrigió sigue apareciendo marcada: no se pierde
+            const enLista = new Set(lista.opciones.filter((o) => o.activa).map((o) => o.texto))
+            const activas = [
+              ...lista.opciones.filter((o) => o.activa).map((o) => ({ id: `o${o.id}`, texto: o.texto })),
+              ...datos[campo].filter((t) => !enLista.has(t)).map((t) => ({ id: `m${t}`, texto: t }))
+            ]
+            return (
+              <fieldset key={lista.categoria} className="opciones-sesion">
+                <legend>{lista.nombre}</legend>
+                {activas.length === 0 ? (
+                  <p className="apunte">
+                    Sin opciones todavía.{' '}
+                    <button type="button" className="enlace" onClick={onOpciones}>
+                      Añadir opciones
+                    </button>
+                  </p>
+                ) : (
+                  <div className="chips">
+                    {activas.map((o) => {
+                      const marcada = datos[campo].includes(o.texto)
+                      return (
+                        <button
+                          key={o.id}
+                          type="button"
+                          className={marcada ? 'chip marcada' : 'chip'}
+                          aria-pressed={marcada}
+                          onClick={() => alternar(campo, o.texto)}
+                        >
+                          {o.texto}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </fieldset>
+            )
+          })}
 
-        {delTrimestre && delTrimestre.objetivos.length > 0 && (
+        {!datos.falta && delTrimestre && delTrimestre.objetivos.length > 0 && (
           <fieldset className="objetivos-sesion">
             <legend>Objetivos trabajados (opcional) · {delTrimestre.trimestre}</legend>
             {delTrimestre.objetivos.map((o) => (
@@ -204,39 +209,34 @@ export function PantallaRegistro({ alumnoId, sesionId, onRegistrada, onCancelar,
         )}
 
         <div className={problemaDe('contenido') ? 'campo con-problema' : 'campo'}>
-          <label htmlFor="observaciones">Observaciones</label>
+          <label htmlFor="observaciones">{datos.falta ? 'Motivo (opcional)' : 'Observaciones'}</label>
           <textarea
             id="observaciones"
-            rows={3}
-            placeholder={sinOpciones ? 'Cómo fue la sesión' : 'Lo que quieras matizar'}
+            rows={datos.falta ? 2 : 3}
+            placeholder={
+              datos.falta ? 'Por ejemplo: enfermo, excursión' : sinOpciones ? 'Cómo fue la sesión' : 'Lo que quieras matizar'
+            }
             value={datos.observaciones ?? ''}
             onChange={(e) => cambiar({ observaciones: e.target.value })}
           />
           {problemaDe('contenido') && <p className="problema">{problemaDe('contenido')}</p>}
         </div>
 
-        <details className="plegado">
-          <summary>Incidencias</summary>
-          <textarea
-            aria-label="Incidencias"
-            rows={2}
-            value={datos.incidencias ?? ''}
-            onChange={(e) => cambiar({ incidencias: e.target.value })}
-          />
-        </details>
-        <details className="plegado">
-          <summary>Salud o medicación</summary>
-          <textarea
-            aria-label="Salud o medicación"
-            rows={2}
-            value={datos.saludMedicacion ?? ''}
-            onChange={(e) => cambiar({ saludMedicacion: e.target.value })}
-          />
-        </details>
+        {!datos.falta && (
+          <details className="plegado">
+            <summary>Salud o medicación</summary>
+            <textarea
+              aria-label="Salud o medicación"
+              rows={2}
+              value={datos.saludMedicacion ?? ''}
+              onChange={(e) => cambiar({ saludMedicacion: e.target.value })}
+            />
+          </details>
+        )}
 
         <div className="acciones">
           <button type="submit" className="principal" disabled={ocupado}>
-            {sesionId !== undefined ? 'Guardar cambios' : 'Registrar sesión'}
+            {sesionId !== undefined ? 'Guardar cambios' : datos.falta ? 'Registrar falta' : 'Registrar sesión'}
           </button>
           <button type="button" onClick={onCancelar} disabled={ocupado}>
             Cancelar

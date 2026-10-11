@@ -133,7 +133,7 @@ asignacion_trimestral
 sesion
   id · alumno_id · trimestre_id · fecha
   estado_alumno · respuesta_actividades
-  observaciones · incidencias · salud_medicacion
+  observaciones · salud_medicacion · falta
 
 sesion_objetivo
   sesion_id · objetivo_id
@@ -157,6 +157,8 @@ opcion_catalogo
 ```
 
 ### Notas sobre el esquema
+
+**Faltas y sin incidencias** (T4.6, `006_faltas_sin_incidencias.sql`): `sesion.falta` marca que el alumno no acudió. La base garantiza que una falta no lleva estado, respuesta, salud ni objetivos trabajados (una restricción y dos disparadores). La columna `incidencias` se eliminó a petición suya; lo que hubiera escrito pasó al final de sus observaciones.
 
 **Tablas sin uso desde el cambio de alcance (2026-10-11):** `area`, `documento_generado` y `plantilla` eran para los documentos sobre plantillas, que se retiraron. Están vacías y no estorban; se quitarán con una migración si llega a convenir.
 

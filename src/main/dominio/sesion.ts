@@ -9,8 +9,9 @@ export interface DatosSesion {
   estadoAlumno: string[]
   respuestaActividades: string[]
   observaciones: string | null
-  incidencias: string | null
   saludMedicacion: string | null
+  /** El alumno no acudió. Las observaciones sirven entonces para el motivo. */
+  falta: boolean
 }
 
 export interface ProblemaSesion {
@@ -30,7 +31,23 @@ function opciones(valor: unknown): string[] {
   return [...new Set(valor.map(texto).filter((o) => o !== '' && o.length <= 60))]
 }
 
+/**
+ * Una falta solo conserva la fecha y el motivo: lo que hubiera marcado antes de darse cuenta de que el
+ * alumno no vino se descarta aquí, para que no llegue a guardarse.
+ */
 export function normalizarSesion(entrada: Partial<Record<keyof DatosSesion, unknown>>): DatosSesion {
+  const falta = entrada.falta === true
+  if (falta) {
+    return {
+      fecha: texto(entrada.fecha),
+      objetivos: [],
+      estadoAlumno: [],
+      respuestaActividades: [],
+      observaciones: texto(entrada.observaciones) || null,
+      saludMedicacion: null,
+      falta
+    }
+  }
   return {
     fecha: texto(entrada.fecha),
     objetivos: Array.isArray(entrada.objetivos)
@@ -39,22 +56,25 @@ export function normalizarSesion(entrada: Partial<Record<keyof DatosSesion, unkn
     estadoAlumno: opciones(entrada.estadoAlumno),
     respuestaActividades: opciones(entrada.respuestaActividades),
     observaciones: texto(entrada.observaciones) || null,
-    incidencias: texto(entrada.incidencias) || null,
-    saludMedicacion: texto(entrada.saludMedicacion) || null
+    saludMedicacion: texto(entrada.saludMedicacion) || null,
+    falta
   }
 }
 
-/** Se registra después de la sesión: la fecha no puede ser futura. Y una sesión sin nada dentro no es un registro. */
+/**
+ * Se registra después de la sesión: la fecha no puede ser futura. Y una sesión sin nada dentro no es un
+ * registro, salvo una falta, que ya dice lo que pasó.
+ */
 export function validarSesion(datos: DatosSesion, hoy: Fecha): ProblemaSesion[] {
   const problemas: ProblemaSesion[] = []
   if (!esFecha(datos.fecha)) problemas.push({ campo: 'fecha', mensaje: 'Indica la fecha de la sesión.' })
   else if (datos.fecha > hoy) problemas.push({ campo: 'fecha', mensaje: 'La fecha no puede ser posterior a hoy.' })
 
   const vacia =
+    !datos.falta &&
     datos.estadoAlumno.length === 0 &&
     datos.respuestaActividades.length === 0 &&
     !datos.observaciones &&
-    !datos.incidencias &&
     !datos.saludMedicacion
   if (vacia) problemas.push({ campo: 'contenido', mensaje: 'Marca alguna opción o escribe algo sobre la sesión.' })
   return problemas

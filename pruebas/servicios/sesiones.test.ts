@@ -40,8 +40,8 @@ function sesion(extra: Partial<DatosSesion> = {}): DatosSesion {
     estadoAlumno: ['Cansado', 'Inquieto'],
     respuestaActividades: ['Participa'],
     observaciones: null,
-    incidencias: null,
     saludMedicacion: null,
+    falta: false,
     ...extra
   }
 }
@@ -216,7 +216,7 @@ describe('consultar, corregir y borrar sesiones (T4.4)', () => {
 
   it('se listan las sesiones del trimestre con su contenido, en orden cronológico', () => {
     registrar({ fecha: '2027-02-10', observaciones: 'Segunda' })
-    registrar({ fecha: '2027-01-20', observaciones: 'Primera', incidencias: 'Llegó tarde' })
+    registrar({ fecha: '2027-01-20', observaciones: 'Primera', saludMedicacion: 'Tomó su medicación' })
     registrar({ fecha: '2026-11-03', observaciones: 'Del primer trimestre' })
 
     const delSegundo = sesionesDeCurso(db, curso.id).filter((s) => s.trimestreId === trimestre(2))
@@ -227,7 +227,7 @@ describe('consultar, corregir y borrar sesiones (T4.4)', () => {
     expect(delSegundo[0]).toMatchObject({
       estadoAlumno: ['Cansado', 'Inquieto'],
       respuestaActividades: ['Participa'],
-      incidencias: 'Llegó tarde',
+      saludMedicacion: 'Tomó su medicación',
       modificable: true
     })
   })
@@ -278,5 +278,71 @@ describe('consultar, corregir y borrar sesiones (T4.4)', () => {
   it('una sesión que no existe se dice claramente', () => {
     expect(borrarSesion(db, 999)).toEqual({ tipo: 'rechazada', mensaje: 'Esta sesión no existe.' })
     expect(corregirSesion(db, 999, alumnoId, sesion(), HOY).tipo).toBe('rechazada')
+  })
+})
+
+describe('faltas (T4.6)', () => {
+  const trimestreDos = () => curso.trimestres.find((t) => t.numero === 2)!.id
+
+  function unObjetivo(): number {
+    const programa = crearPrograma(db, curso.id, null, [], HOY)
+    if (programa.tipo !== 'guardado') throw new Error('programa fallido')
+    const r = anadirObjetivo(db, programa.programa.id, { enunciado: 'Mejorar la fluidez lectora', trimestreId: trimestreDos() }, HOY)
+    if (r.tipo !== 'guardado') throw new Error('objetivo fallido')
+    return r.programa.asignaciones[0].objetivoId
+  }
+
+  const falta = (extra: Partial<DatosSesion> = {}) =>
+    sesion({ falta: true, estadoAlumno: [], respuestaActividades: [], ...extra })
+
+  it('una falta se registra sin nada más, y el aviso lo dice', () => {
+    const r = registrarSesion(db, alumnoId, falta(), HOY)
+    expect(r).toMatchObject({ tipo: 'registrada', resumen: 'Falta registrada: Lucía García, 2.º trimestre.' })
+    expect(obtenerSesion(db, r.tipo === 'registrada' ? r.sesionId : 0)).toMatchObject({ falta: true, observaciones: null })
+  })
+
+  it('el motivo queda en observaciones', () => {
+    const r = registrarSesion(db, alumnoId, falta({ observaciones: 'Enfermo' }), HOY)
+    expect(r.tipo === 'registrada' && obtenerSesion(db, r.sesionId)?.observaciones).toBe('Enfermo')
+  })
+
+  it('lo marcado antes de darse cuenta de que no vino no se guarda', () => {
+    const objetivo = unObjetivo()
+    const r = registrarSesion(
+      db,
+      alumnoId,
+      falta({ estadoAlumno: ['Cansado'], respuestaActividades: ['Participa'], saludMedicacion: 'Fiebre', objetivos: [objetivo] }),
+      HOY
+    )
+    expect(r.tipo === 'registrada' && obtenerSesion(db, r.sesionId)).toMatchObject({
+      falta: true,
+      estadoAlumno: [],
+      respuestaActividades: [],
+      saludMedicacion: null,
+      objetivos: []
+    })
+  })
+
+  it('una sesión con objetivos trabajados se puede corregir a falta, y al revés', () => {
+    const objetivo = unObjetivo()
+    const r = registrarSesion(db, alumnoId, sesion({ objetivos: [objetivo] }), HOY)
+    if (r.tipo !== 'registrada') throw new Error('registro fallido')
+
+    expect(corregirSesion(db, r.sesionId, alumnoId, falta(), HOY)).toMatchObject({ resumen: 'Falta corregida: Lucía García, 2.º trimestre.' })
+    expect(obtenerSesion(db, r.sesionId)).toMatchObject({ falta: true, objetivos: [] })
+
+    corregirSesion(db, r.sesionId, alumnoId, sesion({ objetivos: [objetivo] }), HOY)
+    expect(obtenerSesion(db, r.sesionId)).toMatchObject({ falta: false, estadoAlumno: ['Cansado', 'Inquieto'] })
+  })
+
+  it('una falta no cuenta como objetivo trabajado: el objetivo se puede seguir moviendo', () => {
+    const objetivo = unObjetivo()
+    registrarSesion(db, alumnoId, falta({ objetivos: [objetivo] }), HOY)
+    const asignacion = programaDeCurso(db, curso.id)!.asignaciones[0]
+    expect(asignacion.puedeMoverse).toBe(true)
+  })
+
+  it('una falta sigue necesitando una fecha válida dentro de un trimestre abierto', () => {
+    expect(registrarSesion(db, alumnoId, falta({ fecha: '2026-12-28' }), HOY).tipo).toBe('invalida')
   })
 })

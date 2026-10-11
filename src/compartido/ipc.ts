@@ -100,8 +100,9 @@ export interface DatosSesion {
   estadoAlumno: string[]
   respuestaActividades: string[]
   observaciones: string | null
-  incidencias: string | null
   saludMedicacion: string | null
+  /** El alumno no acudió: entonces solo cuentan la fecha y, si acaso, el motivo en observaciones. */
+  falta: boolean
 }
 
 /** Los objetivos que se pueden marcar en una sesión de esa fecha; null si la fecha no cae en un trimestre abierto. */
@@ -118,8 +119,8 @@ export interface VistaSesion {
   estadoAlumno: string[]
   respuestaActividades: string[]
   observaciones: string | null
-  incidencias: string | null
   saludMedicacion: string | null
+  falta: boolean
   objetivos: { objetivoId: number; enunciado: string }[]
   /** Solo mientras su trimestre siga abierto. */
   modificable: boolean
