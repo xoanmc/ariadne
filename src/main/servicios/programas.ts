@@ -44,6 +44,7 @@ function vista(db: BaseDatos, programa: ProgramaIntervencion): VistaPrograma {
       numeroTrimestre: a.numeroTrimestre,
       valoracion: a.valoracion,
       etiquetaValoracion: ETIQUETAS_VALORACION[a.valoracion],
+      comentario: a.comentario,
       arrastrado: a.asignacionAnteriorId !== null,
       puedeMoverse:
         motivoParaNoMover(

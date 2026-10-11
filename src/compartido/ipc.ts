@@ -56,6 +56,7 @@ export interface VistaAsignacion {
   numeroTrimestre: NumeroTrimestre
   valoracion: Valoracion
   etiquetaValoracion: string
+  comentario: string | null
   arrastrado: boolean
   puedeMoverse: boolean
   puedeQuitarse: boolean

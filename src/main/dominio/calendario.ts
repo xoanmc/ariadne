@@ -1,5 +1,8 @@
 import type { Fecha, NumeroTrimestre } from './entidades'
 
+/** Cómo los nombra ella, en los mensajes y en lo que exporta. */
+export const NOMBRE_TRIMESTRE: Record<NumeroTrimestre, string> = { 1: '1.er trimestre', 2: '2.º trimestre', 3: '3.er trimestre' }
+
 export interface PeriodoTrimestre {
   numero: NumeroTrimestre
   fechaInicio: Fecha

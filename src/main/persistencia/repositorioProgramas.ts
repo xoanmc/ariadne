@@ -147,6 +147,10 @@ export function actualizarEnunciado(db: BaseDatos, objetivoId: number, enunciado
   db.prepare('UPDATE objetivo SET enunciado = ? WHERE id = ?').run(enunciado, objetivoId)
 }
 
+export function valorarAsignacion(db: BaseDatos, asignacionId: number, valoracion: Valoracion, comentario: string | null): void {
+  db.prepare('UPDATE asignacion_trimestral SET valoracion = ?, comentario = ? WHERE id = ?').run(valoracion, comentario, asignacionId)
+}
+
 export function cambiarTrimestre(db: BaseDatos, asignacionId: number, trimestreId: number): void {
   db.prepare('UPDATE asignacion_trimestral SET trimestre_id = ? WHERE id = ?').run(trimestreId, asignacionId)
 }

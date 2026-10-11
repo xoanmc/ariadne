@@ -1,5 +1,5 @@
 import type { DatosSesion, ObjetivosParaSesion, ResultadoSesion, VistaSesion } from '../../compartido/ipc'
-import { situarFecha } from '../dominio/calendario'
+import { NOMBRE_TRIMESTRE as NOMBRE, situarFecha } from '../dominio/calendario'
 import type { Alumno, Fecha, Trimestre } from '../dominio/entidades'
 import { normalizarSesion, problemaDeUbicacion, unirOpciones, validarSesion, type DatosSesion as Datos } from '../dominio/sesion'
 import type { BaseDatos } from '../persistencia/baseDatos'
@@ -8,8 +8,6 @@ import { cursosActivos, obtenerCurso, obtenerTrimestre, trimestresDeCurso } from
 import * as repositorio from '../persistencia/repositorioSesiones'
 import { esId } from './entrada'
 import { hoyLocal } from './fecha'
-
-const NOMBRE = { 1: '1.er trimestre', 2: '2.º trimestre', 3: '3.er trimestre' } as const
 
 type Preparada = { alumno: Alumno; trimestre: Trimestre; datos: Datos }
 

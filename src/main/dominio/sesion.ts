@@ -1,4 +1,4 @@
-import { esFecha, type UbicacionFecha } from './calendario'
+import { esFecha, NOMBRE_TRIMESTRE as NOMBRE, type UbicacionFecha } from './calendario'
 import type { Fecha } from './entidades'
 
 export type CampoSesion = 'fecha' | 'contenido'
@@ -18,8 +18,6 @@ export interface ProblemaSesion {
   campo: CampoSesion
   mensaje: string
 }
-
-const NOMBRE: Record<1 | 2 | 3, string> = { 1: '1.er trimestre', 2: '2.º trimestre', 3: '3.er trimestre' }
 
 function texto(valor: unknown): string {
   return typeof valor === 'string' ? valor.trim() : ''
