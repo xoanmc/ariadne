@@ -13,7 +13,7 @@ Cómo se construye lo especificado. Cada decisión indica el principio que la re
 | Interfaz | React |
 | Datos | SQLite en fichero único |
 | Acceso a datos | better-sqlite3 |
-| Documentos | Relleno de plantillas `.docx` con marcadores |
+| Exportación | Ficheros de texto plano por alumno y trimestre |
 | Pruebas | Vitest, sobre dominio y servicios críticos |
 
 ### Por qué Electron
@@ -56,7 +56,7 @@ Dominio           entidades y reglas, sin dependencias externas
 Persistencia      SQLite
 ```
 
-**Documentos** cuelga de servicios como módulo aislado (P7). El dominio no sabe que existen las plantillas.
+**Exportación** es una proyección sobre los datos (P7): el texto se compone en el dominio a partir de lo guardado, y el servicio solo lo escribe en el fichero que ella elige.
 
 En Electron esto se reparte así: el proceso principal contiene dominio, servicios y persistencia; el proceso de interfaz solo pinta. Se comunican por mensajes, y la interfaz nunca toca la base de datos directamente.
 
@@ -158,6 +158,8 @@ opcion_catalogo
 
 ### Notas sobre el esquema
 
+**Tablas sin uso desde el cambio de alcance (2026-10-11):** `area`, `documento_generado` y `plantilla` eran para los documentos sobre plantillas, que se retiraron. Están vacías y no estorban; se quitarán con una migración si llega a convenir.
+
 **`asignacion_trimestral` es la tabla central.** Contiene toda la mecánica de arrastre. La columna `asignacion_anterior_id` apunta a la asignación del trimestre previo y forma la cadena histórica: recorriéndola hacia atrás se obtiene el recorrido completo de un objetivo, y contando **dos** eslabones consecutivos con valoración `pendiente_desarrollar` se resuelve el aviso de RF-20.
 
 Es también la única cadena que cruza de curso. `objetivo` cuelga de `programa_id`, o sea de un curso concreto: al arrastrar entre cursos se inserta un objetivo nuevo en el programa nuevo y su primera asignación apunta a la última del curso anterior. **Ninguna consulta de historial debe recorrer `objetivo`; todas recorren asignaciones.**
@@ -197,19 +199,13 @@ Es también la única cadena que cruza de curso. `objetivo` cuelga de `programa_
 
 ---
 
-## 5. Módulo de documentos
+## 5. Exportación del trimestre
 
-Aislado tras una interfaz, porque es lo único bloqueado por material pendiente.
+Sustituye al módulo de documentos sobre plantillas, retirado el 2026-10-11 (ver la constitución).
 
-**Funcionamiento:** se parte del `.docx` real de la profesional, con marcadores insertados donde van los datos variables. La aplicación sustituye los marcadores y produce el fichero final. No se reconstruye el documento, se rellena el suyo, de modo que logo, membrete, firma, tipografías y márgenes se conservan intactos sin trabajo adicional.
+Un fichero `.txt` por alumno y trimestre, en UTF-8, con todo lo registrado: cabecera con alumno, curso y trimestre; objetivos con su valoración; y las sesiones en orden cronológico. Se elige `.txt` porque se abre con doble clic en cualquier Windows y se lee como un documento; un `.md` mostraría símbolos que a ella le sobran. Es su archivo personal y lleva el nombre del alumno (P6).
 
-**Consecuencia deseada:** ella puede seguir editando el diseño en Word sin depender de nosotros, mientras respete los marcadores.
-
-**Mientras no lleguen las plantillas:** el módulo se implementa contra una plantilla de prueba propia. Cuando lleguen las suyas, se sustituyen los ficheros y se ajustan los marcadores. No cambia código.
-
-**Pseudonimización (P6):** filtro obligatorio en la salida hacia el exterior. La sustitución del nombre por el código interno no es una opción configurable ni un paso que ella deba recordar; es la única ruta posible hacia fuera.
-
-Sustituye nombre y apellidos del alumno del documento, con sus variantes de acento, orden y separación. **No** detecta nombres de terceros: es una limitación decidida, documentada en P6, no un defecto por corregir. El filtro es una función pura de la capa de dominio, sin dependencias, para que pueda probarse a fondo y reutilizarse dondequiera que aparezca una salida nueva.
+La composición del texto es una función pura del dominio, sin dependencias, para probarla a fondo. El servicio reúne los datos, la llama y escribe el fichero donde ella elija.
 
 ---
 
@@ -225,10 +221,10 @@ Alcance con pruebas automáticas:
 | Cadena de arrastre | Un enlace mal formado corrompe años de historial y no da síntoma hasta que ella consulta el recorrido |
 | Verificación de cierre | Es el valor central del sistema y sustituye a un juicio humano. Si miente, miente con autoridad |
 | Regla de cierre bloqueante | Un fallo aquí permite cerrar trimestres incompletos, que es exactamente lo que se venía a evitar |
-| Filtro de pseudonimización | Un fallo saca un nombre fuera del equipo. Se prueba con nombres compuestos, acentuados y con guion |
+| Exportación del trimestre | Es su archivo del trimestre: si se deja una sesión o un campo, lo pierde sin darse cuenta |
 | Coherencia alumno/trimestre | Verifica que las claves redundantes no puedan divergir (ver §4) |
 
-Fuera de las pruebas automáticas: interfaz, generación `.docx` (se valida abriendo el fichero) y empaquetado (se valida en un equipo Windows, T0.1).
+Fuera de las pruebas automáticas: interfaz y empaquetado (se valida en un equipo Windows, T0.1).
 
 El dominio debe poder probarse **sin base de datos y sin Electron**. Si una prueba de dominio necesita levantar SQLite, la separación de capas está mal hecha y eso es lo primero que hay que arreglar.
 
@@ -244,7 +240,6 @@ src/
     dominio/         entidades y reglas
     servicios/       casos de uso
     persistencia/    SQLite, migraciones, repositorios
-    documentos/      plantillas y generación
     ipc/             puente con la interfaz
   renderer/          interfaz
     pantallas/
@@ -255,7 +250,6 @@ pruebas/
   dominio/
   servicios/
 recursos/
-  plantillas/
   migraciones/
 ```
 
@@ -266,8 +260,6 @@ recursos/
 | Riesgo | Mitigación |
 |---|---|
 | Compilación nativa de SQLite al empaquetar | Resuelto en T1.2: better-sqlite3 13 trae binarios precompilados (N-API) para Windows x64 dentro del paquete npm. Se desactiva la recompilación de electron-builder (`npmRebuild: false`), que intentaba compilar desde fuente y no puede desde macOS. Confirmado en Windows real el 2026-09-25 |
-| Los marcadores en `.docx` se fragmentan al editar en Word | Normalizar la plantilla antes de usarla; validar al cargarla |
-| Las plantillas exigen campos no previstos | El esquema es extensible; migraciones desde el inicio |
 | El vocabulario inicial de sesión no encaja con su forma de trabajar | Editable desde la aplicación, no fijo en código |
 
 Lo que sí falló, al probar temprano con un paquete vacío, fue la desinstalación del instalador NSIS (ver §1), resuelto pasando a distribución en zip.
@@ -280,9 +272,11 @@ Lo que sí falló, al probar temprano con un paquete vacío, fue la desinstalaci
 2. Persistencia, migraciones y copias de seguridad ✅
 3. Alumnos y ciclo de curso ✅
 4. Programa de intervención y objetivos ✅
-5. **Registro rápido de sesión** — con medición contra el criterio de los dos minutos
-6. Cierre de trimestre, verificación y arrastre
-7. Módulo de documentos y actas
-8. Exportación
+5. **Registro rápido de sesión** — con medición contra el criterio de los dos minutos ✅
+6. Exportación del trimestre a fichero de texto
+7. Cierre de trimestre, verificación y arrastre
+8. Exportación completa de los datos y aceptación final
+
+Los informes y documentos sobre plantillas de Word estaban previstos aquí y se retiraron el 2026-10-11.
 
 Los pasos 1 y 5 son los que conviene validar con ella antes de seguir. El resto puede construirse seguido.

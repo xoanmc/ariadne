@@ -24,13 +24,12 @@ Una sola persona, con un equipo Windows. Registra después de la sesión, nunca 
 - Valoración de objetivos según rúbrica de tres estados
 - Cierre de trimestre con verificación automática
 - Registro de actas de reunión con familias
-- Generación de documentos sobre plantillas propias
-- Sustitución del nombre del alumno por su código en lo que sale del equipo
+- Exportación de los registros de cada alumno por trimestre a un fichero de texto
 - Exportación y copia de seguridad completas
 
 ### Fuera
 
-Corrección automática de tests, baremos y puntuaciones. Comparación con población normativa. Gráficas de evolución. Multiusuario, roles y auditoría. Acceso de familias. Adjuntos multimedia. Registro durante la sesión. Sincronización entre dispositivos. Redacción automática de prosa clínica.
+Corrección automática de tests, baremos y puntuaciones. Comparación con población normativa. Gráficas de evolución. Multiusuario, roles y auditoría. Acceso de familias. Adjuntos multimedia. Registro durante la sesión. Sincronización entre dispositivos. Redacción automática de prosa clínica. Generación de informes y documentos sobre plantillas de Word (retirados el 2026-10-11 a petición suya: la aplicación se centra en el registro de las sesiones).
 
 Cada exclusión es una decisión de producto.
 
@@ -135,9 +134,12 @@ Registro de una sesión individual.
 - Fecha
 - **Estado del alumno en sesión**
 - **Respuesta a las actividades**
-- Incidencias
+- Observaciones
 - Estado de salud o medicación, si procede
+- Si el alumno no acudió (falta)
 - Objetivos trabajados en la sesión (opcional)
+
+Desde el 2026-10-11, a petición suya, la sesión ya no lleva el apartado de incidencias, y puede registrarse que el alumno no acudió (RF-30).
 
 El trimestre se deduce de la fecha de la sesión y del alumno; ella no lo elige. El alumno de la sesión y el del trimestre son por definición el mismo, y el sistema lo garantiza en lugar de confiarlo a quien rellene el formulario.
 
@@ -152,39 +154,11 @@ Documento de las reuniones con familias. Cadencia ocasional.
 - Asistentes
 - Contenido y acuerdos
 
-Se registra en la aplicación y se genera como documento sobre su plantilla, igual que el resto.
+Se registra en la aplicación. Desde el cambio de alcance no se genera como documento.
 
-### Área
+## 5. Exportación del trimestre
 
-Categoría de valoración utilizada **exclusivamente en el informe para servicios externos**. No clasifica objetivos ni organiza sesiones.
-
-Lista habitual: lenguaje, motricidad, higiene, alimentación, desempeño académico. Editable, ya que varía según lo que solicite el organismo.
-
-### Documento generado
-
-Registro de cada documento producido, para conservar el histórico.
-
-- Tipo, alumno, curso, trimestre
-- Fecha de generación
-- Contenido redactado
-- Fichero resultante
-
----
-
-## 5. Documentos del sistema
-
-| Documento | Cadencia | Frecuencia |
-|---|---|---|
-| Diario de departamento | Tras cada sesión | Habitual |
-| Evaluación inicial | Principio de curso | Habitual |
-| Programa de intervención | Anual, revisable | Habitual |
-| Informe trimestral individualizado | Cierre de trimestre | Habitual |
-| Acta de reunión | Puntual | Ocasional |
-| Informe para servicios externos | Bajo demanda | Ocasional |
-
-Todos requieren logo, membrete y firma, y se imprimen. La estructura varía según destinatario.
-
-> **[NECESITA ACLARACIÓN]** Pendientes las plantillas definitivas. Determinan qué campos adicionales hay que capturar.
+Sustituye a los documentos sobre plantillas, retirados el 2026-10-11. Al acabar cada trimestre, ella saca **un fichero de texto por alumno** con todo lo que registró: los datos del curso y del trimestre, los objetivos con su valoración y todas las sesiones en orden cronológico. Es su archivo personal: se abre con doble clic en cualquier Windows y se lee sin la aplicación.
 
 ---
 
@@ -216,6 +190,7 @@ Todos requieren logo, membrete y firma, y se imprimen. La estructura varía seg�
 - **RF-13** Captura del estado del alumno y de su respuesta a las actividades mediante opciones seleccionables, con campo libre complementario.
 - **RF-14** Asociación opcional de la sesión a los objetivos trabajados.
 - **RF-15** Consulta de las sesiones de un alumno dentro de un trimestre.
+- **RF-30** Registro de que el alumno no acudió a la sesión.
 
 ### Cierre de trimestre
 
@@ -229,12 +204,10 @@ Todos requieren logo, membrete y firma, y se imprimen. La estructura varía seg�
 
 - **RF-21** Registro de acta de reunión asociada a un alumno y curso, con fecha, asistentes, contenido y acuerdos.
 
-### Documentación
+### Exportación del trimestre
 
-- **RF-22** Redacción del contenido de cada documento por parte de la usuaria, con los datos relevantes visibles durante la redacción.
-- **RF-23** Generación del documento sobre su plantilla, conservando logo, membrete y firma.
-- **RF-24** Conservación del histórico de documentos generados.
-- **RF-25** Sustitución del nombre del alumno por su código en los documentos que salen del equipo.
+- **RF-29** Exportación, para cada alumno y trimestre, de un fichero de texto con todas sus sesiones y registros, legible sin la aplicación.
+- RF-22 a RF-25 (redacción de documentos, generación sobre plantilla, histórico de documentos y sustitución del nombre en lo que sale del equipo): **retirados** el 2026-10-11.
 
 ### Datos
 
@@ -261,10 +234,9 @@ Todos requieren logo, membrete y firma, y se imprimen. La estructura varía seg�
 2. Al cerrar un trimestre, el sistema indica por sí solo qué objetivos quedaron sin valorar y cuáles no se trabajaron.
 3. Un trimestre con algún objetivo sin valorar no puede cerrarse, y cerrar el tercero cierra el curso.
 4. Un objetivo arrastrado durante tres trimestres puede consultarse con su cadena completa, incluso si el arrastre cruza de curso.
-5. El texto que sale del equipo no contiene en ningún caso el nombre del alumno.
+5. La exportación del trimestre de un alumno recoge todas sus sesiones y se lee sin la aplicación.
 6. La aplicación funciona con el equipo desconectado de la red.
 7. La usuaria puede llevarse todos sus datos en un único fichero.
-8. Un documento generado es indistinguible en formato del que produce hoy manualmente.
 
 ---
 
@@ -273,8 +245,6 @@ Todos requieren logo, membrete y firma, y se imprimen. La estructura varía seg�
 | Asunto | Bloquea | Cómo se resuelve |
 |---|---|---|
 | Vocabulario de estado y respuesta en sesión | RF-13 | Ajustarlo con el uso |
-| Plantillas Word | RF-23 | Obtener los ficheros |
-| Campos adicionales que exijan las plantillas | Modelo | Se resuelve con lo anterior |
 
 Ninguno bloquea el plan técnico ni el modelo de dominio.
 
@@ -288,8 +258,9 @@ Registro de las decisiones que en su día quedaron abiertas, para no reabrirlas 
 |---|---|
 | Trimestre con objetivos sin valorar | El cierre se bloquea hasta valorarlos todos (RF-18) |
 | Umbral del aviso de estancamiento | Dos trimestres consecutivos, no tres (RF-20) |
-| Actas de reunión | Dentro del alcance, con registro y documento (RF-21) |
+| Actas de reunión | Dentro del alcance, solo como registro (RF-21) |
 | Identidad del objetivo entre cursos | Objetivo nuevo por curso, enlazado por la cadena de asignaciones |
-| Alcance de la pseudonimización | Solo el nombre del alumno; terceros son riesgo asumido (P6) |
+| Informes y plantillas de Word | Fuera del alcance desde el 2026-10-11, a petición suya. Los sustituye la exportación del trimestre (RF-29) |
+| Pseudonimización | Sin salidas hacia el exterior desde el 2026-10-11; la exportación del trimestre es su archivo y lleva el nombre (P6) |
 | Fechas de los trimestres | Propuestas al abrir curso, editables por ella (RF-06) |
 | Cierre del curso académico | Automático al cerrar el tercer trimestre (RF-07) |

@@ -196,7 +196,7 @@ function guardado(db: BaseDatos, programaId: number): ResultadoPrograma {
 
 /**
  * Corrige o reformula el enunciado. El cambio se ve en todos sus trimestres de este curso; los
- * documentos ya generados guardan su texto, y el curso anterior no se toca nunca.
+ * registros ya exportados conservan el enunciado de entonces, y el curso anterior no se toca nunca.
  */
 export function editarObjetivo(db: BaseDatos, objetivoId: unknown, enunciado: unknown, hoy: Fecha = hoyLocal()): ResultadoPrograma {
   const encontrado = objetivoModificable(db, objetivoId)

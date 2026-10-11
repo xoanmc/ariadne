@@ -2,6 +2,8 @@
 
 Principios no negociables. Cualquier decisión de diseño o implementación que los contradiga se rechaza, aunque sea técnicamente superior.
 
+> **Cambio de alcance (2026-10-11).** Tras usarla, ella pidió que la aplicación se centre en el registro de las sesiones: **nada de informes ni plantillas de Word**. Lo que necesita es poder sacar, al acabar cada trimestre, un fichero por alumno con todo lo que registró. Los principios siguen en vigor; P4, P6 y P7 explican abajo cómo les afecta.
+
 ---
 
 ## P1 — Los datos son de ella
@@ -40,7 +42,7 @@ El texto profesional lo escribe ella. La aplicación aporta datos, estructura y 
 
 **Origen:** el criterio profesional es suyo, y el texto también.
 
-**Implicaciones:** no se genera prosa clínica automáticamente.
+**Implicaciones:** no se genera prosa clínica automáticamente. Desde el cambio de alcance, la aplicación tampoco redacta ni compone informes: guarda lo que ella escribe y se lo devuelve ordenado.
 
 ---
 
@@ -62,6 +64,8 @@ Cualquier texto que la aplicación prepare para salir del equipo lleva el alumno
 
 **Implicaciones:** la pseudonimización es automática y por defecto, no una opción que haya que activar.
 
+**Desde el cambio de alcance:** ya no queda ninguna salida hacia fuera, porque se retiró la generación de documentos. La exportación del trimestre es su archivo personal en su propio equipo y lleva el nombre del alumno. Si en el futuro vuelve a aparecer una salida hacia el exterior, este principio se aplica tal cual.
+
 **Alcance del filtro:** cubre el nombre y los apellidos del alumno al que pertenece el texto. Nada más.
 
 **Riesgo asumido, decidido conscientemente:** los campos libres pueden contener nombres de terceros —hermanos, madres, profesionales externos, el propio centro— y el filtro no los detecta. Se acepta porque ampliarlo obligaría a mantener diccionarios o a añadir un paso de revisión, y ambas cosas encarecen la única ruta de salida por un riesgo que ella ya gestiona hoy al escribir. **Esta es una limitación conocida, no un descuido.** Si en el uso real aparecen nombres de terceros con frecuencia, se replantea entonces.
@@ -72,7 +76,7 @@ Cualquier texto que la aplicación prepare para salir del equipo lleva el alumno
 
 El modelo de datos no sabe nada de plantillas ni de formatos. Un documento es una proyección sobre los datos; los datos nunca se guardan preformateados para un documento concreto.
 
-**Implicaciones:** cambiar una plantilla no toca el dominio. Ella puede editar sus plantillas en Word sin depender de nosotros.
+**Implicaciones:** la exportación del trimestre es una proyección sobre los datos. Cambiar su formato no toca el dominio, y los datos no se guardan pensando en cómo se van a exportar.
 
 ---
 

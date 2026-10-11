@@ -1,7 +1,7 @@
 {
   "name": "ariadne",
   "version": "0.0.1",
-  "description": "Seguimiento de alumnos, objetivos trimestrales y documentos para orientación",
+  "description": "Registro de sesiones y seguimiento de objetivos trimestrales para orientación",
   "author": "Ariadne",
   "license": "UNLICENSED",
   "private": true,

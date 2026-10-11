@@ -1,6 +1,6 @@
 # Ariadne
 
-Aplicación de escritorio para Windows que ayuda a una orientadora de educación especial a registrar sus sesiones con alumnos, seguir los objetivos trimestrales de cada uno y generar su documentación sobre sus propias plantillas de Word.
+Aplicación de escritorio para Windows que ayuda a una orientadora de educación especial a registrar sus sesiones con alumnos, seguir los objetivos trimestrales de cada uno y sacar al final de cada trimestre un fichero con todo lo registrado de cada alumno.
 
 El problema que resuelve no es la evaluación, sino la **captura**: si registrar una sesión cuesta más que no registrarla, acaba sin registrarse. El objetivo central es que registrar una sesión lleve menos de dos minutos.
 
@@ -12,7 +12,7 @@ El proyecto se rige por una [constitución](documentacion/01_constitucion.md) de
 - **Local antes que conectado.** Funciona íntegramente sin internet.
 - **Registrar tiene que costar menos que no registrar.** Cada campo justifica su coste en segundos.
 - **Ella redacta, la aplicación no.** La aplicación aporta datos, estructura y verificación; nunca escribe prosa clínica.
-- **Nada sale identificado.** Todo texto que sale del equipo lleva el nombre del alumno sustituido por su código interno, de forma automática.
+- **Nada sale identificado.** Si algún texto llegara a salir del equipo, llevaría el nombre del alumno sustituido por su código interno, de forma automática. Hoy no hay ninguna salida así: la exportación del trimestre es su archivo personal.
 
 ## Estado
 
@@ -25,7 +25,7 @@ En construcción:
 | 2 — Alumnos y ciclo académico | ✅ Cerrado |
 | 3 — Programa de intervención | ✅ Cerrado |
 | 4 — Registro de sesión | ✅ Completo: opciones, registro rápido, objetivos trabajados, consulta y corrección de sesiones. Superada la prueba cronometrada: registrar una sesión lleva menos de dos minutos |
-| 5 a 7 | Pendientes |
+| 5 a 7 | Pendientes. El Hito 6 pasa a ser la exportación del trimestre: los informes sobre plantillas de Word se retiraron el 2026-10-11, a petición suya |
 
 Los cimientos están completos: empaquetado para Windows, base de datos con migraciones, el esquema entero, copias de seguridad con restauración y la capa de dominio con las reglas centrales.
 
@@ -54,14 +54,13 @@ npm run dist:win    # genera el paquete de Windows en dist/
 
 ```
 src/
-  main/              proceso principal: dominio, servicios, persistencia, documentos, ipc
+  main/              proceso principal: dominio, servicios, persistencia, ipc
   preload/           puente seguro entre la interfaz y el proceso principal
   renderer/          interfaz (React): pantallas, componentes, estado
   compartido/        tipos comunes, incluido el contrato de IPC
 pruebas/             pruebas automáticas, por capa
 recursos/
   migraciones/       cambios de esquema, NNN_descripcion.sql
-  plantillas/        plantillas .docx
 documentacion/       constitución, especificación y plan
 ```
 
