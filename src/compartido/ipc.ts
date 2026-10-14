@@ -47,7 +47,9 @@ export const CANALES = {
   valorarObjetivo: 'cierre:valorar',
   cerrarTrimestre: 'cierre:cerrar',
   listarCalendarios: 'calendario:listar',
-  guardarCalendario: 'calendario:guardar'
+  guardarCalendario: 'calendario:guardar',
+  exportarTrimestre: 'exportacion:trimestre',
+  mostrarExportacion: 'exportacion:mostrar'
 } as const
 
 export type Valoracion = 'sin_valorar' | 'conseguido' | 'no_conseguido' | 'pendiente_desarrollar'
@@ -186,6 +188,11 @@ export interface VistaVerificacion {
   /** Solo lo impide que quede algún objetivo sin valorar (RF-18). */
   puedeCerrarse: boolean
 }
+
+export type ResultadoExportacion =
+  | { tipo: 'exportado'; ruta: string }
+  | { tipo: 'cancelado' }
+  | { tipo: 'rechazado'; mensaje: string }
 
 export type ResultadoCierre =
   | { tipo: 'cerrado'; resumen: string; cursoCerrado: boolean }
@@ -421,6 +428,12 @@ export interface AriadneApi {
     abrir(alumnoId: number, datos: DatosCurso): Promise<ResultadoCurso>
     /** Solo el nivel educativo: el curso no cambia y las fechas son las del calendario. */
     corregir(cursoId: number, datos: Pick<DatosCurso, 'nivelEducativo'>): Promise<ResultadoCurso>
+  }
+  exportacion: {
+    /** Pregunta dónde guardar el fichero del trimestre y lo escribe. */
+    trimestre(trimestreId: number): Promise<ResultadoExportacion>
+    /** Abre la carpeta con el último fichero exportado, seleccionado. */
+    mostrar(): Promise<void>
   }
   calendario: {
     listar(): Promise<VistaCalendario[]>

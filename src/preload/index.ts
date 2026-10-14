@@ -64,6 +64,10 @@ const api: AriadneApi = {
     corregir: (sesionId, alumnoId, datos) => ipcRenderer.invoke(CANALES.corregirSesion, sesionId, alumnoId, datos),
     borrar: (sesionId) => ipcRenderer.invoke(CANALES.borrarSesion, sesionId)
   },
+  exportacion: {
+    trimestre: (trimestreId) => ipcRenderer.invoke(CANALES.exportarTrimestre, trimestreId),
+    mostrar: () => ipcRenderer.invoke(CANALES.mostrarExportacion)
+  },
   calendario: {
     listar: () => ipcRenderer.invoke(CANALES.listarCalendarios),
     guardar: (curso, periodos) => ipcRenderer.invoke(CANALES.guardarCalendario, curso, periodos)

@@ -1,6 +1,7 @@
 import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } from 'electron'
+import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { CANALES, type ResultadoCambio, type ResultadoCopia, type ResultadoRestauracion } from '../../compartido/ipc'
+import { CANALES, type ResultadoCambio, type ResultadoCopia, type ResultadoExportacion, type ResultadoRestauracion } from '../../compartido/ipc'
 import * as actas from '../servicios/actas'
 import * as alumnos from '../servicios/alumnos'
 import * as calendario from '../servicios/calendario'
@@ -8,6 +9,7 @@ import * as catalogo from '../servicios/catalogo'
 import * as cierre from '../servicios/cierre'
 import * as cursos from '../servicios/cursos'
 import * as evaluaciones from '../servicios/evaluaciones'
+import * as exportacion from '../servicios/exportacion'
 import * as programas from '../servicios/programas'
 import * as sesiones from '../servicios/sesiones'
 import type { UbicacionDatos } from '../servicios/ubicacionDatos'
@@ -192,6 +194,33 @@ export function registrarManejadoresIpc(datos: UbicacionDatos): void {
   )
 
   ipcMain.handle(CANALES.borrarSesion, (_evento, sesionId: unknown) => sesiones.borrarSesion(datos.conexion(), sesionId))
+
+  // La última exportación: "mostrar en la carpeta" solo abre lo que la aplicación acaba de escribir
+  let ultimaExportacion: string | null = null
+
+  ipcMain.handle(CANALES.exportarTrimestre, async (evento, trimestreId: unknown): Promise<ResultadoExportacion> => {
+    const fichero = exportacion.exportacionDeTrimestre(datos.conexion(), trimestreId)
+    if (!fichero) return { tipo: 'rechazado', mensaje: 'Ese trimestre no existe.' }
+    const eleccion = await dialog.showSaveDialog(ventanaDe(evento), {
+      title: 'Guardar el registro del trimestre',
+      buttonLabel: 'Guardar',
+      defaultPath: join(app.getPath('documents'), fichero.nombreFichero),
+      filters: [{ name: 'Texto', extensions: ['txt'] }]
+    })
+    if (eleccion.canceled || !eleccion.filePath) return { tipo: 'cancelado' }
+    try {
+      // Con BOM: así cualquier programa de Windows lo abre con las tildes bien
+      writeFileSync(eleccion.filePath, '\uFEFF' + fichero.texto, 'utf8')
+    } catch {
+      return { tipo: 'rechazado', mensaje: 'No se pudo guardar el fichero ahí. Prueba en otra carpeta, por ejemplo en Documentos.' }
+    }
+    ultimaExportacion = eleccion.filePath
+    return { tipo: 'exportado', ruta: eleccion.filePath }
+  })
+
+  ipcMain.handle(CANALES.mostrarExportacion, () => {
+    if (ultimaExportacion) shell.showItemInFolder(ultimaExportacion)
+  })
 
   ipcMain.handle(CANALES.listarCalendarios, () => calendario.listarCalendarios(datos.conexion()))
 

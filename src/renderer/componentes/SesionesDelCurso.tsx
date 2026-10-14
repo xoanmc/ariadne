@@ -21,6 +21,8 @@ export function SesionesDelCurso({ curso, onCorregir }: Props) {
   const [trimestreId, setTrimestreId] = useState<number>(curso.trimestreEnCursoId ?? curso.trimestres[0].id)
   const [borrando, setBorrando] = useState<number | null>(null)
   const [aviso, setAviso] = useState<string | null>(null)
+  const [exportado, setExportado] = useState<{ trimestreId: number; ruta: string } | null>(null)
+  const [errorExportar, setErrorExportar] = useState<string | null>(null)
 
   useEffect(() => {
     window.ariadne.sesiones.deCurso(curso.id).then(setSesiones)
@@ -32,6 +34,13 @@ export function SesionesDelCurso({ curso, onCorregir }: Props) {
     setBorrando(null)
     setAviso(null)
     setSesiones(await window.ariadne.sesiones.deCurso(curso.id))
+  }
+
+  async function exportar() {
+    setErrorExportar(null)
+    const resultado = await window.ariadne.exportacion.trimestre(trimestreId)
+    if (resultado.tipo === 'rechazado') return setErrorExportar(resultado.mensaje)
+    if (resultado.tipo === 'exportado') setExportado({ trimestreId, ruta: resultado.ruta })
   }
 
   if (!sesiones) return null
@@ -52,6 +61,21 @@ export function SesionesDelCurso({ curso, onCorregir }: Props) {
             {NOMBRE_TRIMESTRE[t.numero]} ({contar(sesiones.filter((s) => s.trimestreId === t.id))})
           </button>
         ))}
+      </div>
+
+      <div className="exportar-trimestre">
+        <button onClick={exportar}>
+          Exportar el {NOMBRE_TRIMESTRE[curso.trimestres.find((t) => t.id === trimestreId)!.numero]}
+        </button>
+        {exportado?.trimestreId === trimestreId && (
+          <span className="confirmacion-breve">
+            Guardado en <span className="ruta-breve">{exportado.ruta}</span>{' '}
+            <button className="enlace" onClick={() => window.ariadne.exportacion.mostrar()}>
+              Mostrar en la carpeta
+            </button>
+          </span>
+        )}
+        {errorExportar && <span className="problema">{errorExportar}</span>}
       </div>
 
       {delTrimestre.length === 0 ? (
