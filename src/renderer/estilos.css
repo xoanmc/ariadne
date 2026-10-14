@@ -860,3 +860,84 @@ label.casilla-falta {
 .sesion.falta {
   background: #fbf8f4;
 }
+
+/* Cierre de trimestre */
+
+.resumen-cierre {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  margin: 1rem 0 1.5rem;
+  padding: 0.75rem 1.1rem;
+  background: #fff;
+  border: 1px solid #e0dcd3;
+  border-radius: 6px;
+}
+
+.pendiente-cierre {
+  color: #8a4b22;
+  font-weight: 600;
+}
+
+.hecho-cierre {
+  color: #2f5d50;
+  font-weight: 600;
+}
+
+.objetivos-cierre {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+}
+
+.objetivo-cierre {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 0.7rem;
+  background: #fff;
+  border: 1px solid #e0dcd3;
+  border-radius: 6px;
+}
+
+.aviso-cierre {
+  margin: 0;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.92rem;
+  color: #8a4b22;
+  background: #fbf3ec;
+  border-radius: 4px;
+}
+
+/* El comentario, con el mismo aspecto que los demás campos de texto */
+.objetivo-cierre textarea {
+  font: inherit;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #c9c4b9;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.objetivo-cierre textarea:focus {
+  outline: 2px solid #2f5d50;
+  outline-offset: -1px;
+}
+
+.objetivo-cierre button.enlace,
+label.casilla-arrastre {
+  align-self: flex-start;
+  margin: 0;
+}
+
+.confirmar-cierre {
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border: 1px solid #c8dcd2;
+  border-left: 4px solid #2f5d50;
+  border-radius: 6px;
+}
+
+.confirmar-cierre p {
+  margin-top: 0;
+}

@@ -42,7 +42,10 @@ export const CANALES = {
   sesionesDeCurso: 'sesiones:deCurso',
   obtenerSesion: 'sesiones:obtener',
   corregirSesion: 'sesiones:corregir',
-  borrarSesion: 'sesiones:borrar'
+  borrarSesion: 'sesiones:borrar',
+  verificacionTrimestre: 'cierre:verificacion',
+  valorarObjetivo: 'cierre:valorar',
+  cerrarTrimestre: 'cierre:cerrar'
 } as const
 
 export type Valoracion = 'sin_valorar' | 'conseguido' | 'no_conseguido' | 'pendiente_desarrollar'
@@ -149,13 +152,25 @@ export interface ObjetivoEnCierre {
   sesiones: number
   /** Si su valoración y sus sesiones no cuadran. Avisa, no bloquea. */
   aviso: string | null
+  /** Puede pasar al trimestre siguiente al cerrar: no conseguido o pendiente, y no es el 3.er trimestre. */
+  arrastrable: boolean
 }
 
 /** Las cuatro preguntas del cierre (RF-17), recalculadas con cada valoración. */
 export interface VistaVerificacion {
   trimestreId: number
+  cursoId: number
+  curso: string
+  numeroTrimestre: NumeroTrimestre
   nombreTrimestre: string
+  fechaFin: string
+  /** Adónde pasa lo arrastrado; null en el 3.er trimestre. */
+  nombreSiguiente: string | null
   abierto: boolean
+  /** Es el que toca cerrar: el abierto más antiguo de un curso activo. */
+  cerrable: boolean
+  /** Las valoraciones que puede elegir, con sus palabras, en el orden de la rúbrica. */
+  valoraciones: { valor: Valoracion; etiqueta: string }[]
   objetivos: ObjetivoEnCierre[]
   sinValorar: number
   noTrabajados: number
@@ -165,6 +180,10 @@ export interface VistaVerificacion {
   /** Solo lo impide que quede algún objetivo sin valorar (RF-18). */
   puedeCerrarse: boolean
 }
+
+export type ResultadoCierre =
+  | { tipo: 'cerrado'; resumen: string; cursoCerrado: boolean }
+  | { tipo: 'rechazado'; mensaje: string }
 
 export type ResultadoValoracion =
   | { tipo: 'guardado'; verificacion: VistaVerificacion }
@@ -243,6 +262,8 @@ export interface VistaCurso {
   trimestres: VistaTrimestre[]
   /** Por la fecha de hoy; null si el curso ya no tiene trimestres abiertos. */
   trimestreEnCursoId: number | null
+  /** El abierto más antiguo: se cierran en orden. Null si el curso está cerrado. */
+  trimestreACerrarId: number | null
 }
 
 /** Lo que la aplicación propone al abrir curso, o por qué todavía no se puede abrir. */
@@ -401,5 +422,11 @@ export interface AriadneApi {
     obtener(sesionId: number): Promise<VistaSesion | null>
     corregir(sesionId: number, alumnoId: number, datos: DatosSesion): Promise<ResultadoSesion>
     borrar(sesionId: number): Promise<{ tipo: 'borrada' } | { tipo: 'rechazada'; mensaje: string }>
+  }
+  cierre: {
+    verificacion(trimestreId: number): Promise<VistaVerificacion | null>
+    valorar(asignacionId: number, valoracion: Valoracion, comentario: string | null): Promise<ResultadoValoracion>
+    /** Pasan al trimestre siguiente las asignaciones indicadas. */
+    cerrar(trimestreId: number, arrastrar: number[]): Promise<ResultadoCierre>
   }
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { EstadoDatos } from '../compartido/ipc'
 import { PantallaAlta } from './pantallas/PantallaAlta'
 import { PantallaAlumnos } from './pantallas/PantallaAlumnos'
+import { PantallaCierre } from './pantallas/PantallaCierre'
 import { PantallaCopias } from './pantallas/PantallaCopias'
 import { PantallaCurso } from './pantallas/PantallaCurso'
 import { PantallaFicha } from './pantallas/PantallaFicha'
@@ -15,6 +16,7 @@ type Vista =
   | { tipo: 'alta' }
   | { tipo: 'ficha'; id: number; recienCreado: boolean }
   | { tipo: 'curso'; cursoId: number; recienAbierto: boolean; aviso?: string }
+  | { tipo: 'cierre'; trimestreId: number }
   | { tipo: 'copias' }
   | { tipo: 'opciones' }
 
@@ -94,6 +96,13 @@ export function App() {
           onVolver={(alumnoId) => setVista({ tipo: 'ficha', id: alumnoId, recienCreado: false })}
           onRegistrar={(alumnoId) => setVista({ tipo: 'registro', alumnoId })}
           onCorregirSesion={(sesionId, cursoId) => setVista({ tipo: 'registro', alumnoId: null, sesionId, cursoVuelta: cursoId })}
+          onCerrarTrimestre={(trimestreId) => setVista({ tipo: 'cierre', trimestreId })}
+        />
+      )}
+      {vista.tipo === 'cierre' && (
+        <PantallaCierre
+          trimestreId={vista.trimestreId}
+          onVolver={(cursoId, aviso) => setVista({ tipo: 'curso', cursoId, recienAbierto: false, aviso })}
         />
       )}
       {vista.tipo === 'registro' && (

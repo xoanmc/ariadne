@@ -5,13 +5,16 @@ import { NOMBRE_TRIMESTRE } from './FormularioCurso'
 interface Props {
   curso: VistaCurso
   programa: VistaPrograma | null
+  onCerrar: (trimestreId: number) => void
 }
 
 /** Lo que tiene entre manos: los objetivos del trimestre en curso, con su valoración actual. */
-export function TrimestreEnCurso({ curso, programa }: Props) {
+export function TrimestreEnCurso({ curso, programa, onCerrar }: Props) {
   const trimestre = curso.trimestres.find((t) => t.id === curso.trimestreEnCursoId)
   if (!trimestre) return null
   const objetivos = programa?.asignaciones.filter((a) => a.trimestreId === trimestre.id) ?? []
+  // Se cierran en orden: el que toca puede no ser el de la fecha de hoy, si el anterior sigue abierto
+  const aCerrar = curso.trimestres.find((t) => t.id === curso.trimestreACerrarId)
 
   return (
     <section className="en-curso">
@@ -39,6 +42,11 @@ export function TrimestreEnCurso({ curso, programa }: Props) {
             </li>
           ))}
         </ul>
+      )}
+      {aCerrar && (
+        <div className="acciones">
+          <button onClick={() => onCerrar(aCerrar.id)}>Cerrar el {NOMBRE_TRIMESTRE[aCerrar.numero]}</button>
+        </div>
       )}
     </section>
   )

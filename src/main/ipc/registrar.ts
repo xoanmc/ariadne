@@ -4,6 +4,7 @@ import { CANALES, type ResultadoCambio, type ResultadoCopia, type ResultadoResta
 import * as actas from '../servicios/actas'
 import * as alumnos from '../servicios/alumnos'
 import * as catalogo from '../servicios/catalogo'
+import * as cierre from '../servicios/cierre'
 import * as cursos from '../servicios/cursos'
 import * as evaluaciones from '../servicios/evaluaciones'
 import * as programas from '../servicios/programas'
@@ -190,6 +191,18 @@ export function registrarManejadoresIpc(datos: UbicacionDatos): void {
   )
 
   ipcMain.handle(CANALES.borrarSesion, (_evento, sesionId: unknown) => sesiones.borrarSesion(datos.conexion(), sesionId))
+
+  ipcMain.handle(CANALES.verificacionTrimestre, (_evento, trimestreId: unknown) =>
+    cierre.verificacionDeTrimestre(datos.conexion(), trimestreId)
+  )
+
+  ipcMain.handle(CANALES.valorarObjetivo, (_evento, asignacionId: unknown, valoracion: unknown, comentario: unknown) =>
+    cierre.valorarObjetivo(datos.conexion(), asignacionId, valoracion, comentario)
+  )
+
+  ipcMain.handle(CANALES.cerrarTrimestre, (_evento, trimestreId: unknown, arrastrar: unknown) =>
+    cierre.cerrarTrimestre(datos.conexion(), trimestreId, arrastrar)
+  )
 
   ipcMain.handle(CANALES.objetivosParaSesion, (_evento, alumnoId: unknown, fecha: unknown) =>
     sesiones.objetivosParaSesion(datos.conexion(), alumnoId, fecha)

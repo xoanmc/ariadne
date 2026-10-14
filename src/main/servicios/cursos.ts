@@ -1,6 +1,7 @@
 import type { DatosCurso, PropuestaCurso, ResultadoCurso, VistaCurso } from '../../compartido/ipc'
 import type { PeriodoTrimestre } from '../dominio/calendario'
 import { trimestreEnCurso } from '../dominio/calendario'
+import { trimestreACerrar } from '../dominio/cierre'
 import { cursoDeFecha, esPosteriorATodos, extremosDeCurso, fechasPropuestas, validarCurso } from '../dominio/curso'
 import type { CursoAcademico, Fecha, NumeroTrimestre } from '../dominio/entidades'
 import type { BaseDatos } from '../persistencia/baseDatos'
@@ -26,7 +27,8 @@ function vista(db: BaseDatos, curso: CursoAcademico, hoy: Fecha = hoyLocal()): V
       fechaFin: t.fechaFin,
       estado: t.estado
     })),
-    trimestreEnCursoId: trimestreEnCurso(trimestres, hoy)?.id ?? null
+    trimestreEnCursoId: trimestreEnCurso(trimestres, hoy)?.id ?? null,
+    trimestreACerrarId: curso.estado === 'activo' ? (trimestreACerrar(trimestres)?.id ?? null) : null
   }
 }
 

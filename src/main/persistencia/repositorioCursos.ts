@@ -103,3 +103,11 @@ export function actualizarFechasTrimestre(db: BaseDatos, trimestreId: number, pe
     trimestreId
   )
 }
+
+export function cerrarTrimestre(db: BaseDatos, trimestreId: number): void {
+  db.prepare("UPDATE trimestre SET estado = 'cerrado' WHERE id = ?").run(trimestreId)
+}
+
+export function cerrarCurso(db: BaseDatos, cursoId: number): void {
+  db.prepare("UPDATE curso_academico SET estado = 'cerrado' WHERE id = ?").run(cursoId)
+}

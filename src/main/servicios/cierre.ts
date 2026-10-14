@@ -1,11 +1,11 @@
-import type { ResultadoValoracion, VistaVerificacion } from '../../compartido/ipc'
+import type { ResultadoCierre, ResultadoValoracion, VistaVerificacion } from '../../compartido/ipc'
 import { NOMBRE_TRIMESTRE } from '../dominio/calendario'
 import { recorrerCadena } from '../dominio/arrastre'
-import { incoherenciaDe, trimestreSiguiente, verificarTrimestre, type Incoherencia, type ObjetivoEnVerificacion } from '../dominio/cierre'
+import { elCierreCierraElCurso, incoherenciaDe, trimestreACerrar, trimestreSiguiente, verificarTrimestre, type Incoherencia, type ObjetivoEnVerificacion } from '../dominio/cierre'
 import type { Trimestre } from '../dominio/entidades'
-import { ETIQUETAS_VALORACION, esArrastrable, esValoracion, type Valoracion } from '../dominio/vocabulario'
+import { ETIQUETAS_VALORACION, esArrastrable, estaValorado, esValoracion, VALORACIONES, type Valoracion } from '../dominio/vocabulario'
 import type { BaseDatos } from '../persistencia/baseDatos'
-import { obtenerCurso, obtenerTrimestre, trimestresDeCurso } from '../persistencia/repositorioCursos'
+import { cerrarCurso, cerrarTrimestre as cerrarTrimestreEnBase, obtenerCurso, obtenerTrimestre, trimestresDeCurso } from '../persistencia/repositorioCursos'
 import {
   asignacionesDeTrimestre,
   cadenaHastaAsignacion,
@@ -43,11 +43,20 @@ export function verificacionDeTrimestre(db: BaseDatos, trimestreId: unknown): Vi
     sesiones: porObjetivo.get(f.objetivoId) ?? 0
   }))
   const verificacion = verificarTrimestre(objetivos, recuentoDeTrimestre(db, trimestre.id))
+  const siguiente = trimestreSiguiente(trimestre.numero)
+  const abierto = trimestre.estado === 'abierto' && curso.estado === 'activo'
 
   return {
     trimestreId: trimestre.id,
+    cursoId: curso.id,
+    curso: curso.curso,
+    numeroTrimestre: trimestre.numero,
     nombreTrimestre: NOMBRE_TRIMESTRE[trimestre.numero],
-    abierto: trimestre.estado === 'abierto' && curso.estado === 'activo',
+    fechaFin: trimestre.fechaFin,
+    nombreSiguiente: siguiente === null ? null : NOMBRE_TRIMESTRE[siguiente],
+    abierto,
+    cerrable: abierto && trimestreACerrar(trimestresDeCurso(db, curso.id))?.id === trimestre.id,
+    valoraciones: VALORACIONES.filter(estaValorado).map((valor) => ({ valor, etiqueta: ETIQUETAS_VALORACION[valor] })),
     objetivos: filas.map((f, i) => {
       const tipo = incoherenciaDe(objetivos[i])
       return {
@@ -59,7 +68,8 @@ export function verificacionDeTrimestre(db: BaseDatos, trimestreId: unknown): Vi
         comentario: f.comentario,
         arrastrado: f.asignacionAnteriorId !== null,
         sesiones: objetivos[i].sesiones,
-        aviso: tipo ? aviso(tipo, f.valoracion, objetivos[i].sesiones) : null
+        aviso: tipo ? aviso(tipo, f.valoracion, objetivos[i].sesiones) : null,
+        arrastrable: abierto && siguiente !== null && esArrastrable(f.valoracion)
       }
     }),
     sinValorar: verificacion.sinValorar.length,
@@ -133,4 +143,50 @@ export function cadenaDeObjetivo(db: BaseDatos, asignacionId: unknown): EslabonG
   if (!esId(asignacionId)) return []
   const eslabones = cadenaHastaAsignacion(db, asignacionId)
   return eslabones.length === 0 ? [] : recorrerCadena(eslabones, asignacionId)
+}
+
+class CierreFallido extends Error {}
+
+const objetivos = (n: number) => (n === 1 ? 'Un objetivo pasa' : `${n} objetivos pasan`)
+
+/**
+ * T5.4 (RF-07, RF-18): cierra el trimestre en una sola transacción. Pasan al siguiente los objetivos
+ * que ella dejó marcados y, si es el tercero, el curso queda cerrado. Solo se puede con todo valorado y
+ * en orden: antes que este, los anteriores. Lo cerrado ya no se modifica, y no se reabre.
+ */
+export function cerrarTrimestre(db: BaseDatos, trimestreId: unknown, arrastrar: unknown): ResultadoCierre {
+  const trimestre = esId(trimestreId) ? obtenerTrimestre(db, trimestreId) : null
+  if (!trimestre) return { tipo: 'rechazado', mensaje: 'Ese trimestre no existe.' }
+  const curso = obtenerCurso(db, trimestre.cursoAcademicoId)!
+  const nombre = NOMBRE_TRIMESTRE[trimestre.numero]
+  if (trimestre.estado === 'cerrado' || curso.estado === 'cerrado') return { tipo: 'rechazado', mensaje: `El ${nombre} ya está cerrado.` }
+
+  const toca = trimestreACerrar(trimestresDeCurso(db, curso.id))!
+  if (toca.id !== trimestre.id) return { tipo: 'rechazado', mensaje: `Antes hay que cerrar el ${NOMBRE_TRIMESTRE[toca.numero]}.` }
+
+  const verificacion = verificacionDeTrimestre(db, trimestre.id)!
+  if (!verificacion.puedeCerrarse) {
+    const n = verificacion.sinValorar
+    return { tipo: 'rechazado', mensaje: n === 1 ? 'Falta un objetivo por valorar.' : `Faltan ${n} objetivos por valorar.` }
+  }
+
+  const elegidos = Array.isArray(arrastrar) ? arrastrar.filter(esId) : []
+  const cierraElCurso = elCierreCierraElCurso(trimestre.numero)
+  try {
+    const pasan = db.transaction(() => {
+      const arrastre = arrastrarAlSiguiente(db, trimestre, elegidos)
+      if (arrastre.tipo === 'rechazado') throw new CierreFallido(arrastre.mensaje)
+      cerrarTrimestreEnBase(db, trimestre.id)
+      if (cierraElCurso) cerrarCurso(db, curso.id)
+      return arrastre.asignaciones.length
+    })()
+
+    const resumen = cierraElCurso
+      ? `${nombre} cerrado: el curso ${curso.curso} queda cerrado.`
+      : `${nombre} cerrado.` + (pasan > 0 ? ` ${objetivos(pasan)} al ${NOMBRE_TRIMESTRE[trimestreSiguiente(trimestre.numero)!]}.` : '')
+    return { tipo: 'cerrado', resumen: resumen.charAt(0).toUpperCase() + resumen.slice(1), cursoCerrado: cierraElCurso }
+  } catch (error) {
+    if (error instanceof CierreFallido) return { tipo: 'rechazado', mensaje: error.message }
+    throw error
+  }
 }

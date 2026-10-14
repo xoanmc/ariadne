@@ -29,6 +29,11 @@ export function trimestreSiguiente(numero: NumeroTrimestre): NumeroTrimestre | n
   return numero === 3 ? null : ((numero + 1) as NumeroTrimestre)
 }
 
+/** Los trimestres se cierran en orden: el que toca es el abierto más antiguo. */
+export function trimestreACerrar<T extends { numero: NumeroTrimestre; estado: 'abierto' | 'cerrado' }>(trimestres: readonly T[]): T | null {
+  return [...trimestres].sort((a, b) => a.numero - b.numero).find((t) => t.estado === 'abierto') ?? null
+}
+
 /** RF-07: el curso no se cierra a mano, se cierra como efecto de cerrar su tercer trimestre. */
 export function elCierreCierraElCurso(numero: NumeroTrimestre): boolean {
   return numero === 3

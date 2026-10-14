@@ -15,10 +15,11 @@ interface Props {
   onVolver: (alumnoId: number) => void
   onRegistrar: (alumnoId: number) => void
   onCorregirSesion: (sesionId: number, cursoId: number) => void
+  onCerrarTrimestre: (trimestreId: number) => void
 }
 
 /** Todo lo de un curso. Uno cerrado se consulta igual, pero ya no se modifica. */
-export function PantallaCurso({ cursoId, recienAbierto, aviso, onVolver, onRegistrar, onCorregirSesion }: Props) {
+export function PantallaCurso({ cursoId, recienAbierto, aviso, onVolver, onRegistrar, onCorregirSesion, onCerrarTrimestre }: Props) {
   const [curso, setCurso] = useState<VistaCurso | null | undefined>(undefined)
   const [alumno, setAlumno] = useState<FichaAlumno | null>(null)
   const [programa, setPrograma] = useState<VistaPrograma | null | undefined>(undefined)
@@ -90,7 +91,7 @@ export function PantallaCurso({ cursoId, recienAbierto, aviso, onVolver, onRegis
         </div>
       )}
 
-      {activo && programa !== undefined && <TrimestreEnCurso curso={curso} programa={programa} />}
+      {activo && programa !== undefined && <TrimestreEnCurso curso={curso} programa={programa} onCerrar={onCerrarTrimestre} />}
 
       <section className="seccion">
         <h2>Trimestres</h2>
