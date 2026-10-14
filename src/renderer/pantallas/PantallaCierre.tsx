@@ -22,6 +22,10 @@ export function PantallaCierre({ trimestreId, onCerrado }: Props) {
   const [confirmando, setConfirmando] = useState(false)
   const [rechazo, setRechazo] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
+  // Tras cerrar: el resumen, y la oportunidad de exportar el trimestre ya con sus valoraciones (T6.3)
+  const [cerrado, setCerrado] = useState<string | null>(null)
+  const [exportado, setExportado] = useState<string | null>(null)
+  const [errorExportar, setErrorExportar] = useState<string | null>(null)
 
   useEffect(() => {
     window.ariadne.cierre.verificacion(trimestreId).then(async (v) => {
@@ -82,7 +86,44 @@ export function PantallaCierre({ trimestreId, onCerrado }: Props) {
       setConfirmando(false)
       return setRechazo(resultado.mensaje)
     }
-    onCerrado(resultado.resumen)
+    setCerrado(resultado.resumen)
+  }
+
+  async function exportar() {
+    setErrorExportar(null)
+    const resultado = await window.ariadne.exportacion.trimestre(v.trimestreId)
+    if (resultado.tipo === 'rechazado') return setErrorExportar(resultado.mensaje)
+    if (resultado.tipo === 'exportado') setExportado(resultado.ruta)
+  }
+
+  if (cerrado) {
+    return (
+      <main className="pantalla">
+        <h1>{v.nombreTrimestre} cerrado</h1>
+        {alumno && (
+          <p className="apunte">
+            {alumno} · curso {v.curso}
+          </p>
+        )}
+        <p className="confirmacion">{cerrado}</p>
+        <p>Si quieres, exporta ahora el registro del trimestre, ya con sus valoraciones.</p>
+        <div className="acciones">
+          <button className="principal" onClick={exportar}>
+            Exportar
+          </button>
+          <button onClick={() => onCerrado(cerrado)}>Volver al curso</button>
+        </div>
+        {exportado && (
+          <p className="confirmacion-breve">
+            Guardado en <span className="ruta-breve">{exportado}</span>{' '}
+            <button className="enlace" onClick={() => window.ariadne.exportacion.mostrar()}>
+              Mostrar en la carpeta
+            </button>
+          </p>
+        )}
+        {errorExportar && <p className="problema">{errorExportar}</p>}
+      </main>
+    )
   }
 
   return (
