@@ -2,11 +2,10 @@ import { useEffect, useState } from 'react'
 import type { DatosCurso, FichaAlumno, ProblemaCurso, VistaCurso, VistaPrograma } from '../../compartido/ipc'
 import { Actas } from '../componentes/Actas'
 import { EvaluacionInicial } from '../componentes/EvaluacionInicial'
-import { FormularioCurso, NOMBRE_TRIMESTRE } from '../componentes/FormularioCurso'
+import { FormularioCurso } from '../componentes/FormularioCurso'
 import { Programa } from '../componentes/Programa'
 import { SesionesDelCurso } from '../componentes/SesionesDelCurso'
 import { TrimestreEnCurso } from '../componentes/TrimestreEnCurso'
-import { fechaCorta } from '../fechas'
 
 interface Props {
   cursoId: number
@@ -78,7 +77,38 @@ export function PantallaCurso({ cursoId, recienAbierto, aviso, onVolver, onRegis
       <p className="apunte">
         {curso.nivelEducativo ?? 'Nivel educativo sin indicar'}
         {curso.cursoAnterior && ` · continúa el curso ${curso.cursoAnterior}`}
+        {activo && !corrigiendo && (
+          <>
+            {' · '}
+            <button
+              className="enlace"
+              onClick={() => {
+                setProblemas([])
+                setRechazo(null)
+                setConfirmacion(null)
+                setCorrigiendo(true)
+              }}
+            >
+              Corregir el nivel
+            </button>
+          </>
+        )}
       </p>
+      {corrigiendo && (
+        <>
+          <FormularioCurso
+            alumnoId={curso.alumnoId}
+            modo="corregir"
+            inicial={{ curso: curso.curso, nivelEducativo: curso.nivelEducativo }}
+            cursoAnterior={null}
+            problemas={problemas}
+            ocupado={ocupado}
+            onGuardar={corregir}
+            onCancelar={() => setCorrigiendo(false)}
+          />
+          {rechazo && <p className="aviso">{rechazo}</p>}
+        </>
+      )}
       {!activo && <p className="apunte">Este curso está cerrado: se puede consultar, pero ya no se modifica.</p>}
 
       {confirmacion && !corrigiendo && <p className="confirmacion">{confirmacion}</p>}
@@ -92,54 +122,6 @@ export function PantallaCurso({ cursoId, recienAbierto, aviso, onVolver, onRegis
       )}
 
       {activo && programa !== undefined && <TrimestreEnCurso curso={curso} programa={programa} onCerrar={onCerrarTrimestre} />}
-
-      <section className="seccion">
-        <h2>Trimestres</h2>
-        {corrigiendo ? (
-          <>
-            <FormularioCurso
-              alumnoId={curso.alumnoId}
-              modo="corregir"
-              inicial={{ curso: curso.curso, nivelEducativo: curso.nivelEducativo }}
-              cursoAnterior={null}
-              problemas={problemas}
-              ocupado={ocupado}
-              onGuardar={corregir}
-              onCancelar={() => setCorrigiendo(false)}
-            />
-            {rechazo && <p className="aviso">{rechazo}</p>}
-          </>
-        ) : (
-          <>
-            <ul className="lista-trimestres">
-              {curso.trimestres.map((t) => (
-                <li key={t.id}>
-                  <span className="nombre-trimestre">{NOMBRE_TRIMESTRE[t.numero]}</span>
-                  <span>
-                    del {fechaCorta(t.fechaInicio)} al {fechaCorta(t.fechaFin)}
-                  </span>
-                  {t.estado === 'cerrado' && <span className="etiqueta etiqueta-apagada">cerrado</span>}
-                </li>
-              ))}
-            </ul>
-            <p className="apunte">Las fechas son las del calendario escolar, comunes a todos tus alumnos: se cambian en Calendario, arriba.</p>
-            {activo && (
-              <div className="acciones">
-                <button
-                  onClick={() => {
-                    setProblemas([])
-                    setRechazo(null)
-                    setConfirmacion(null)
-                    setCorrigiendo(true)
-                  }}
-                >
-                  Corregir el nivel educativo
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </section>
 
       <section className="seccion">
         <EvaluacionInicial cursoId={curso.id} editable={activo} />
