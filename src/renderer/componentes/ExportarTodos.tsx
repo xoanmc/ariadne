@@ -53,7 +53,7 @@ export function ExportarTodos() {
           </select>
         </label>
         <button onClick={exportar} disabled={ocupado}>
-          Elegir carpeta y exportar
+          Exportar
         </button>
       </div>
       {hecho && (
