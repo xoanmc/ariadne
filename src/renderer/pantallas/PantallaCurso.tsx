@@ -64,9 +64,16 @@ export function PantallaCurso({ cursoId, recienAbierto, aviso, onRegistrar, onCo
 
   return (
     <main className="pantalla">
+      {alumno && (
+        <p className="alumno-del-curso">
+          <span>
+            {alumno.nombre} {alumno.apellidos}
+          </span>
+          <span className="codigo">{alumno.codigoInterno}</span>
+        </p>
+      )}
       <div className="cabecera-ficha">
         <h1>Curso {curso.curso}</h1>
-        {alumno && <span className="codigo codigo-grande">{alumno.codigoInterno}</span>}
         <span className={activo ? 'etiqueta' : 'etiqueta etiqueta-apagada'}>{curso.estado}</span>
       </div>
       <p className="apunte">

@@ -987,3 +987,15 @@ button.enlace.atras:disabled {
   font-size: 0.85rem;
   word-break: break-all;
 }
+
+/* Pantalla del curso: de quién es */
+
+.alumno-del-curso {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 -0.6rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #4a463f;
+}
