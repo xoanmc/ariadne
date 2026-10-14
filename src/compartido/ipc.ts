@@ -61,6 +61,8 @@ export interface VistaAsignacion {
   etiquetaValoracion: string
   comentario: string | null
   arrastrado: boolean
+  /** Trimestres seguidos pendiente de desarrollar, si son dos o más (RF-20). */
+  estancado: number | null
   puedeMoverse: boolean
   puedeQuitarse: boolean
 }
@@ -152,6 +154,8 @@ export interface ObjetivoEnCierre {
   sesiones: number
   /** Si su valoración y sus sesiones no cuadran. Avisa, no bloquea. */
   aviso: string | null
+  /** Si lleva dos o más trimestres seguidos pendiente de desarrollar (RF-20). Avisa, no bloquea. */
+  estancado: string | null
   /** Puede pasar al trimestre siguiente al cerrar: no conseguido o pendiente, y no es el 3.er trimestre. */
   arrastrable: boolean
 }

@@ -36,6 +36,7 @@ export function TrimestreEnCurso({ curso, programa, onCerrar }: Props) {
                 <span className="texto-largo">{a.enunciado}</span>
                 <span className="detalle-objetivo">
                   {a.arrastrado && <span className="etiqueta etiqueta-arrastrado">arrastrado</span>}
+                  {a.estancado !== null && <span className="etiqueta etiqueta-estancado">estancado · {a.estancado} trimestres</span>}
                   <span className={`valoracion valoracion-${a.valoracion}`}>{a.etiquetaValoracion}</span>
                 </span>
               </div>

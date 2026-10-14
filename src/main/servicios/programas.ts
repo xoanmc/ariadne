@@ -7,6 +7,7 @@ import type { BaseDatos } from '../persistencia/baseDatos'
 import { obtenerCurso, obtenerTrimestre, trimestresDeCurso } from '../persistencia/repositorioCursos'
 import * as repositorio from '../persistencia/repositorioProgramas'
 import { esId, textoOpcional } from './entrada'
+import { estancadoDe } from './cierre'
 import { hoyLocal } from './fecha'
 
 /** Por qué esta asignación no puede cambiar de trimestre, o null si puede. */
@@ -46,6 +47,7 @@ function vista(db: BaseDatos, programa: ProgramaIntervencion): VistaPrograma {
       etiquetaValoracion: ETIQUETAS_VALORACION[a.valoracion],
       comentario: a.comentario,
       arrastrado: a.asignacionAnteriorId !== null,
+      estancado: a.asignacionAnteriorId === null ? null : estancadoDe(db, a.asignacionId),
       puedeMoverse:
         motivoParaNoMover(
           db,

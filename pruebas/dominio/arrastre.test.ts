@@ -6,6 +6,7 @@ import {
   finalesDeCadena,
   pendientesAlAcabarCurso,
   rachaPendienteDesarrollar,
+  trimestresEstancado,
   recorrerCadena,
   type Eslabon
 } from '../../src/main/dominio/arrastre'
@@ -93,6 +94,24 @@ describe('objetivos estancados', () => {
     ]
     expect(rachaPendienteDesarrollar(cadena)).toBe(0)
     expect(estaEstancado(cadena)).toBe(false)
+  })
+})
+
+describe('aviso de estancados (T5.5)', () => {
+  it('con la valoración de este trimestre ya puesta, cuenta la racha completa', () => {
+    const cadena = [eslabon(1, 'pendiente_desarrollar'), eslabon(2, 'pendiente_desarrollar', 1), eslabon(3, 'pendiente_desarrollar', 2)]
+    expect(trimestresEstancado(cadena)).toBe(3)
+  })
+
+  it('aún sin valorar en este trimestre, avisa con la racha con la que llega', () => {
+    const cadena = [eslabon(1, 'pendiente_desarrollar'), eslabon(2, 'pendiente_desarrollar', 1), eslabon(3, 'sin_valorar', 2)]
+    expect(trimestresEstancado(cadena)).toBe(2)
+  })
+
+  it('no avisa al primer trimestre pendiente ni cuando se rompe la racha', () => {
+    expect(trimestresEstancado([eslabon(1, 'pendiente_desarrollar'), eslabon(2, 'sin_valorar', 1)])).toBeNull()
+    expect(trimestresEstancado([eslabon(1, 'pendiente_desarrollar'), eslabon(2, 'pendiente_desarrollar', 1), eslabon(3, 'conseguido', 2)])).toBeNull()
+    expect(trimestresEstancado([eslabon(1, 'sin_valorar')])).toBeNull()
   })
 })
 

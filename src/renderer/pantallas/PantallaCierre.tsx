@@ -143,6 +143,7 @@ export function PantallaCierre({ trimestreId, onVolver }: Props) {
                 ))}
               </div>
 
+              {o.estancado && <p className="aviso-cierre aviso-estancado">{o.estancado}</p>}
               {o.aviso && <p className="aviso-cierre">{o.aviso}</p>}
 
               {comentando[o.asignacionId] !== undefined || o.comentario ? (

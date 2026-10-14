@@ -1,6 +1,6 @@
 import type { ResultadoCierre, ResultadoValoracion, VistaVerificacion } from '../../compartido/ipc'
 import { NOMBRE_TRIMESTRE } from '../dominio/calendario'
-import { recorrerCadena } from '../dominio/arrastre'
+import { recorrerCadena, trimestresEstancado } from '../dominio/arrastre'
 import { elCierreCierraElCurso, incoherenciaDe, trimestreACerrar, trimestreSiguiente, verificarTrimestre, type Incoherencia, type ObjetivoEnVerificacion } from '../dominio/cierre'
 import type { Trimestre } from '../dominio/entidades'
 import { ETIQUETAS_VALORACION, esArrastrable, estaValorado, esValoracion, VALORACIONES, type Valoracion } from '../dominio/vocabulario'
@@ -24,6 +24,19 @@ function aviso(tipo: Incoherencia, valoracion: Valoracion, sesiones: number): st
   return tipo === 'no_trabajado_con_sesiones'
     ? `Lo valoraste como pendiente de desarrollar, pero aparece como trabajado en ${enSesiones(sesiones)}.`
     : `Lo valoraste como ${ETIQUETAS_VALORACION[valoracion]}, pero no aparece como trabajado en ninguna sesión.`
+}
+
+/** RF-20: cuántos trimestres seguidos lleva pendiente de desarrollar, si son dos o más. Cruza de curso. */
+export function estancadoDe(db: BaseDatos, asignacionId: number): number | null {
+  return trimestresEstancado(cadenaDeObjetivo(db, asignacionId))
+}
+
+function avisoDeEstancado(db: BaseDatos, asignacionId: number, valoracion: Valoracion): string | null {
+  const trimestres = estancadoDe(db, asignacionId)
+  if (trimestres === null) return null
+  return valoracion === 'sin_valorar'
+    ? `Llega con ${trimestres} trimestres seguidos pendiente de desarrollar.`
+    : `Lleva ${trimestres} trimestres seguidos pendiente de desarrollar.`
 }
 
 /**
@@ -69,6 +82,7 @@ export function verificacionDeTrimestre(db: BaseDatos, trimestreId: unknown): Vi
         arrastrado: f.asignacionAnteriorId !== null,
         sesiones: objetivos[i].sesiones,
         aviso: tipo ? aviso(tipo, f.valoracion, objetivos[i].sesiones) : null,
+        estancado: avisoDeEstancado(db, f.asignacionId, f.valoracion),
         arrastrable: abierto && siguiente !== null && esArrastrable(f.valoracion)
       }
     }),

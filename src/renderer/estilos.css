@@ -941,3 +941,14 @@ label.casilla-arrastre {
 .confirmar-cierre p {
   margin-top: 0;
 }
+
+/* Objetivos estancados (RF-20) */
+
+.etiqueta-estancado {
+  background: #f6e7dc;
+  color: #8a4b22;
+}
+
+.aviso-estancado {
+  font-weight: 600;
+}

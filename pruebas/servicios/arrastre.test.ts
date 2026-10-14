@@ -5,7 +5,7 @@ import { estaCompleta } from '../../src/main/dominio/arrastre'
 import type { Trimestre } from '../../src/main/dominio/entidades'
 import { obtenerTrimestre } from '../../src/main/persistencia/repositorioCursos'
 import { darDeAlta } from '../../src/main/servicios/alumnos'
-import { arrastrarAlSiguiente, cadenaDeObjetivo, valorarObjetivo } from '../../src/main/servicios/cierre'
+import { arrastrarAlSiguiente, cadenaDeObjetivo, valorarObjetivo, verificacionDeTrimestre } from '../../src/main/servicios/cierre'
 import { abrirCurso } from '../../src/main/servicios/cursos'
 import { anadirObjetivo, crearPrograma, pendientesDelCursoAnterior, programaDeCurso } from '../../src/main/servicios/programas'
 import { crearBaseDePrueba } from '../ayudas/baseDePrueba'
@@ -170,5 +170,61 @@ describe('arrastre al trimestre siguiente (T5.3)', () => {
 
   it('sin nada elegido no se arrastra nada', () => {
     expect(arrastrarAlSiguiente(db, trimestre(1), [])).toEqual({ tipo: 'arrastrados', asignaciones: [] })
+  })
+})
+
+describe('aviso de objetivos estancados (T5.5)', () => {
+  const enPrograma = (id: number) => programaDeCurso(db, curso.id)!.asignaciones.find((a) => a.asignacionId === id)!
+  const enCierre = (n: 1 | 2 | 3, id: number) => verificacionDeTrimestre(db, trimestre(n).id)!.objetivos.find((o) => o.asignacionId === id)!
+
+  it('salta al segundo trimestre seguido pendiente de desarrollar, no antes', () => {
+    const t1 = objetivo('Mantener la atención')
+    valorarObjetivo(db, t1, 'pendiente_desarrollar', null)
+    expect(enCierre(1, t1).estancado).toBeNull()
+
+    const [t2] = arrastrar(trimestre(1), [t1])
+    cerrar(trimestre(1))
+    expect(enPrograma(t2).estancado).toBeNull()
+    expect(enCierre(2, t2).estancado).toBeNull()
+
+    valorarObjetivo(db, t2, 'pendiente_desarrollar', null)
+    expect(enPrograma(t2).estancado).toBe(2)
+    expect(enCierre(2, t2).estancado).toBe('Lleva 2 trimestres seguidos pendiente de desarrollar.')
+  })
+
+  it('sigue avisando si la racha continúa, y ya al llegar al trimestre siguiente', () => {
+    const t1 = objetivo('Mantener la atención')
+    valorarObjetivo(db, t1, 'pendiente_desarrollar', null)
+    const [t2] = arrastrar(trimestre(1), [t1])
+    valorarObjetivo(db, t2, 'pendiente_desarrollar', null)
+    const [t3] = arrastrar(trimestre(2), [t2])
+
+    expect(enPrograma(t3).estancado).toBe(2)
+    expect(enCierre(3, t3).estancado).toBe('Llega con 2 trimestres seguidos pendiente de desarrollar.')
+    valorarObjetivo(db, t3, 'pendiente_desarrollar', null)
+    expect(enCierre(3, t3).estancado).toBe('Lleva 3 trimestres seguidos pendiente de desarrollar.')
+  })
+
+  it('trabajarlo rompe la racha y el aviso desaparece', () => {
+    const t1 = objetivo('Mantener la atención')
+    valorarObjetivo(db, t1, 'pendiente_desarrollar', null)
+    const [t2] = arrastrar(trimestre(1), [t1])
+    valorarObjetivo(db, t2, 'pendiente_desarrollar', null)
+    valorarObjetivo(db, t2, 'no_conseguido', null)
+    expect(enPrograma(t2).estancado).toBeNull()
+    expect(enCierre(2, t2).estancado).toBeNull()
+  })
+
+  it('la racha cruza de curso', () => {
+    const t1 = objetivo('Mantener la atención', 2)
+    valorarObjetivo(db, t1, 'pendiente_desarrollar', null)
+    const [t3] = arrastrar(trimestre(2), [t1])
+    valorarObjetivo(db, t3, 'pendiente_desarrollar', null)
+    db.prepare("UPDATE trimestre SET estado = 'cerrado' WHERE curso_academico_id = ?").run(curso.id)
+    db.prepare("UPDATE curso_academico SET estado = 'cerrado' WHERE id = ?").run(curso.id)
+
+    curso = abrir('2027/2028')
+    crearPrograma(db, curso.id, null, [pendientesDelCursoAnterior(db, curso.id)!.objetivos[0].asignacionId], HOY)
+    expect(programaDeCurso(db, curso.id)!.asignaciones[0].estancado).toBe(2)
   })
 })

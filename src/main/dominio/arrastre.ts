@@ -58,6 +58,17 @@ export function estaEstancado(cadena: readonly Eslabon[]): boolean {
   return rachaPendienteDesarrollar(cadena) >= 2
 }
 
+/**
+ * Para el aviso (T5.5): cuántos trimestres seguidos lleva pendiente de desarrollar, o null si no está
+ * estancado. Mientras no se haya valorado en el trimestre actual, cuenta la racha con la que llega:
+ * así lo ve durante el trimestre, antes de decidir otra vez.
+ */
+export function trimestresEstancado(cadena: readonly Eslabon[]): number | null {
+  const ultimo = cadena[cadena.length - 1]
+  const valorada = ultimo?.valoracion === 'sin_valorar' ? cadena.slice(0, -1) : cadena
+  return estaEstancado(valorada) ? rachaPendienteDesarrollar(valorada) : null
+}
+
 /** Las asignaciones que no tienen continuación: el último eslabón de cada cadena. */
 export function finalesDeCadena<T extends Eslabon>(asignaciones: readonly T[]): T[] {
   const continuadas = new Set(asignaciones.map((a) => a.asignacionAnteriorId).filter((id) => id !== null))
