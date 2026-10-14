@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { componerExportacion, fechaConDia, fechaLarga, nombreDeFichero, type DatosExportacion } from '../../src/main/dominio/exportacion'
+import { componerExportacion, fechaConDia, fechaLarga, nombreDeFichero, nombreLibre, trimestreParaExportar, type DatosExportacion } from '../../src/main/dominio/exportacion'
 
 function datos(extra: Partial<DatosExportacion> = {}): DatosExportacion {
   return {
@@ -98,6 +98,24 @@ describe('nombre del fichero', () => {
     expect(nombreDeFichero(datos())).toBe('Lucía García Pérez - 2026-2027 - 1.er trimestre.txt')
     expect(nombreDeFichero(datos({ alumno: { nombre: 'Ana / "Anita"', apellidos: 'Ruiz: Vega?', codigo: 'A-02' } }))).toBe(
       'Ana Anita Ruiz Vega - 2026-2027 - 1.er trimestre.txt'
+    )
+  })
+})
+
+describe('exportar a todos (T6.2)', () => {
+  it('propone el trimestre que se cursa o, en vacaciones, el que acaba de terminar', () => {
+    expect(trimestreParaExportar({ tipo: 'dentro', numero: 2 })).toBe(2)
+    expect(trimestreParaExportar({ tipo: 'vacaciones', trasNumero: 1, antesDeNumero: 2 })).toBe(1)
+    expect(trimestreParaExportar({ tipo: 'antes_del_curso' })).toBe(1)
+    expect(trimestreParaExportar({ tipo: 'despues_del_curso' })).toBe(3)
+  })
+
+  it('nunca sobrescribe: si el nombre está ocupado, le añade un número', () => {
+    const nombre = 'Lucía García - 2026-2027 - 1.er trimestre.txt'
+    expect(nombreLibre(nombre, new Set())).toBe(nombre)
+    expect(nombreLibre(nombre, new Set([nombre]))).toBe('Lucía García - 2026-2027 - 1.er trimestre (2).txt')
+    expect(nombreLibre(nombre, new Set([nombre, 'Lucía García - 2026-2027 - 1.er trimestre (2).txt']))).toBe(
+      'Lucía García - 2026-2027 - 1.er trimestre (3).txt'
     )
   })
 })

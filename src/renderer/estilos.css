@@ -999,3 +999,22 @@ button.enlace.atras:disabled {
   font-weight: 600;
   color: #4a463f;
 }
+
+.exportar-todos {
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #ddd9d0;
+}
+
+.exportar-todos h2 {
+  font-size: 1.05rem;
+  margin: 0 0 0.25rem;
+}
+
+.exportar-todos select {
+  font: inherit;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #c9c4b9;
+  border-radius: 4px;
+  background: #fff;
+}

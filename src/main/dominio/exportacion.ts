@@ -1,4 +1,4 @@
-import { NOMBRE_TRIMESTRE } from './calendario'
+import { NOMBRE_TRIMESTRE, type UbicacionFecha } from './calendario'
 import type { Fecha, NumeroTrimestre } from './entidades'
 
 /**
@@ -129,4 +129,31 @@ export function componerExportacion(d: DatosExportacion): string {
 export function nombreDeFichero(d: Pick<DatosExportacion, 'alumno' | 'curso' | 'trimestre'>): string {
   const nombre = `${d.alumno.nombre} ${d.alumno.apellidos} - ${d.curso.replace('/', '-')} - ${NOMBRE_TRIMESTRE[d.trimestre.numero]}`
   return `${nombre.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim()}.txt`
+}
+
+/**
+ * El trimestre que se propone exportar a todos: el que se está cursando o, en vacaciones, el que
+ * acaba de terminar, que es cuando se exporta.
+ */
+export function trimestreParaExportar(ubicacion: UbicacionFecha): NumeroTrimestre {
+  switch (ubicacion.tipo) {
+    case 'dentro':
+      return ubicacion.numero
+    case 'vacaciones':
+      return ubicacion.trasNumero
+    case 'antes_del_curso':
+      return 1
+    case 'despues_del_curso':
+      return 3
+  }
+}
+
+/** Si ya hay un fichero con ese nombre, "Nombre (2).txt", "Nombre (3).txt"…: nunca se sobrescribe. */
+export function nombreLibre(nombre: string, ocupados: ReadonlySet<string>): string {
+  if (!ocupados.has(nombre)) return nombre
+  const base = nombre.replace(/\.txt$/, '')
+  for (let n = 2; ; n++) {
+    const candidato = `${base} (${n}).txt`
+    if (!ocupados.has(candidato)) return candidato
+  }
 }

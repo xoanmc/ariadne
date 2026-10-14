@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import type { DatosSesion, VistaCurso } from '../../src/compartido/ipc'
 import { darDeAlta } from '../../src/main/servicios/alumnos'
 import { cerrarTrimestre, valorarObjetivo } from '../../src/main/servicios/cierre'
-import { exportacionDeTrimestre } from '../../src/main/servicios/exportacion'
+import { exportacionDeTrimestre, exportacionesDeTodos, resumenParaExportarTodos } from '../../src/main/servicios/exportacion'
 import { anadirObjetivo, crearPrograma } from '../../src/main/servicios/programas'
 import { registrarSesion } from '../../src/main/servicios/sesiones'
 import { crearBaseDePrueba } from '../ayudas/baseDePrueba'
@@ -84,5 +84,48 @@ describe('exportación del trimestre en el servicio (T6.1)', () => {
   it('un trimestre que no existe no se exporta', () => {
     expect(exportacionDeTrimestre(db, 999)).toBeNull()
     expect(exportacionDeTrimestre(db, 'uno')).toBeNull()
+  })
+})
+
+describe('exportar el trimestre de todos (T6.2)', () => {
+  function otroAlumno(nombre: string, apellidos: string, abrir = true): number {
+    const alta = darDeAlta(db, { nombre, apellidos, fechaNacimiento: null, diagnosticos: null, notas: null }, true, '2026-09-20')
+    if (alta.tipo !== 'creado') throw new Error('alta fallida')
+    if (abrir) abrirCursoDePrueba(db, alta.alumno.id, { curso: '2026/2027', nivelEducativo: null })
+    return alta.alumno.id
+  }
+
+  it('un fichero por cada alumno con curso activo, del trimestre elegido y ordenados por apellidos', () => {
+    otroAlumno('Mario', 'Ruiz Vega')
+    otroAlumno('Ana', 'Álvarez Gil')
+    otroAlumno('Leo', 'Sanz', false)
+
+    const ficheros = exportacionesDeTodos(db, 2, '2027-03-27')
+    expect(ficheros.map((f) => f.nombreFichero)).toEqual([
+      'Ana Álvarez Gil - 2026-2027 - 2.º trimestre.txt',
+      'Lucía García Pérez - 2026-2027 - 2.º trimestre.txt',
+      'Mario Ruiz Vega - 2026-2027 - 2.º trimestre.txt'
+    ])
+    expect(ficheros[1].texto).toContain('Alumno:      Lucía García Pérez (A-01)')
+  })
+
+  it('cada fichero lleva solo lo de su alumno', () => {
+    const mario = otroAlumno('Mario', 'Ruiz Vega')
+    registrarSesion(db, mario, sesion('2026-10-06', { observaciones: 'Sesión de Mario' }), '2026-12-20')
+    const [lucia, deMario] = exportacionesDeTodos(db, 1, '2026-12-23')
+    expect(deMario.texto).toContain('Sesión de Mario')
+    expect(lucia.texto).not.toContain('Sesión de Mario')
+  })
+
+  it('un trimestre que no es 1, 2 o 3 no exporta nada', () => {
+    expect(exportacionesDeTodos(db, 4)).toEqual([])
+    expect(exportacionesDeTodos(db, '1')).toEqual([])
+  })
+
+  it('propone el trimestre según la fecha y cuenta los alumnos activos', () => {
+    otroAlumno('Leo', 'Sanz', false)
+    expect(resumenParaExportarTodos(db, '2026-11-15')).toEqual({ alumnos: 1, trimestre: 1 })
+    expect(resumenParaExportarTodos(db, '2026-12-28')).toEqual({ alumnos: 1, trimestre: 1 })
+    expect(resumenParaExportarTodos(db, '2027-02-01')).toEqual({ alumnos: 1, trimestre: 2 })
   })
 })

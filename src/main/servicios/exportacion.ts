@@ -1,8 +1,11 @@
-import { componerExportacion, nombreDeFichero } from '../dominio/exportacion'
-import type { Fecha } from '../dominio/entidades'
+import { situarFecha } from '../dominio/calendario'
+import { cursoDeFecha } from '../dominio/curso'
+import { componerExportacion, nombreDeFichero, trimestreParaExportar } from '../dominio/exportacion'
+import type { Fecha, NumeroTrimestre } from '../dominio/entidades'
 import type { BaseDatos } from '../persistencia/baseDatos'
 import { obtenerAlumno } from '../persistencia/repositorioAlumnos'
-import { obtenerCurso, obtenerTrimestre } from '../persistencia/repositorioCursos'
+import { calendarioDe } from '../persistencia/repositorioCalendario'
+import { cursosActivos, obtenerCurso, obtenerTrimestre, trimestresDeCurso } from '../persistencia/repositorioCursos'
 import { estancadoDe, verificacionDeTrimestre } from './cierre'
 import { esId } from './entrada'
 import { hoyLocal } from './fecha'
@@ -51,4 +54,26 @@ export function exportacionDeTrimestre(db: BaseDatos, trimestreId: unknown, hoy:
       }))
   }
   return { nombreFichero: nombreDeFichero(datos), texto: componerExportacion(datos) }
+}
+
+/** Para el botón de exportar a todos: cuántos alumnos tienen curso activo y qué trimestre se propone. */
+export function resumenParaExportarTodos(db: BaseDatos, hoy: Fecha = hoyLocal()): { alumnos: number; trimestre: NumeroTrimestre } {
+  const calendario = calendarioDe(db, cursoDeFecha(hoy))
+  return {
+    alumnos: cursosActivos(db).size,
+    trimestre: calendario ? trimestreParaExportar(situarFecha(calendario, hoy)) : 1
+  }
+}
+
+/**
+ * T6.2 (RF-29): un fichero por cada alumno con curso activo, del trimestre con ese número de su curso.
+ * Ordenados por apellidos, como la lista de alumnos.
+ */
+export function exportacionesDeTodos(db: BaseDatos, numero: unknown, hoy: Fecha = hoyLocal()): { nombreFichero: string; texto: string }[] {
+  if (numero !== 1 && numero !== 2 && numero !== 3) return []
+  return [...cursosActivos(db).values()]
+    .map((curso) => ({ curso, alumno: obtenerAlumno(db, curso.alumnoId)! }))
+    .sort((a, b) => `${a.alumno.apellidos} ${a.alumno.nombre}`.localeCompare(`${b.alumno.apellidos} ${b.alumno.nombre}`, 'es'))
+    .map(({ curso }) => trimestresDeCurso(db, curso.id).find((t) => t.numero === numero)!)
+    .map((t) => exportacionDeTrimestre(db, t.id, hoy)!)
 }

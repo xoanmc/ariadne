@@ -1,6 +1,7 @@
 import { useEffect, useState, type KeyboardEvent } from 'react'
 import { coincideBusqueda } from '../../compartido/busqueda'
 import type { AlumnoEnLista } from '../../compartido/ipc'
+import { ExportarTodos } from '../componentes/ExportarTodos'
 
 interface Props {
   aviso?: string
@@ -133,6 +134,8 @@ export function PantallaAlumnos({ aviso, onAbrir, onAlta, onRegistrar }: Props) 
               )}
             </>
           )}
+
+          {!buscando && <ExportarTodos />}
         </>
       )}
     </main>

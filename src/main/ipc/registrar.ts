@@ -1,7 +1,7 @@
 import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } from 'electron'
-import { writeFileSync } from 'node:fs'
+import { readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { CANALES, type ResultadoCambio, type ResultadoCopia, type ResultadoExportacion, type ResultadoRestauracion } from '../../compartido/ipc'
+import { CANALES, type ResultadoCambio, type ResultadoCopia, type ResultadoExportacion, type ResultadoExportacionTodos, type ResultadoRestauracion } from '../../compartido/ipc'
 import * as actas from '../servicios/actas'
 import * as alumnos from '../servicios/alumnos'
 import * as calendario from '../servicios/calendario'
@@ -9,6 +9,7 @@ import * as catalogo from '../servicios/catalogo'
 import * as cierre from '../servicios/cierre'
 import * as cursos from '../servicios/cursos'
 import * as evaluaciones from '../servicios/evaluaciones'
+import { nombreLibre } from '../dominio/exportacion'
 import * as exportacion from '../servicios/exportacion'
 import * as programas from '../servicios/programas'
 import * as sesiones from '../servicios/sesiones'
@@ -196,7 +197,7 @@ export function registrarManejadoresIpc(datos: UbicacionDatos): void {
   ipcMain.handle(CANALES.borrarSesion, (_evento, sesionId: unknown) => sesiones.borrarSesion(datos.conexion(), sesionId))
 
   // La última exportación: "mostrar en la carpeta" solo abre lo que la aplicación acaba de escribir
-  let ultimaExportacion: string | null = null
+  let ultimaExportacion: { tipo: 'fichero' | 'carpeta'; ruta: string } | null = null
 
   ipcMain.handle(CANALES.exportarTrimestre, async (evento, trimestreId: unknown): Promise<ResultadoExportacion> => {
     const fichero = exportacion.exportacionDeTrimestre(datos.conexion(), trimestreId)
@@ -214,12 +215,40 @@ export function registrarManejadoresIpc(datos: UbicacionDatos): void {
     } catch {
       return { tipo: 'rechazado', mensaje: 'No se pudo guardar el fichero ahí. Prueba en otra carpeta, por ejemplo en Documentos.' }
     }
-    ultimaExportacion = eleccion.filePath
+    ultimaExportacion = { tipo: 'fichero', ruta: eleccion.filePath }
     return { tipo: 'exportado', ruta: eleccion.filePath }
   })
 
-  ipcMain.handle(CANALES.mostrarExportacion, () => {
-    if (ultimaExportacion) shell.showItemInFolder(ultimaExportacion)
+  ipcMain.handle(CANALES.mostrarExportacion, async () => {
+    if (ultimaExportacion?.tipo === 'fichero') shell.showItemInFolder(ultimaExportacion.ruta)
+    if (ultimaExportacion?.tipo === 'carpeta') await shell.openPath(ultimaExportacion.ruta)
+  })
+
+  ipcMain.handle(CANALES.resumenExportarTodos, () => exportacion.resumenParaExportarTodos(datos.conexion()))
+
+  ipcMain.handle(CANALES.exportarTodos, async (evento, numero: unknown): Promise<ResultadoExportacionTodos> => {
+    const ficheros = exportacion.exportacionesDeTodos(datos.conexion(), numero)
+    if (ficheros.length === 0) return { tipo: 'rechazado', mensaje: 'No hay alumnos con curso activo que exportar.' }
+    const eleccion = await dialog.showOpenDialog(ventanaDe(evento), {
+      title: 'Elige la carpeta donde guardar los registros del trimestre',
+      buttonLabel: 'Guardar aquí',
+      defaultPath: app.getPath('documents'),
+      properties: ['openDirectory', 'createDirectory']
+    })
+    if (eleccion.canceled || eleccion.filePaths.length === 0) return { tipo: 'cancelado' }
+    const carpeta = eleccion.filePaths[0]
+    try {
+      const ocupados = new Set(readdirSync(carpeta))
+      for (const fichero of ficheros) {
+        const nombre = nombreLibre(fichero.nombreFichero, ocupados)
+        writeFileSync(join(carpeta, nombre), '\uFEFF' + fichero.texto, 'utf8')
+        ocupados.add(nombre)
+      }
+    } catch {
+      return { tipo: 'rechazado', mensaje: 'No se pudieron guardar los ficheros ahí. Prueba en otra carpeta, por ejemplo en Documentos.' }
+    }
+    ultimaExportacion = { tipo: 'carpeta', ruta: carpeta }
+    return { tipo: 'exportados', carpeta, ficheros: ficheros.length }
   })
 
   ipcMain.handle(CANALES.listarCalendarios, () => calendario.listarCalendarios(datos.conexion()))

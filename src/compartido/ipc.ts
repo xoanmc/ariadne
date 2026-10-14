@@ -49,7 +49,9 @@ export const CANALES = {
   listarCalendarios: 'calendario:listar',
   guardarCalendario: 'calendario:guardar',
   exportarTrimestre: 'exportacion:trimestre',
-  mostrarExportacion: 'exportacion:mostrar'
+  mostrarExportacion: 'exportacion:mostrar',
+  resumenExportarTodos: 'exportacion:resumenTodos',
+  exportarTodos: 'exportacion:todos'
 } as const
 
 export type Valoracion = 'sin_valorar' | 'conseguido' | 'no_conseguido' | 'pendiente_desarrollar'
@@ -191,6 +193,11 @@ export interface VistaVerificacion {
 
 export type ResultadoExportacion =
   | { tipo: 'exportado'; ruta: string }
+  | { tipo: 'cancelado' }
+  | { tipo: 'rechazado'; mensaje: string }
+
+export type ResultadoExportacionTodos =
+  | { tipo: 'exportados'; carpeta: string; ficheros: number }
   | { tipo: 'cancelado' }
   | { tipo: 'rechazado'; mensaje: string }
 
@@ -432,8 +439,11 @@ export interface AriadneApi {
   exportacion: {
     /** Pregunta dónde guardar el fichero del trimestre y lo escribe. */
     trimestre(trimestreId: number): Promise<ResultadoExportacion>
-    /** Abre la carpeta con el último fichero exportado, seleccionado. */
+    /** Abre la carpeta con lo último exportado. */
     mostrar(): Promise<void>
+    resumenTodos(): Promise<{ alumnos: number; trimestre: NumeroTrimestre }>
+    /** Pregunta en qué carpeta y guarda un fichero por cada alumno con curso activo. */
+    todos(numero: NumeroTrimestre): Promise<ResultadoExportacionTodos>
   }
   calendario: {
     listar(): Promise<VistaCalendario[]>
