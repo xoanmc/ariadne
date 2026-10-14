@@ -111,12 +111,7 @@ button:disabled {
   border-bottom: 1px solid #e0dcd3;
 }
 
-.marca {
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-.barra nav {
+.barra .hueco {
   flex: 1;
 }
 

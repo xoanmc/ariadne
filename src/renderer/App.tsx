@@ -112,12 +112,10 @@ export function App() {
         <button className="enlace atras" onClick={atras} disabled={historial.length <= 1} title="Atrás (Alt + ←)">
           ← Atrás
         </button>
-        <span className="marca">Ariadne</span>
-        <nav>
-          <button className={enEsquina ? 'enlace' : 'enlace activo'} onClick={() => ir({ tipo: 'alumnos' })}>
-            Alumnos
-          </button>
-        </nav>
+        <span className="hueco" />
+        <button className={enEsquina ? 'enlace discreto' : 'enlace discreto activo'} onClick={() => ir({ tipo: 'alumnos' })}>
+          Alumnos
+        </button>
         {esquina('calendario', 'Calendario')}
         {esquina('opciones', 'Opciones del registro')}
         {esquina('copias', 'Copias de seguridad')}
