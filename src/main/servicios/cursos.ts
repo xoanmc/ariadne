@@ -1,12 +1,13 @@
 import type { DatosCurso, PropuestaCurso, ResultadoCurso, VistaCurso } from '../../compartido/ipc'
-import type { PeriodoTrimestre } from '../dominio/calendario'
 import { trimestreEnCurso } from '../dominio/calendario'
 import { trimestreACerrar } from '../dominio/cierre'
-import { cursoDeFecha, esPosteriorATodos, extremosDeCurso, fechasPropuestas, validarCurso } from '../dominio/curso'
-import type { CursoAcademico, Fecha, NumeroTrimestre } from '../dominio/entidades'
+import { cursoDeFecha, esPosteriorATodos, extremosDeCurso, fechasPropuestas } from '../dominio/curso'
+import type { CursoAcademico, Fecha } from '../dominio/entidades'
 import type { BaseDatos } from '../persistencia/baseDatos'
 import { obtenerAlumno } from '../persistencia/repositorioAlumnos'
+import { calendarioDe } from '../persistencia/repositorioCalendario'
 import * as repositorio from '../persistencia/repositorioCursos'
+import { asegurarCalendario } from './calendario'
 import { esId, textoOpcional } from './entrada'
 import { hoyLocal } from './fecha'
 
@@ -32,22 +33,10 @@ function vista(db: BaseDatos, curso: CursoAcademico, hoy: Fecha = hoyLocal()): V
   }
 }
 
-function periodosDe(valor: unknown): PeriodoTrimestre[] {
-  if (!Array.isArray(valor)) return []
-  return valor
-    .filter((p) => p && [1, 2, 3].includes(p.numero))
-    .map((p) => ({
-      numero: p.numero as NumeroTrimestre,
-      fechaInicio: typeof p.fechaInicio === 'string' ? p.fechaInicio.trim() : '',
-      fechaFin: typeof p.fechaFin === 'string' ? p.fechaFin.trim() : ''
-    }))
-}
-
 function normalizar(entrada: Partial<DatosCurso> | null | undefined) {
   return {
     curso: typeof entrada?.curso === 'string' ? entrada.curso.trim() : '',
-    nivelEducativo: textoOpcional(entrada?.nivelEducativo),
-    periodos: periodosDe(entrada?.periodos)
+    nivelEducativo: textoOpcional(entrada?.nivelEducativo)
   }
 }
 
@@ -83,15 +72,17 @@ export function proponerCurso(db: BaseDatos, alumnoId: unknown, pedido?: unknown
   if (ultimo && curso <= ultimo) curso = siguienteA(ultimo)
   if (typeof pedido === 'string' && extremosDeCurso(pedido.trim())) curso = pedido.trim()
 
-  return { tipo: 'propuesta', curso, periodos: fechasPropuestas(curso), cursoAnterior: ultimo }
+  const calendario = calendarioDe(db, curso)
+  return { tipo: 'propuesta', curso, periodos: calendario ?? fechasPropuestas(curso), calendarioFijado: calendario !== null, cursoAnterior: ultimo }
 }
 
 export function abrirCurso(db: BaseDatos, alumnoId: unknown, entrada: Partial<DatosCurso>): ResultadoCurso {
   if (!esId(alumnoId) || !obtenerAlumno(db, alumnoId)) return { tipo: 'rechazado', mensaje: 'Este alumno no existe.' }
 
   const datos = normalizar(entrada)
-  const problemas = validarCurso(datos.curso, datos.periodos)
-  if (problemas.length > 0) return { tipo: 'invalido', problemas }
+  if (!extremosDeCurso(datos.curso)) {
+    return { tipo: 'invalido', problemas: [{ campo: 'curso', mensaje: 'Escribe el curso con sus dos años seguidos, por ejemplo 2026/2027.' }] }
+  }
 
   const cursos = repositorio.cursosDeAlumno(db, alumnoId)
   const activo = cursos.find((c) => c.estado === 'activo')
@@ -118,7 +109,8 @@ export function abrirCurso(db: BaseDatos, alumnoId: unknown, entrada: Partial<Da
       nivelEducativo: datos.nivelEducativo,
       cursoAnteriorId: cursos[0]?.id ?? null
     })
-    datos.periodos.forEach((periodo) => repositorio.insertarTrimestre(db, nuevo, periodo))
+    // Las fechas son las del calendario de ese curso escolar, el mismo para todos sus alumnos
+    asegurarCalendario(db, datos.curso).forEach((periodo) => repositorio.insertarTrimestre(db, nuevo, periodo))
     return nuevo
   })()
 
@@ -126,38 +118,15 @@ export function abrirCurso(db: BaseDatos, alumnoId: unknown, entrada: Partial<Da
 }
 
 /**
- * Corrige el nivel y las fechas de un curso activo. El curso en sí no cambia, un trimestre cerrado
- * conserva sus fechas y un curso cerrado ya no se modifica: se consulta.
+ * Corrige el nivel educativo de un curso activo. El curso en sí no cambia, las fechas son las del
+ * calendario escolar, y un curso cerrado ya no se modifica: se consulta.
  */
-export function corregirCurso(db: BaseDatos, cursoId: unknown, entrada: Partial<DatosCurso>): ResultadoCurso {
+export function corregirCurso(db: BaseDatos, cursoId: unknown, entrada: Partial<Pick<DatosCurso, 'nivelEducativo'>>): ResultadoCurso {
   const curso = esId(cursoId) ? repositorio.obtenerCurso(db, cursoId) : null
   if (!curso) return { tipo: 'rechazado', mensaje: 'Este curso no existe.' }
   if (curso.estado === 'cerrado') {
     return { tipo: 'rechazado', mensaje: `El curso ${curso.curso} está cerrado y ya no se modifica.` }
   }
-
-  const datos = normalizar(entrada)
-  const problemas = validarCurso(curso.curso, datos.periodos)
-  if (problemas.length > 0) return { tipo: 'invalido', problemas }
-
-  const trimestres = repositorio.trimestresDeCurso(db, curso.id)
-  for (const trimestre of trimestres) {
-    const nuevo = datos.periodos.find((p) => p.numero === trimestre.numero)!
-    const cambia = nuevo.fechaInicio !== trimestre.fechaInicio || nuevo.fechaFin !== trimestre.fechaFin
-    if (trimestre.estado === 'cerrado' && cambia) {
-      return {
-        tipo: 'rechazado',
-        mensaje: `El trimestre ${trimestre.numero} está cerrado y sus fechas ya no cambian.`
-      }
-    }
-  }
-
-  db.transaction(() => {
-    repositorio.actualizarNivelEducativo(db, curso.id, datos.nivelEducativo)
-    for (const trimestre of trimestres) {
-      repositorio.actualizarFechasTrimestre(db, trimestre.id, datos.periodos.find((p) => p.numero === trimestre.numero)!)
-    }
-  })()
-
+  repositorio.actualizarNivelEducativo(db, curso.id, textoOpcional(entrada?.nivelEducativo))
   return { tipo: 'guardado', curso: vista(db, repositorio.obtenerCurso(db, curso.id)!) }
 }

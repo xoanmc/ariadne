@@ -174,7 +174,7 @@ Sustituye a los documentos sobre plantillas, retirados el 2026-10-11. Al acabar 
 
 - **RF-04** Apertura de curso para un alumno, con enlace al curso anterior si existe.
 - **RF-05** Registro de la evaluación inicial del curso.
-- **RF-06** Los tres trimestres se crean automáticamente al abrir el curso, con fechas propuestas y editables.
+- **RF-06** Los tres trimestres se crean automáticamente al abrir el curso, con las fechas del calendario escolar de ese curso, común a todos los alumnos y editable por ella (desde el 2026-10-14; antes, cada curso de cada alumno tenía sus propias fechas).
 - **RF-07** El curso pasa a cerrado automáticamente al cerrarse su tercer trimestre.
 
 ### Programa de intervención
@@ -262,5 +262,5 @@ Registro de las decisiones que en su día quedaron abiertas, para no reabrirlas 
 | Identidad del objetivo entre cursos | Objetivo nuevo por curso, enlazado por la cadena de asignaciones |
 | Informes y plantillas de Word | Fuera del alcance desde el 2026-10-11, a petición suya. Los sustituye la exportación del trimestre (RF-29) |
 | Pseudonimización | Sin salidas hacia el exterior desde el 2026-10-11; la exportación del trimestre es su archivo y lleva el nombre (P6) |
-| Fechas de los trimestres | Propuestas al abrir curso, editables por ella (RF-06) |
+| Fechas de los trimestres | Un calendario por curso escolar, común a todos los alumnos y editable por ella; abrir un curso ya no las pide (RF-06, 2026-10-14). Abrir y cerrar cada trimestre sigue siendo por alumno |
 | Cierre del curso académico | Automático al cerrar el tercer trimestre (RF-07) |

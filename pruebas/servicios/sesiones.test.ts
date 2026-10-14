@@ -2,10 +2,10 @@ import type Database from 'better-sqlite3'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { DatosSesion, VistaCurso } from '../../src/compartido/ipc'
 import { darDeAlta } from '../../src/main/servicios/alumnos'
-import { abrirCurso } from '../../src/main/servicios/cursos'
 import { anadirObjetivo, crearPrograma, moverObjetivo, programaDeCurso, quitarObjetivo } from '../../src/main/servicios/programas'
 import { borrarSesion, corregirSesion, objetivosParaSesion, obtenerSesion, registrarSesion, sesionesDeCurso } from '../../src/main/servicios/sesiones'
 import { crearBaseDePrueba } from '../ayudas/baseDePrueba'
+import { abrirCursoDePrueba } from '../ayudas/cursoDePrueba'
 
 const HOY = '2027-02-15'
 
@@ -20,7 +20,7 @@ function alta(nombre: string): number {
 }
 
 function abrir(id: number): VistaCurso {
-  const r = abrirCurso(db, id, {
+  const r = abrirCursoDePrueba(db, id, {
     curso: '2026/2027',
     nivelEducativo: null,
     periodos: [

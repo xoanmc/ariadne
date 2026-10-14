@@ -4,9 +4,9 @@ import type { VistaCurso } from '../../src/compartido/ipc'
 import { estaCompleta, recorrerCadena } from '../../src/main/dominio/arrastre'
 import type { Valoracion } from '../../src/main/dominio/vocabulario'
 import { darDeAlta } from '../../src/main/servicios/alumnos'
-import { abrirCurso } from '../../src/main/servicios/cursos'
 import { anadirObjetivo, crearPrograma, pendientesDelCursoAnterior, programaDeCurso } from '../../src/main/servicios/programas'
 import { crearBaseDePrueba } from '../ayudas/baseDePrueba'
+import { abrirCursoDePrueba } from '../ayudas/cursoDePrueba'
 
 const HOY = '2026-09-27'
 
@@ -15,7 +15,7 @@ let alumnoId: number
 
 function abrir(curso: string): VistaCurso {
   const [a, b] = curso.split('/')
-  const resultado = abrirCurso(db, alumnoId, {
+  const resultado = abrirCursoDePrueba(db, alumnoId, {
     curso,
     nivelEducativo: null,
     periodos: [

@@ -100,11 +100,7 @@ export function PantallaCurso({ cursoId, recienAbierto, aviso, onVolver, onRegis
             <FormularioCurso
               alumnoId={curso.alumnoId}
               modo="corregir"
-              inicial={{
-                curso: curso.curso,
-                nivelEducativo: curso.nivelEducativo,
-                periodos: curso.trimestres.map(({ numero, fechaInicio, fechaFin }) => ({ numero, fechaInicio, fechaFin }))
-              }}
+              inicial={{ curso: curso.curso, nivelEducativo: curso.nivelEducativo }}
               cursoAnterior={null}
               problemas={problemas}
               ocupado={ocupado}
@@ -126,6 +122,7 @@ export function PantallaCurso({ cursoId, recienAbierto, aviso, onVolver, onRegis
                 </li>
               ))}
             </ul>
+            <p className="apunte">Las fechas son las del calendario escolar, comunes a todos tus alumnos: se cambian en Calendario, arriba.</p>
             {activo && (
               <div className="acciones">
                 <button
@@ -136,7 +133,7 @@ export function PantallaCurso({ cursoId, recienAbierto, aviso, onVolver, onRegis
                     setCorrigiendo(true)
                   }}
                 >
-                  Corregir fechas o nivel
+                  Corregir el nivel educativo
                 </button>
               </div>
             )}

@@ -3,10 +3,10 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import type { VistaCurso } from '../../src/compartido/ipc'
 import { darDeAlta } from '../../src/main/servicios/alumnos'
 import { valorarObjetivo, verificacionDeTrimestre } from '../../src/main/servicios/cierre'
-import { abrirCurso } from '../../src/main/servicios/cursos'
 import { anadirObjetivo, crearPrograma, programaDeCurso } from '../../src/main/servicios/programas'
 import { registrarSesion } from '../../src/main/servicios/sesiones'
 import { crearBaseDePrueba } from '../ayudas/baseDePrueba'
+import { abrirCursoDePrueba } from '../ayudas/cursoDePrueba'
 
 const HOY = '2026-11-15'
 
@@ -22,7 +22,7 @@ beforeEach(() => {
   const alta = darDeAlta(db, { nombre: 'Lucía', apellidos: 'García', fechaNacimiento: null, diagnosticos: null, notas: null }, false, HOY)
   if (alta.tipo !== 'creado') throw new Error('alta fallida')
   alumnoId = alta.alumno.id
-  const abierto = abrirCurso(db, alumnoId, {
+  const abierto = abrirCursoDePrueba(db, alumnoId, {
     curso: '2026/2027',
     nivelEducativo: null,
     periodos: [

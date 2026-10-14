@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { DatosCurso, ProblemaCurso, PropuestaCurso, VistaCurso } from '../../compartido/ipc'
+import type { DatosCurso, PeriodoTrimestre, ProblemaCurso, PropuestaCurso, VistaCurso } from '../../compartido/ipc'
 import { FormularioCurso } from './FormularioCurso'
 
 interface Props {
@@ -11,7 +11,12 @@ interface Props {
 export function SeccionCursos({ alumnoId, onAbrirCurso }: Props) {
   const [cursos, setCursos] = useState<VistaCurso[] | null>(null)
   const [propuesta, setPropuesta] = useState<PropuestaCurso | null>(null)
-  const [abriendo, setAbriendo] = useState<{ inicial: DatosCurso; cursoAnterior: string | null } | null>(null)
+  const [abriendo, setAbriendo] = useState<{
+    inicial: DatosCurso
+    periodos: PeriodoTrimestre[]
+    calendarioFijado: boolean
+    cursoAnterior: string | null
+  } | null>(null)
   const [problemas, setProblemas] = useState<ProblemaCurso[]>([])
   const [rechazo, setRechazo] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
@@ -46,6 +51,8 @@ export function SeccionCursos({ alumnoId, onAbrirCurso }: Props) {
             alumnoId={alumnoId}
             modo="abrir"
             inicial={abriendo.inicial}
+            periodos={abriendo.periodos}
+            calendarioFijado={abriendo.calendarioFijado}
             cursoAnterior={abriendo.cursoAnterior}
             problemas={problemas}
             ocupado={ocupado}
@@ -66,7 +73,9 @@ export function SeccionCursos({ alumnoId, onAbrirCurso }: Props) {
                   setProblemas([])
                   setRechazo(null)
                   setAbriendo({
-                    inicial: { curso: propuesta.curso, nivelEducativo: null, periodos: propuesta.periodos },
+                    inicial: { curso: propuesta.curso, nivelEducativo: null },
+                    periodos: propuesta.periodos,
+                    calendarioFijado: propuesta.calendarioFijado,
                     cursoAnterior: propuesta.cursoAnterior
                   })
                 }}

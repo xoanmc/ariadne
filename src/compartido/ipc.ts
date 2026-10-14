@@ -45,7 +45,9 @@ export const CANALES = {
   borrarSesion: 'sesiones:borrar',
   verificacionTrimestre: 'cierre:verificacion',
   valorarObjetivo: 'cierre:valorar',
-  cerrarTrimestre: 'cierre:cerrar'
+  cerrarTrimestre: 'cierre:cerrar',
+  listarCalendarios: 'calendario:listar',
+  guardarCalendario: 'calendario:guardar'
 } as const
 
 export type Valoracion = 'sin_valorar' | 'conseguido' | 'no_conseguido' | 'pendiente_desarrollar'
@@ -272,15 +274,42 @@ export interface VistaCurso {
 
 /** Lo que la aplicación propone al abrir curso, o por qué todavía no se puede abrir. */
 export type PropuestaCurso =
-  | { tipo: 'propuesta'; curso: string; periodos: PeriodoTrimestre[]; cursoAnterior: string | null }
+  | {
+      tipo: 'propuesta'
+      curso: string
+      /** Las del calendario de ese curso escolar; si aún no está fijado, las que se fijarán al abrirlo. */
+      periodos: PeriodoTrimestre[]
+      calendarioFijado: boolean
+      cursoAnterior: string | null
+    }
   | { tipo: 'curso_activo'; curso: string }
   | { tipo: 'no_existe' }
 
+/** Las fechas no se piden: salen del calendario del curso escolar, común a todos los alumnos. */
 export interface DatosCurso {
   curso: string
   nivelEducativo: string | null
-  periodos: PeriodoTrimestre[]
 }
+
+export interface VistaCalendario {
+  curso: string
+  periodos: PeriodoTrimestre[]
+  /** Si ya está guardado; si no, `periodos` son las fechas propuestas. */
+  fijado: boolean
+  /** Cuántos alumnos tienen ese curso. */
+  alumnos: number
+  /** Trimestres cerrados para algún alumno: sus fechas ya no cambian. */
+  cerrados: NumeroTrimestre[]
+  /** Alumnos que conservan otras fechas, porque ajustarlos descolocaría algo. */
+  conFechasPropias: { alumno: string; motivo: string }[]
+  /** Alumnos con otras fechas que se ajustarán al guardar. */
+  pendientesDeAjustar: number
+}
+
+export type ResultadoCalendario =
+  | { tipo: 'guardado'; calendario: VistaCalendario }
+  | { tipo: 'invalido'; problemas: ProblemaCurso[] }
+  | { tipo: 'rechazado'; mensaje: string }
 
 export type CampoCurso = 'curso' | 'nivelEducativo' | 'trimestre1' | 'trimestre2' | 'trimestre3'
 
@@ -390,7 +419,12 @@ export interface AriadneApi {
     obtener(cursoId: number): Promise<VistaCurso | null>
     proponer(alumnoId: number, curso?: string): Promise<PropuestaCurso>
     abrir(alumnoId: number, datos: DatosCurso): Promise<ResultadoCurso>
-    corregir(cursoId: number, datos: DatosCurso): Promise<ResultadoCurso>
+    /** Solo el nivel educativo: el curso no cambia y las fechas son las del calendario. */
+    corregir(cursoId: number, datos: Pick<DatosCurso, 'nivelEducativo'>): Promise<ResultadoCurso>
+  }
+  calendario: {
+    listar(): Promise<VistaCalendario[]>
+    guardar(curso: string, periodos: PeriodoTrimestre[]): Promise<ResultadoCalendario>
   }
   evaluaciones: {
     deCurso(cursoId: number): Promise<VistaEvaluacion | null>

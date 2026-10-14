@@ -2,9 +2,9 @@ import type Database from 'better-sqlite3'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { VistaCurso } from '../../src/compartido/ipc'
 import { darDeAlta } from '../../src/main/servicios/alumnos'
-import { abrirCurso } from '../../src/main/servicios/cursos'
 import { anadirObjetivo, crearPrograma, editarContenido, editarObjetivo, moverObjetivo, programaDeCurso, quitarObjetivo } from '../../src/main/servicios/programas'
 import { crearBaseDePrueba } from '../ayudas/baseDePrueba'
+import { abrirCursoDePrueba } from '../ayudas/cursoDePrueba'
 
 const HOY = '2026-09-27'
 
@@ -14,7 +14,7 @@ let curso: VistaCurso
 function nuevoCurso(nombre: string): VistaCurso {
   const alta = darDeAlta(db, { nombre, apellidos: 'García', fechaNacimiento: null, diagnosticos: null, notas: null }, true, HOY)
   if (alta.tipo !== 'creado') throw new Error('alta fallida')
-  const abierto = abrirCurso(db, alta.alumno.id, {
+  const abierto = abrirCursoDePrueba(db, alta.alumno.id, {
     curso: '2026/2027',
     nivelEducativo: null,
     periodos: [

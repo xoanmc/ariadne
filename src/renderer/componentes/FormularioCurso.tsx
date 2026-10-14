@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import type { CampoCurso, DatosCurso, NumeroTrimestre, PeriodoTrimestre, ProblemaCurso } from '../../compartido/ipc'
+import { fechaCorta } from '../fechas'
 
 export const NOMBRE_TRIMESTRE: Record<NumeroTrimestre, string> = {
   1: '1.er trimestre',
@@ -11,6 +12,9 @@ interface Props {
   alumnoId: number
   modo: 'abrir' | 'corregir'
   inicial: DatosCurso
+  /** Al abrir: las fechas del calendario de ese curso escolar, solo para consultarlas. */
+  periodos?: PeriodoTrimestre[]
+  calendarioFijado?: boolean
   cursoAnterior: string | null
   problemas: ProblemaCurso[]
   ocupado: boolean
@@ -20,26 +24,20 @@ interface Props {
 
 const CURSO_COMPLETO = /^\d{4}\/\d{4}$/
 
-export function FormularioCurso({ alumnoId, modo, inicial, cursoAnterior, problemas, ocupado, onGuardar, onCancelar }: Props) {
+export function FormularioCurso({ alumnoId, modo, inicial, periodos: iniciales, calendarioFijado: fijadoInicial, cursoAnterior, problemas, ocupado, onGuardar, onCancelar }: Props) {
   const [datos, setDatos] = useState<DatosCurso>(inicial)
+  const [calendario, setCalendario] = useState({ periodos: iniciales ?? [], fijado: fijadoInicial ?? false })
 
   const problemaDe = (campo: CampoCurso) => problemas.find((p) => p.campo === campo)?.mensaje
 
-  // Al abrir, cambiar el curso rehace las fechas propuestas: todavía no las ha tocado nadie que importe.
+  // Al abrir, cambiar el curso muestra las fechas del calendario de ese otro curso escolar
   async function cambiarCurso(curso: string) {
     setDatos((actual) => ({ ...actual, curso }))
     if (modo !== 'abrir' || !CURSO_COMPLETO.test(curso)) return
     const propuesta = await window.ariadne.cursos.proponer(alumnoId, curso)
     if (propuesta.tipo === 'propuesta' && propuesta.curso === curso) {
-      setDatos((actual) => ({ ...actual, periodos: propuesta.periodos }))
+      setCalendario({ periodos: propuesta.periodos, fijado: propuesta.calendarioFijado })
     }
-  }
-
-  function cambiarFecha(numero: NumeroTrimestre, extremo: 'fechaInicio' | 'fechaFin', valor: string) {
-    setDatos((actual) => ({
-      ...actual,
-      periodos: actual.periodos.map((p): PeriodoTrimestre => (p.numero === numero ? { ...p, [extremo]: valor } : p))
-    }))
   }
 
   function enviar(evento: FormEvent) {
@@ -78,40 +76,25 @@ export function FormularioCurso({ alumnoId, modo, inicial, cursoAnterior, proble
         <p className="apunte">Quedará enlazado con su curso anterior, {cursoAnterior}.</p>
       )}
 
-      <fieldset className="trimestres">
-        <legend>Trimestres</legend>
-        <p className="apunte">
-          Son fechas orientativas: corrígelas con el calendario de tu centro. Entre un trimestre y otro puede haber
-          vacaciones.
-        </p>
-        {datos.periodos.map((periodo) => {
-          const problema = problemaDe(`trimestre${periodo.numero}`)
-          return (
-            <div key={periodo.numero} className={problema ? 'fila-trimestre con-problema' : 'fila-trimestre'}>
-              <span className="nombre-trimestre">{NOMBRE_TRIMESTRE[periodo.numero]}</span>
-              <label>
-                del{' '}
-                <input
-                  type="date"
-                  aria-label={`Inicio del ${NOMBRE_TRIMESTRE[periodo.numero]}`}
-                  value={periodo.fechaInicio}
-                  onChange={(e) => cambiarFecha(periodo.numero, 'fechaInicio', e.target.value)}
-                />
-              </label>
-              <label>
-                al{' '}
-                <input
-                  type="date"
-                  aria-label={`Fin del ${NOMBRE_TRIMESTRE[periodo.numero]}`}
-                  value={periodo.fechaFin}
-                  onChange={(e) => cambiarFecha(periodo.numero, 'fechaFin', e.target.value)}
-                />
-              </label>
-              {problema && <p className="problema">{problema}</p>}
-            </div>
-          )
-        })}
-      </fieldset>
+      {modo === 'abrir' && calendario.periodos.length > 0 && (
+        <div className="fechas-calendario">
+          <p className="apunte">
+            {calendario.fijado
+              ? `Las fechas son las del calendario de ${datos.curso}, comunes a todos tus alumnos:`
+              : `Aún no has fijado el calendario de ${datos.curso}. Se usarán estas fechas, que puedes cambiar en Calendario:`}
+          </p>
+          <ul className="lista-trimestres">
+            {calendario.periodos.map((p) => (
+              <li key={p.numero}>
+                <span className="nombre-trimestre">{NOMBRE_TRIMESTRE[p.numero as NumeroTrimestre]}</span>
+                <span>
+                  del {fechaCorta(p.fechaInicio)} al {fechaCorta(p.fechaFin)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="acciones">
         <button type="submit" className="principal" disabled={ocupado}>

@@ -2,8 +2,10 @@ import type Database from 'better-sqlite3'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { DatosCurso, PeriodoTrimestre } from '../../src/compartido/ipc'
 import { darDeAlta } from '../../src/main/servicios/alumnos'
+import { guardarCalendario } from '../../src/main/servicios/calendario'
 import { abrirCurso, corregirCurso, cursosDeAlumno, obtenerCurso, proponerCurso } from '../../src/main/servicios/cursos'
 import { crearBaseDePrueba } from '../ayudas/baseDePrueba'
+import { abrirCursoDePrueba } from '../ayudas/cursoDePrueba'
 
 const HOY = '2026-09-27'
 
@@ -20,11 +22,11 @@ function periodos(curso: string): PeriodoTrimestre[] {
 }
 
 function datos(curso: string, extra: Partial<DatosCurso> = {}): DatosCurso {
-  return { curso, nivelEducativo: null, periodos: periodos(curso), ...extra }
+  return { curso, nivelEducativo: null, ...extra }
 }
 
 function abrir(curso: string, extra: Partial<DatosCurso> = {}) {
-  const resultado = abrirCurso(db, alumnoId, datos(curso, extra))
+  const resultado = abrirCursoDePrueba(db, alumnoId, { ...datos(curso, extra), periodos: periodos(curso) })
   if (resultado.tipo !== 'guardado') throw new Error(`apertura fallida: ${JSON.stringify(resultado)}`)
   return resultado.curso
 }
@@ -43,7 +45,7 @@ beforeEach(() => {
 })
 
 describe('apertura de curso', () => {
-  it('crea el curso con sus tres trimestres y las fechas que ella confirma', () => {
+  it('crea el curso con sus tres trimestres y las fechas del calendario escolar', () => {
     const curso = abrir('2026/2027', { nivelEducativo: '3.º de Primaria' })
 
     expect(curso).toMatchObject({
@@ -57,14 +59,15 @@ describe('apertura de curso', () => {
     )
   })
 
-  it('con fechas solapadas no abre nada', () => {
-    const solapado = periodos('2026/2027')
-    solapado[1] = { ...solapado[1], fechaInicio: '2026-12-01' }
-    const resultado = abrirCurso(db, alumnoId, datos('2026/2027', { periodos: solapado }))
+  it('sin calendario de ese curso escolar, lo fija con las fechas propuestas', () => {
+    const r = abrirCurso(db, alumnoId, datos('2027/2028'))
+    expect(r.tipo === 'guardado' && r.curso.trimestres[0]).toMatchObject({ fechaInicio: '2027-09-01', fechaFin: '2027-12-31' })
+    expect(db.prepare("SELECT count(*) AS n FROM calendario_trimestre WHERE curso = '2027/2028'").get()).toEqual({ n: 3 })
+  })
 
-    expect(resultado.tipo).toBe('invalido')
+  it('un curso mal escrito no se abre', () => {
+    expect(abrirCurso(db, alumnoId, datos('2026/2028')).tipo).toBe('invalido')
     expect(cursosDeAlumno(db, alumnoId)).toEqual([])
-    expect(db.prepare('SELECT COUNT(*) AS n FROM trimestre').get()).toEqual({ n: 0 })
   })
 
   it('a un alumno que no existe no se le abre curso', () => {
@@ -137,6 +140,7 @@ describe('propuesta al abrir', () => {
       tipo: 'propuesta',
       curso: '2026/2027',
       cursoAnterior: null,
+      calendarioFijado: false,
       periodos: [
         { numero: 1, fechaInicio: '2026-09-01', fechaFin: '2026-12-31' },
         { numero: 2, fechaInicio: '2027-01-01', fechaFin: '2027-03-31' },
@@ -151,6 +155,11 @@ describe('propuesta al abrir', () => {
     expect(propuesta.tipo === 'propuesta' && [propuesta.curso, propuesta.cursoAnterior]).toEqual(['2027/2028', '2026/2027'])
   })
 
+  it('si el calendario de ese curso ya está fijado, propone sus fechas', () => {
+    guardarCalendario(db, '2026/2027', periodos('2026/2027'))
+    expect(proponerCurso(db, alumnoId, undefined, HOY)).toMatchObject({ calendarioFijado: true, periodos: periodos('2026/2027') })
+  })
+
   it('si pide otro curso, propone las fechas de ese curso', () => {
     const propuesta = proponerCurso(db, alumnoId, '2027/2028', HOY)
     expect(propuesta.tipo === 'propuesta' && propuesta.periodos[0].fechaInicio).toBe('2027-09-01')
@@ -163,48 +172,15 @@ describe('propuesta al abrir', () => {
 })
 
 describe('corregir un curso', () => {
-  it('corrige las fechas y el nivel, pero no el curso', () => {
+  it('corrige el nivel, pero no el curso ni las fechas, que son las del calendario', () => {
     const curso = abrir('2026/2027')
-    const nuevas = periodos('2026/2027')
-    nuevas[0] = { ...nuevas[0], fechaInicio: '2026-09-15' }
-
-    const resultado = corregirCurso(db, curso.id, { curso: '2099/2100', nivelEducativo: '4.º de Primaria', periodos: nuevas })
+    const resultado = corregirCurso(db, curso.id, { nivelEducativo: '4.º de Primaria' })
 
     expect(resultado.tipo === 'guardado' && resultado.curso).toMatchObject({
       curso: '2026/2027',
       nivelEducativo: '4.º de Primaria',
-      trimestres: expect.arrayContaining([expect.objectContaining({ numero: 1, fechaInicio: '2026-09-15' })])
+      trimestres: expect.arrayContaining([expect.objectContaining({ numero: 1, fechaInicio: '2026-09-10' })])
     })
-  })
-
-  it('rechaza unas fechas corregidas que se solapan', () => {
-    const curso = abrir('2026/2027')
-    const nuevas = periodos('2026/2027')
-    nuevas[2] = { ...nuevas[2], fechaInicio: '2027-03-01' }
-
-    expect(corregirCurso(db, curso.id, datos('2026/2027', { periodos: nuevas })).tipo).toBe('invalido')
-    expect(cursosDeAlumno(db, alumnoId)[0].trimestres[2].fechaInicio).toBe('2027-04-06')
-  })
-
-  it('un trimestre cerrado conserva sus fechas', () => {
-    const curso = abrir('2026/2027')
-    db.prepare("UPDATE trimestre SET estado = 'cerrado' WHERE curso_academico_id = ? AND numero = 1").run(curso.id)
-    const nuevas = periodos('2026/2027')
-    nuevas[0] = { ...nuevas[0], fechaFin: '2026-12-20' }
-
-    expect(corregirCurso(db, curso.id, datos('2026/2027', { periodos: nuevas }))).toEqual({
-      tipo: 'rechazado',
-      mensaje: 'El trimestre 1 está cerrado y sus fechas ya no cambian.'
-    })
-  })
-
-  it('con un trimestre cerrado se pueden corregir los que siguen abiertos', () => {
-    const curso = abrir('2026/2027')
-    db.prepare("UPDATE trimestre SET estado = 'cerrado' WHERE curso_academico_id = ? AND numero = 1").run(curso.id)
-    const nuevas = periodos('2026/2027')
-    nuevas[2] = { ...nuevas[2], fechaFin: '2027-06-19' }
-
-    expect(corregirCurso(db, curso.id, datos('2026/2027', { periodos: nuevas })).tipo).toBe('guardado')
   })
 })
 

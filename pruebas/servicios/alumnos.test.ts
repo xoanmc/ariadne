@@ -2,8 +2,8 @@ import type Database from 'better-sqlite3'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { DatosAlumno } from '../../src/compartido/ipc'
 import { darDeAlta, editarAlumno, listarAlumnos, obtenerAlumno } from '../../src/main/servicios/alumnos'
-import { abrirCurso } from '../../src/main/servicios/cursos'
 import { crearBaseDePrueba, MIGRACIONES_REALES } from '../ayudas/baseDePrueba'
+import { abrirCursoDePrueba } from '../ayudas/cursoDePrueba'
 import { aplicarMigraciones } from '../../src/main/persistencia/migraciones'
 import BetterSqlite from 'better-sqlite3'
 
@@ -158,7 +158,7 @@ describe('listado', () => {
   it('dice qué alumnos tienen curso activo y con qué nivel', () => {
     const lucia = alta('Lucía', 'García')
     alta('Mario', 'Ruiz')
-    abrirCurso(db, lucia.id, {
+    abrirCursoDePrueba(db, lucia.id, {
       curso: '2026/2027',
       nivelEducativo: '3.º de Primaria',
       periodos: [
@@ -176,7 +176,7 @@ describe('listado', () => {
 
   it('un alumno cuyo curso se cierra deja de contar como activo, pero sigue en la lista', () => {
     const lucia = alta('Lucía', 'García')
-    abrirCurso(db, lucia.id, {
+    abrirCursoDePrueba(db, lucia.id, {
       curso: '2026/2027',
       nivelEducativo: null,
       periodos: [

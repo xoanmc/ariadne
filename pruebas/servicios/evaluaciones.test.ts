@@ -1,9 +1,9 @@
 import type Database from 'better-sqlite3'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { darDeAlta } from '../../src/main/servicios/alumnos'
-import { abrirCurso } from '../../src/main/servicios/cursos'
 import { evaluacionDeCurso, guardarEvaluacion, sugerenciasDeInstrumento } from '../../src/main/servicios/evaluaciones'
 import { crearBaseDePrueba } from '../ayudas/baseDePrueba'
+import { abrirCursoDePrueba } from '../ayudas/cursoDePrueba'
 
 const HOY = '2026-09-27'
 
@@ -14,7 +14,7 @@ beforeEach(() => {
   db = crearBaseDePrueba()
   const alta = darDeAlta(db, { nombre: 'Lucía', apellidos: 'García', fechaNacimiento: null, diagnosticos: null, notas: null }, false, HOY)
   if (alta.tipo !== 'creado') throw new Error('alta fallida')
-  const curso = abrirCurso(db, alta.alumno.id, {
+  const curso = abrirCursoDePrueba(db, alta.alumno.id, {
     curso: '2026/2027',
     nivelEducativo: null,
     periodos: [

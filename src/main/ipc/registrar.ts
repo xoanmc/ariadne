@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { CANALES, type ResultadoCambio, type ResultadoCopia, type ResultadoRestauracion } from '../../compartido/ipc'
 import * as actas from '../servicios/actas'
 import * as alumnos from '../servicios/alumnos'
+import * as calendario from '../servicios/calendario'
 import * as catalogo from '../servicios/catalogo'
 import * as cierre from '../servicios/cierre'
 import * as cursos from '../servicios/cursos'
@@ -191,6 +192,12 @@ export function registrarManejadoresIpc(datos: UbicacionDatos): void {
   )
 
   ipcMain.handle(CANALES.borrarSesion, (_evento, sesionId: unknown) => sesiones.borrarSesion(datos.conexion(), sesionId))
+
+  ipcMain.handle(CANALES.listarCalendarios, () => calendario.listarCalendarios(datos.conexion()))
+
+  ipcMain.handle(CANALES.guardarCalendario, (_evento, curso: unknown, periodos: unknown) =>
+    calendario.guardarCalendario(datos.conexion(), curso, periodos)
+  )
 
   ipcMain.handle(CANALES.verificacionTrimestre, (_evento, trimestreId: unknown) =>
     cierre.verificacionDeTrimestre(datos.conexion(), trimestreId)

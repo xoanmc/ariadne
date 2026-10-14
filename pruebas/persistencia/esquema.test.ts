@@ -51,6 +51,7 @@ describe('creación del esquema', () => {
       'alumno',
       'area',
       'asignacion_trimestral',
+      'calendario_trimestre',
       'curso_academico',
       'documento_generado',
       'evaluacion_inicial',

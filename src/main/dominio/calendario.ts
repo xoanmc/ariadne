@@ -109,3 +109,17 @@ export function trimestreEnCurso<T extends TrimestreConEstado>(trimestres: reado
     null
   )
 }
+
+/**
+ * Las sesiones que, con esos periodos, quedarían fuera del trimestre en el que están guardadas. Un
+ * cambio de fechas que descoloque alguna se rechaza: la sesión seguiría en un trimestre que ya no la contiene.
+ */
+export function fueraDeSuTrimestre<T extends { numero: NumeroTrimestre; fecha: Fecha }>(
+  periodos: readonly PeriodoTrimestre[],
+  sesiones: readonly T[]
+): T[] {
+  return sesiones.filter((s) => {
+    const periodo = periodos.find((p) => p.numero === s.numero)
+    return !periodo || s.fecha < periodo.fechaInicio || s.fecha > periodo.fechaFin
+  })
+}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { EstadoDatos } from '../compartido/ipc'
 import { PantallaAlta } from './pantallas/PantallaAlta'
 import { PantallaAlumnos } from './pantallas/PantallaAlumnos'
+import { PantallaCalendario } from './pantallas/PantallaCalendario'
 import { PantallaCierre } from './pantallas/PantallaCierre'
 import { PantallaCopias } from './pantallas/PantallaCopias'
 import { PantallaCurso } from './pantallas/PantallaCurso'
@@ -19,6 +20,7 @@ type Vista =
   | { tipo: 'cierre'; trimestreId: number }
   | { tipo: 'copias' }
   | { tipo: 'opciones' }
+  | { tipo: 'calendario' }
 
 export function App() {
   const [estado, setEstado] = useState<EstadoDatos | null>(null)
@@ -32,7 +34,7 @@ export function App() {
   if (estado.tipo !== 'lista') return <PantallaSinDatos estado={estado} onEstado={setEstado} />
 
   const alumnos = () => setVista({ tipo: 'alumnos' })
-  const enEsquina = vista.tipo === 'copias' || vista.tipo === 'opciones'
+  const enEsquina = vista.tipo === 'copias' || vista.tipo === 'opciones' || vista.tipo === 'calendario'
 
   return (
     <>
@@ -43,6 +45,12 @@ export function App() {
             Alumnos
           </button>
         </nav>
+        <button
+          className={vista.tipo === 'calendario' ? 'enlace discreto activo' : 'enlace discreto'}
+          onClick={() => setVista({ tipo: 'calendario' })}
+        >
+          Calendario
+        </button>
         <button
           className={vista.tipo === 'opciones' ? 'enlace discreto activo' : 'enlace discreto'}
           onClick={() => setVista({ tipo: 'opciones' })}
@@ -124,6 +132,7 @@ export function App() {
         />
       )}
       {vista.tipo === 'opciones' && <PantallaOpciones />}
+      {vista.tipo === 'calendario' && <PantallaCalendario />}
       {vista.tipo === 'copias' && (
         <PantallaCopias ruta={estado.ruta} avisoCopia={estado.avisoCopia} onEstado={setEstado} />
       )}

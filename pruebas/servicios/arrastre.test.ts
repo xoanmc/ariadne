@@ -6,9 +6,9 @@ import type { Trimestre } from '../../src/main/dominio/entidades'
 import { obtenerTrimestre } from '../../src/main/persistencia/repositorioCursos'
 import { darDeAlta } from '../../src/main/servicios/alumnos'
 import { arrastrarAlSiguiente, cadenaDeObjetivo, valorarObjetivo, verificacionDeTrimestre } from '../../src/main/servicios/cierre'
-import { abrirCurso } from '../../src/main/servicios/cursos'
 import { anadirObjetivo, crearPrograma, pendientesDelCursoAnterior, programaDeCurso } from '../../src/main/servicios/programas'
 import { crearBaseDePrueba } from '../ayudas/baseDePrueba'
+import { abrirCursoDePrueba } from '../ayudas/cursoDePrueba'
 
 const HOY = '2026-10-14'
 
@@ -18,7 +18,7 @@ let curso: VistaCurso
 
 function abrir(nombre: string): VistaCurso {
   const [a, b] = nombre.split('/')
-  const r = abrirCurso(db, alumnoId, {
+  const r = abrirCursoDePrueba(db, alumnoId, {
     curso: nombre,
     nivelEducativo: null,
     periodos: [

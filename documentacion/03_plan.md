@@ -158,6 +158,8 @@ opcion_catalogo
 
 ### Notas sobre el esquema
 
+**Calendario escolar común** (`007_calendario_escolar.sql`): `calendario_trimestre (curso, numero, fecha_inicio, fecha_fin)` guarda las fechas de cada curso escolar, comunes a todos los alumnos. Cada `trimestre` de alumno conserva su estado (abierto o cerrado, que sigue siendo por alumno) y una copia de las fechas, que es la que usan el registro, el cierre y las demás consultas. Solo el servicio del calendario escribe esa copia, y la mantiene igual al calendario salvo que ajustarla descoloque algo: un trimestre ya cerrado no cambia de fechas y ninguna sesión puede quedar fuera de su trimestre. La migración tomó como calendario de cada curso escolar el juego de fechas más repetido entre sus alumnos.
+
 **Faltas y sin incidencias** (T4.6, `006_faltas_sin_incidencias.sql`): `sesion.falta` marca que el alumno no acudió. La base garantiza que una falta no lleva estado, respuesta, salud ni objetivos trabajados (una restricción y dos disparadores). La columna `incidencias` se eliminó a petición suya; lo que hubiera escrito pasó al final de sus observaciones.
 
 **Tablas sin uso desde el cambio de alcance (2026-10-11):** `area`, `documento_generado` y `plantilla` eran para los documentos sobre plantillas, que se retiraron. Están vacías y no estorban; se quitarán con una migración si llega a convenir.
