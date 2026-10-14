@@ -952,3 +952,22 @@ label.casilla-arrastre {
 .aviso-estancado {
   font-weight: 600;
 }
+
+/* Navegación: atrás */
+
+button.enlace.atras {
+  color: #2f5d50;
+  font-weight: 600;
+}
+
+button.enlace.atras:disabled {
+  color: #c9c4b9;
+  cursor: default;
+}
+
+.confirmar-salida {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}

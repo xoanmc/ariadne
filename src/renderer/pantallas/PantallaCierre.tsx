@@ -4,7 +4,8 @@ import { fechaCorta, hoy } from '../fechas'
 
 interface Props {
   trimestreId: number
-  onVolver: (cursoId: number, aviso?: string) => void
+  /** Tras cerrar: vuelve a donde estaba, con el resumen de lo hecho. */
+  onCerrado: (resumen: string) => void
 }
 
 const veces = (n: number, una: string, varias: string) => (n === 1 ? `1 ${una}` : `${n} ${varias}`)
@@ -13,7 +14,7 @@ const veces = (n: number, una: string, varias: string) => (n === 1 ? `1 ${una}` 
  * La pantalla única de cierre (T5.4): valorar cada objetivo con los datos delante, ver en vivo lo que
  * falta y cerrar. Cada valoración se guarda al pulsarla; solo las casillas de arrastre esperan al cierre.
  */
-export function PantallaCierre({ trimestreId, onVolver }: Props) {
+export function PantallaCierre({ trimestreId, onCerrado }: Props) {
   const [verificacion, setVerificacion] = useState<VistaVerificacion | null | undefined>(undefined)
   const [alumno, setAlumno] = useState<string | null>(null)
   const [desmarcados, setDesmarcados] = useState<Set<number>>(new Set())
@@ -81,16 +82,17 @@ export function PantallaCierre({ trimestreId, onVolver }: Props) {
       setConfirmando(false)
       return setRechazo(resultado.mensaje)
     }
-    onVolver(v.cursoId, resultado.resumen)
+    onCerrado(resultado.resumen)
   }
 
   return (
     <main className="pantalla">
-      <button className="volver" onClick={() => onVolver(v.cursoId)}>
-        ← Curso {v.curso}
-      </button>
       <h1>Cierre del {v.nombreTrimestre}</h1>
-      {alumno && <p className="apunte">{alumno}</p>}
+      {alumno && (
+        <p className="apunte">
+          {alumno} · curso {v.curso}
+        </p>
+      )}
 
       <div className="resumen-cierre" aria-live="polite">
         <span>

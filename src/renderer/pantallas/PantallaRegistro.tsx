@@ -6,6 +6,8 @@ interface Props {
   alumnoId: number | null
   /** Si viene, se corrige esa sesión en lugar de registrar una nueva. */
   sesionId?: number
+  /** Avisa de si hay algo escrito o marcado sin guardar, para no perderlo al salir sin querer. */
+  onSinGuardar: (sinGuardar: boolean) => void
   onRegistrada: (resumen: string) => void
   onCancelar: () => void
   onOpciones: () => void
@@ -22,7 +24,7 @@ const CAMPO: Record<CategoriaCatalogo, 'estadoAlumno' | 'respuestaActividades'> 
  * La pantalla en la que se juega el criterio de los dos minutos: todo a la vista, nada que buscar en
  * menús, el trimestre deducido. Lo poco frecuente (salud) va plegado, y una falta se anota con una casilla.
  */
-export function PantallaRegistro({ alumnoId, sesionId, onRegistrada, onCancelar, onOpciones }: Props) {
+export function PantallaRegistro({ alumnoId, sesionId, onSinGuardar, onRegistrada, onCancelar, onOpciones }: Props) {
   const [alumnos, setAlumnos] = useState<AlumnoEnLista[] | null>(null)
   const [listas, setListas] = useState<ListaDeOpciones[] | null>(null)
   const [alumno, setAlumno] = useState<number | null>(alumnoId)
@@ -39,6 +41,11 @@ export function PantallaRegistro({ alumnoId, sesionId, onRegistrada, onCancelar,
   const [rechazo, setRechazo] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
   const [delTrimestre, setDelTrimestre] = useState<ObjetivosParaSesion | null>(null)
+  const [tocado, setTocado] = useState(false)
+
+  useEffect(() => {
+    onSinGuardar(tocado)
+  }, [tocado])
 
   useEffect(() => {
     Promise.all([window.ariadne.alumnos.listar(), window.ariadne.catalogo.listar()]).then(async ([todos, opciones]) => {
@@ -64,6 +71,7 @@ export function PantallaRegistro({ alumnoId, sesionId, onRegistrada, onCancelar,
 
   /** Un aviso se va en cuanto ella toca lo que lo provocó: no puede quedarse acusando algo ya corregido. */
   function cambiar(cambios: Partial<DatosSesion>) {
+    setTocado(true)
     setDatos((actual) => ({ ...actual, ...cambios }))
     const campo = 'fecha' in cambios ? 'fecha' : 'contenido'
     setProblemas((actuales) => actuales.filter((p) => p.campo !== campo))
@@ -80,6 +88,7 @@ export function PantallaRegistro({ alumnoId, sesionId, onRegistrada, onCancelar,
   }, [alumno, datos.fecha])
 
   function alternarObjetivo(id: number) {
+    setTocado(true)
     setDatos((actual) => ({
       ...actual,
       objetivos: actual.objetivos.includes(id) ? actual.objetivos.filter((o) => o !== id) : [...actual.objetivos, id]
@@ -87,6 +96,7 @@ export function PantallaRegistro({ alumnoId, sesionId, onRegistrada, onCancelar,
   }
 
   function alternar(campo: 'estadoAlumno' | 'respuestaActividades', opcion: string) {
+    setTocado(true)
     setProblemas((actuales) => actuales.filter((p) => p.campo !== 'contenido'))
     setDatos((actual) => {
       const marcadas = actual[campo]

@@ -59,9 +59,6 @@ export function PantallaFicha({ id, recienCreado, onVolver, onAbrirCurso }: Prop
 
   return (
     <main className="pantalla">
-      <button className="volver" onClick={onVolver}>
-        ← Alumnos
-      </button>
 
       <div className="cabecera-ficha">
         <h1>
