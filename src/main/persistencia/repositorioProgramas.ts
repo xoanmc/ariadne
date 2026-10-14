@@ -150,6 +150,45 @@ export function asignacionesDeObjetivo(db: BaseDatos, objetivoId: number): Asign
     .all(objetivoId) as AsignacionGuardada[]
 }
 
+/** Continúa el mismo objetivo en otro trimestre, enlazado a la asignación de la que procede. Empieza sin valorar. */
+export function continuarAsignacion(db: BaseDatos, anterior: { id: number; objetivoId: number }, trimestreId: number): number {
+  return Number(
+    db
+      .prepare('INSERT INTO asignacion_trimestral (objetivo_id, trimestre_id, asignacion_anterior_id) VALUES (?, ?, ?)')
+      .run(anterior.objetivoId, trimestreId, anterior.id).lastInsertRowid
+  )
+}
+
+export interface EslabonGuardado {
+  id: number
+  trimestreId: number
+  valoracion: Valoracion
+  asignacionAnteriorId: number | null
+  enunciado: string
+  numeroTrimestre: NumeroTrimestre
+  curso: string
+}
+
+/** La asignación y todas las anteriores de su cadena, crucen o no de curso. Sin orden: lo pone el dominio. */
+export function cadenaHastaAsignacion(db: BaseDatos, asignacionId: number): EslabonGuardado[] {
+  return db
+    .prepare(
+      `WITH RECURSIVE cadena (id) AS (
+         SELECT ? UNION -- UNION y no UNION ALL: si alguna vez hubiera un ciclo, la consulta termina igual
+         SELECT a.asignacion_anterior_id FROM asignacion_trimestral a JOIN cadena c ON a.id = c.id
+         WHERE a.asignacion_anterior_id IS NOT NULL
+       )
+       SELECT a.id, a.trimestre_id AS trimestreId, a.valoracion, a.asignacion_anterior_id AS asignacionAnteriorId,
+              o.enunciado, t.numero AS numeroTrimestre, ca.curso
+       FROM cadena c
+       JOIN asignacion_trimestral a ON a.id = c.id
+       JOIN objetivo o ON o.id = a.objetivo_id
+       JOIN trimestre t ON t.id = a.trimestre_id
+       JOIN curso_academico ca ON ca.id = t.curso_academico_id`
+    )
+    .all(asignacionId) as EslabonGuardado[]
+}
+
 export function tieneContinuacion(db: BaseDatos, asignacionId: number): boolean {
   return db.prepare('SELECT 1 FROM asignacion_trimestral WHERE asignacion_anterior_id = ?').get(asignacionId) !== undefined
 }

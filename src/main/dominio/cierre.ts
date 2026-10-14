@@ -21,6 +21,14 @@ export function arrastrables<T extends ObjetivoValorado>(objetivos: readonly T[]
   return objetivos.filter((o) => esArrastrable(o.valoracion))
 }
 
+/**
+ * Adónde pasa lo arrastrado al cerrar un trimestre. Del tercero no pasa a ninguno: lo pendiente al
+ * acabar el curso se ofrece al abrir el curso siguiente (T3.2).
+ */
+export function trimestreSiguiente(numero: NumeroTrimestre): NumeroTrimestre | null {
+  return numero === 3 ? null : ((numero + 1) as NumeroTrimestre)
+}
+
 /** RF-07: el curso no se cierra a mano, se cierra como efecto de cerrar su tercer trimestre. */
 export function elCierreCierraElCurso(numero: NumeroTrimestre): boolean {
   return numero === 3

@@ -1,10 +1,20 @@
 import type { ResultadoValoracion, VistaVerificacion } from '../../compartido/ipc'
 import { NOMBRE_TRIMESTRE } from '../dominio/calendario'
-import { incoherenciaDe, verificarTrimestre, type Incoherencia, type ObjetivoEnVerificacion } from '../dominio/cierre'
-import { ETIQUETAS_VALORACION, esValoracion, type Valoracion } from '../dominio/vocabulario'
+import { recorrerCadena } from '../dominio/arrastre'
+import { incoherenciaDe, trimestreSiguiente, verificarTrimestre, type Incoherencia, type ObjetivoEnVerificacion } from '../dominio/cierre'
+import type { Trimestre } from '../dominio/entidades'
+import { ETIQUETAS_VALORACION, esArrastrable, esValoracion, type Valoracion } from '../dominio/vocabulario'
 import type { BaseDatos } from '../persistencia/baseDatos'
-import { obtenerCurso, obtenerTrimestre } from '../persistencia/repositorioCursos'
-import { asignacionesDeTrimestre, obtenerAsignacion, valorarAsignacion } from '../persistencia/repositorioProgramas'
+import { obtenerCurso, obtenerTrimestre, trimestresDeCurso } from '../persistencia/repositorioCursos'
+import {
+  asignacionesDeTrimestre,
+  cadenaHastaAsignacion,
+  continuarAsignacion,
+  obtenerAsignacion,
+  tieneContinuacion,
+  valorarAsignacion,
+  type EslabonGuardado
+} from '../persistencia/repositorioProgramas'
 import { recuentoDeTrimestre, sesionesPorObjetivo } from '../persistencia/repositorioSesiones'
 import { esId, textoOpcional } from './entrada'
 
@@ -83,4 +93,44 @@ export function valorarObjetivo(db: BaseDatos, asignacionId: unknown, valoracion
 
   valorarAsignacion(db, asignacion.id, valoracion, textoOpcional(comentario))
   return { tipo: 'guardado', verificacion: verificacionDeTrimestre(db, trimestre.id)! }
+}
+
+export type ResultadoArrastre = { tipo: 'arrastrados'; asignaciones: number[] } | { tipo: 'rechazado'; mensaje: string }
+
+/**
+ * T5.3 (RF-19): pasa al trimestre siguiente los objetivos elegidos, como asignaciones nuevas, sin valorar
+ * y enlazadas a la de procedencia. Lo usa el cierre del trimestre dentro de su misma transacción: no se
+ * ofrece por separado. Comprueba todo antes de escribir nada, para que un arrastre no quede a medias.
+ */
+export function arrastrarAlSiguiente(db: BaseDatos, trimestre: Trimestre, asignacionIds: readonly number[]): ResultadoArrastre {
+  if (asignacionIds.length === 0) return { tipo: 'arrastrados', asignaciones: [] }
+
+  const numero = trimestreSiguiente(trimestre.numero)
+  if (numero === null) {
+    return { tipo: 'rechazado', mensaje: 'Lo pendiente del 3.er trimestre pasa al curso siguiente al abrirlo, no a otro trimestre.' }
+  }
+  const destino = trimestresDeCurso(db, trimestre.cursoAcademicoId).find((t) => t.numero === numero)!
+  if (destino.estado === 'cerrado') {
+    return { tipo: 'rechazado', mensaje: `El ${NOMBRE_TRIMESTRE[numero]} ya está cerrado: no se le pueden pasar objetivos.` }
+  }
+
+  const elegidas = [...new Set(asignacionIds)].map((id) => (esId(id) ? obtenerAsignacion(db, id) : null))
+  for (const a of elegidas) {
+    if (!a || a.trimestreId !== trimestre.id) {
+      return { tipo: 'rechazado', mensaje: `Alguno de los objetivos elegidos no es del ${NOMBRE_TRIMESTRE[trimestre.numero]}.` }
+    }
+    if (!esArrastrable(a.valoracion)) {
+      return { tipo: 'rechazado', mensaje: 'Solo pasan al trimestre siguiente los objetivos no conseguidos o pendientes de desarrollar.' }
+    }
+    if (tieneContinuacion(db, a.id)) return { tipo: 'rechazado', mensaje: 'Alguno de los objetivos elegidos ya pasó al trimestre siguiente.' }
+  }
+
+  return { tipo: 'arrastrados', asignaciones: elegidas.map((a) => continuarAsignacion(db, a!, destino.id)) }
+}
+
+/** El recorrido de un objetivo hacia atrás, del primer trimestre en que apareció al último, crucen o no de curso. */
+export function cadenaDeObjetivo(db: BaseDatos, asignacionId: unknown): EslabonGuardado[] {
+  if (!esId(asignacionId)) return []
+  const eslabones = cadenaHastaAsignacion(db, asignacionId)
+  return eslabones.length === 0 ? [] : recorrerCadena(eslabones, asignacionId)
 }

@@ -5,6 +5,7 @@ import {
   incoherenciaDe,
   puedeCerrarseTrimestre,
   sinValorar,
+  trimestreSiguiente,
   verificarTrimestre,
   type ObjetivoEnVerificacion,
   type ObjetivoValorado
@@ -110,5 +111,13 @@ describe('verificación del cierre (T5.2)', () => {
 
   it('un trimestre sin objetivos se puede cerrar y solo cuenta sesiones', () => {
     expect(verificarTrimestre([], { sesiones: 5, faltas: 1 })).toMatchObject({ puedeCerrarse: true, sesiones: 5, faltas: 1, sinValorar: [] })
+  })
+})
+
+describe('trimestre siguiente (T5.3)', () => {
+  it('del 1.º pasa al 2.º y del 2.º al 3.º; del 3.º, a ninguno', () => {
+    expect(trimestreSiguiente(1)).toBe(2)
+    expect(trimestreSiguiente(2)).toBe(3)
+    expect(trimestreSiguiente(3)).toBeNull()
   })
 })
