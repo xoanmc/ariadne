@@ -137,6 +137,39 @@ export interface DatosObjetivo {
   trimestreId: number
 }
 
+export interface ObjetivoEnCierre {
+  asignacionId: number
+  objetivoId: number
+  enunciado: string
+  valoracion: Valoracion
+  etiquetaValoracion: string
+  comentario: string | null
+  arrastrado: boolean
+  /** En cuántas sesiones del trimestre se marcó como trabajado. */
+  sesiones: number
+  /** Si su valoración y sus sesiones no cuadran. Avisa, no bloquea. */
+  aviso: string | null
+}
+
+/** Las cuatro preguntas del cierre (RF-17), recalculadas con cada valoración. */
+export interface VistaVerificacion {
+  trimestreId: number
+  nombreTrimestre: string
+  abierto: boolean
+  objetivos: ObjetivoEnCierre[]
+  sinValorar: number
+  noTrabajados: number
+  sinSesiones: number
+  sesiones: number
+  faltas: number
+  /** Solo lo impide que quede algún objetivo sin valorar (RF-18). */
+  puedeCerrarse: boolean
+}
+
+export type ResultadoValoracion =
+  | { tipo: 'guardado'; verificacion: VistaVerificacion }
+  | { tipo: 'rechazado'; mensaje: string }
+
 export type ResultadoPrograma =
   | { tipo: 'guardado'; programa: VistaPrograma }
   | { tipo: 'invalido'; problemas: { campo: 'enunciado' | 'trimestre'; mensaje: string }[] }

@@ -91,6 +91,21 @@ export function asignacionesDePrograma(db: BaseDatos, programaId: number): FilaA
     .all(programaId) as FilaAsignacionDePrograma[]
 }
 
+/** Los objetivos de un trimestre, en el orden en que se crearon. */
+export function asignacionesDeTrimestre(db: BaseDatos, trimestreId: number): FilaAsignacionDePrograma[] {
+  return db
+    .prepare(
+      `SELECT a.id AS asignacionId, o.id AS objetivoId, o.enunciado, t.id AS trimestreId,
+              t.numero AS numeroTrimestre, a.valoracion, a.comentario, a.asignacion_anterior_id AS asignacionAnteriorId
+       FROM asignacion_trimestral a
+       JOIN objetivo o ON o.id = a.objetivo_id
+       JOIN trimestre t ON t.id = a.trimestre_id
+       WHERE a.trimestre_id = ?
+       ORDER BY o.id`
+    )
+    .all(trimestreId) as FilaAsignacionDePrograma[]
+}
+
 export interface ObjetivoGuardado {
   id: number
   programaId: number

@@ -95,3 +95,23 @@ export function actualizarSesion(db: BaseDatos, id: number, sesion: NuevaSesion)
 export function borrarSesion(db: BaseDatos, id: number): void {
   db.prepare('DELETE FROM sesion WHERE id = ?').run(id)
 }
+
+/** Cuántas sesiones y cuántas faltas tiene el trimestre. */
+export function recuentoDeTrimestre(db: BaseDatos, trimestreId: number): { sesiones: number; faltas: number } {
+  const fila = db
+    .prepare('SELECT count(*) - coalesce(sum(falta), 0) AS sesiones, coalesce(sum(falta), 0) AS faltas FROM sesion WHERE trimestre_id = ?')
+    .get(trimestreId) as { sesiones: number; faltas: number }
+  return fila
+}
+
+/** En cuántas sesiones del trimestre se trabajó cada objetivo. Los que no aparecen, en ninguna. */
+export function sesionesPorObjetivo(db: BaseDatos, trimestreId: number): Map<number, number> {
+  const filas = db
+    .prepare(
+      `SELECT so.objetivo_id AS objetivoId, count(*) AS sesiones
+       FROM sesion_objetivo so JOIN sesion s ON s.id = so.sesion_id
+       WHERE s.trimestre_id = ? GROUP BY so.objetivo_id`
+    )
+    .all(trimestreId) as { objetivoId: number; sesiones: number }[]
+  return new Map(filas.map((f) => [f.objetivoId, f.sesiones]))
+}
