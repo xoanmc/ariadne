@@ -5,17 +5,22 @@ import { fechaCorta, hoy } from '../fechas'
 interface Props {
   cursoId: number
   editable: boolean
+  onResumen?: (resumen: string) => void
 }
 
 /** Qué se está editando: un acta nueva (null) o una existente (su id). */
 type Edicion = { actaId: number | null; datos: DatosActa }
 
-export function Actas({ cursoId, editable }: Props) {
+export function Actas({ cursoId, editable, onResumen }: Props) {
   const [actas, setActas] = useState<VistaActa[] | null>(null)
   const [edicion, setEdicion] = useState<Edicion | null>(null)
   const [problemas, setProblemas] = useState<ProblemaActa[]>([])
   const [rechazo, setRechazo] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
+
+  useEffect(() => {
+    if (actas) onResumen?.(actas.length === 0 ? 'ninguna' : actas.length === 1 ? '1 acta' : `${actas.length} actas`)
+  }, [actas])
   const api = window.ariadne.actas
 
   useEffect(() => {
@@ -101,7 +106,6 @@ export function Actas({ cursoId, editable }: Props) {
 
   return (
     <div className="actas">
-      <h2>Actas de reunión</h2>
 
       {edicion?.actaId === null ? (
         formulario

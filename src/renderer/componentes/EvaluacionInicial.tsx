@@ -5,9 +5,10 @@ import { fechaCorta, hoy } from '../fechas'
 interface Props {
   cursoId: number
   editable: boolean
+  onResumen?: (resumen: string) => void
 }
 
-export function EvaluacionInicial({ cursoId, editable }: Props) {
+export function EvaluacionInicial({ cursoId, editable, onResumen }: Props) {
   const [evaluacion, setEvaluacion] = useState<VistaEvaluacion | null | undefined>(undefined)
   const [editando, setEditando] = useState<DatosEvaluacion | null>(null)
   const [sugerencias, setSugerencias] = useState<string[]>([])
@@ -15,6 +16,10 @@ export function EvaluacionInicial({ cursoId, editable }: Props) {
   const [rechazo, setRechazo] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
   const api = window.ariadne.evaluaciones
+
+  useEffect(() => {
+    if (evaluacion !== undefined) onResumen?.(evaluacion ? `hecha el ${fechaCorta(evaluacion.fecha)}` : 'sin registrar')
+  }, [evaluacion])
 
   useEffect(() => {
     api.deCurso(cursoId).then(setEvaluacion)
@@ -55,7 +60,6 @@ export function EvaluacionInicial({ cursoId, editable }: Props) {
 
   return (
     <div className="evaluacion">
-      <h2>Evaluación inicial</h2>
 
       {editando ? (
         <form className="formulario" onSubmit={guardar} noValidate>

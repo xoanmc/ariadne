@@ -6,6 +6,9 @@ import { NOMBRE_TRIMESTRE } from './FormularioCurso'
 interface Props {
   curso: VistaCurso
   onCorregir: (sesionId: number) => void
+  /** Si el curso está activo: "Registrar sesión" va aquí, en el apartado que más usa. */
+  onRegistrar?: () => void
+  onResumen?: (resumen: string) => void
 }
 
 /** "8", o "8 · 1 falta": las faltas se cuentan aparte, porque no son sesiones trabajadas. */
@@ -16,7 +19,7 @@ function contar(sesiones: VistaSesion[]): string {
 }
 
 /** Las sesiones de un trimestre en orden cronológico, como el diario que llevaba en Word. */
-export function SesionesDelCurso({ curso, onCorregir }: Props) {
+export function SesionesDelCurso({ curso, onCorregir, onRegistrar, onResumen }: Props) {
   const [sesiones, setSesiones] = useState<VistaSesion[] | null>(null)
   const [trimestreId, setTrimestreId] = useState<number>(curso.trimestreEnCursoId ?? curso.trimestres[0].id)
   const [borrando, setBorrando] = useState<number | null>(null)
@@ -27,6 +30,17 @@ export function SesionesDelCurso({ curso, onCorregir }: Props) {
   useEffect(() => {
     window.ariadne.sesiones.deCurso(curso.id).then(setSesiones)
   }, [curso.id])
+
+  // En el título del apartado: las de todo el curso, con las faltas aparte
+  useEffect(() => {
+    if (!sesiones) return
+    const faltas = sesiones.filter((s) => s.falta).length
+    const hechas = sesiones.length - faltas
+    if (sesiones.length === 0) return onResumen?.('ninguna sesión')
+    onResumen?.(
+      `${hechas === 1 ? '1 sesión' : `${hechas} sesiones`}${faltas > 0 ? ` y ${faltas === 1 ? '1 falta' : `${faltas} faltas`}` : ''} en el curso`
+    )
+  }, [sesiones])
 
   async function borrar(id: number) {
     const resultado = await window.ariadne.sesiones.borrar(id)
@@ -48,7 +62,13 @@ export function SesionesDelCurso({ curso, onCorregir }: Props) {
 
   return (
     <div className="sesiones">
-      <h2>Sesiones</h2>
+      {onRegistrar && (
+        <div className="acciones registrar-en-sesiones">
+          <button className="principal" onClick={onRegistrar}>
+            Registrar sesión
+          </button>
+        </div>
+      )}
       <div className="selector-trimestre" role="tablist">
         {curso.trimestres.map((t) => (
           <button

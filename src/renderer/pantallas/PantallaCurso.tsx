@@ -3,6 +3,7 @@ import type { DatosCurso, FichaAlumno, ProblemaCurso, VistaCurso, VistaPrograma 
 import { Actas } from '../componentes/Actas'
 import { EvaluacionInicial } from '../componentes/EvaluacionInicial'
 import { FormularioCurso } from '../componentes/FormularioCurso'
+import { Desplegable } from '../componentes/Desplegable'
 import { Programa } from '../componentes/Programa'
 import { SesionesDelCurso } from '../componentes/SesionesDelCurso'
 import { TrimestreEnCurso } from '../componentes/TrimestreEnCurso'
@@ -28,6 +29,13 @@ export function PantallaCurso({ cursoId, recienAbierto, aviso, onRegistrar, onCo
     recienAbierto ? 'Curso abierto, con sus tres trimestres. Ya puedes registrar su evaluación inicial.' : (aviso ?? null)
   )
   const [ocupado, setOcupado] = useState(false)
+  const [resumenes, setResumenes] = useState<Record<'sesiones' | 'evaluacion' | 'actas', string | null>>({
+    sesiones: null,
+    evaluacion: null,
+    actas: null
+  })
+  const resumir = (apartado: 'sesiones' | 'evaluacion' | 'actas', texto: string) =>
+    setResumenes((actuales) => (actuales[apartado] === texto ? actuales : { ...actuales, [apartado]: texto }))
 
   useEffect(() => {
     window.ariadne.cursos.obtener(cursoId).then(async (encontrado) => {
@@ -61,21 +69,22 @@ export function PantallaCurso({ cursoId, recienAbierto, aviso, onRegistrar, onCo
   }
 
   const activo = curso.estado === 'activo'
+  // El programa ya está cargado aquí: su resumen no necesita que el apartado lo cuente
+  const objetivos = programa ? new Set(programa.asignaciones.map((a) => a.objetivoId)).size : 0
+  const resumenPrograma =
+    programa === undefined ? null : programa === null ? 'sin programa' : objetivos === 1 ? '1 objetivo' : `${objetivos} objetivos`
 
   return (
     <main className="pantalla">
-      {alumno && (
-        <p className="alumno-del-curso">
-          <span>
-            {alumno.nombre} {alumno.apellidos}
-          </span>
-          <span className="codigo">{alumno.codigoInterno}</span>
-        </p>
-      )}
+      {/* De quién es, en grande; el curso, debajo */}
       <div className="cabecera-ficha">
-        <h1>Curso {curso.curso}</h1>
-        <span className={activo ? 'etiqueta' : 'etiqueta etiqueta-apagada'}>{curso.estado}</span>
+        <h1>{alumno ? `${alumno.nombre} ${alumno.apellidos}` : 'Curso'}</h1>
+        {alumno && <span className="codigo codigo-grande">{alumno.codigoInterno}</span>}
       </div>
+      <p className="curso-del-alumno">
+        <span>Curso {curso.curso}</span>
+        <span className={activo ? 'etiqueta' : 'etiqueta etiqueta-apagada'}>{curso.estado}</span>
+      </p>
       <p className="apunte">
         {curso.nivelEducativo ?? 'Nivel educativo sin indicar'}
         {curso.cursoAnterior && ` · continúa el curso ${curso.cursoAnterior}`}
@@ -115,25 +124,23 @@ export function PantallaCurso({ cursoId, recienAbierto, aviso, onRegistrar, onCo
 
       {confirmacion && !corrigiendo && <p className="confirmacion">{confirmacion}</p>}
 
-      {activo && (
-        <div className="acciones">
-          <button className="principal" onClick={() => onRegistrar(curso.alumnoId)}>
-            Registrar sesión
-          </button>
-        </div>
-      )}
-
       {activo && programa !== undefined && <TrimestreEnCurso curso={curso} programa={programa} onCerrar={onCerrarTrimestre} />}
 
-      <section className="seccion">
-        <EvaluacionInicial cursoId={curso.id} editable={activo} />
-      </section>
+      {/* Todo cerrado salvo Sesiones, que es lo que más usa (T8.2) */}
+      <Desplegable titulo="Evaluación inicial" resumen={resumenes.evaluacion}>
+        <EvaluacionInicial cursoId={curso.id} editable={activo} onResumen={(r) => resumir('evaluacion', r)} />
+      </Desplegable>
 
-      <section className="seccion">
-        <SesionesDelCurso curso={curso} onCorregir={onCorregirSesion} />
-      </section>
+      <Desplegable titulo="Sesiones" resumen={resumenes.sesiones} abiertoAlEntrar>
+        <SesionesDelCurso
+          curso={curso}
+          onCorregir={onCorregirSesion}
+          onRegistrar={activo ? () => onRegistrar(curso.alumnoId) : undefined}
+          onResumen={(r) => resumir('sesiones', r)}
+        />
+      </Desplegable>
 
-      <section className="seccion">
+      <Desplegable titulo="Programa de intervención" resumen={resumenPrograma}>
         <Programa
           cursoId={curso.id}
           trimestres={curso.trimestres}
@@ -141,11 +148,11 @@ export function PantallaCurso({ cursoId, recienAbierto, aviso, onRegistrar, onCo
           programa={programa}
           onPrograma={setPrograma}
         />
-      </section>
+      </Desplegable>
 
-      <section className="seccion">
-        <Actas cursoId={curso.id} editable={activo} />
-      </section>
+      <Desplegable titulo="Actas de reunión" resumen={resumenes.actas}>
+        <Actas cursoId={curso.id} editable={activo} onResumen={(r) => resumir('actas', r)} />
+      </Desplegable>
     </main>
   )
 }

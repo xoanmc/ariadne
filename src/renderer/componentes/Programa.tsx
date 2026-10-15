@@ -213,7 +213,6 @@ export function Programa({ cursoId, trimestres, editable, programa, onPrograma }
   if (!programa) {
     return (
       <div className="programa">
-        <h2>Programa de intervención</h2>
         {formularioContenido ||
           (editable ? (
             <>
@@ -242,7 +241,6 @@ export function Programa({ cursoId, trimestres, editable, programa, onPrograma }
 
   return (
     <div className="programa">
-      <h2>Programa de intervención</h2>
       <p className="apunte">
         Creado el {fechaCorta(programa.fechaCreacion)}
         {programa.fechaRevision && ` · revisado por última vez el ${fechaCorta(programa.fechaRevision)}`}

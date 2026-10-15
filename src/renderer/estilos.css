@@ -1033,13 +1033,13 @@ button.enlace.atras:disabled {
   word-break: break-all;
 }
 
-/* Pantalla del curso: de quién es */
+/* Pantalla del curso: el alumno en grande y el curso debajo */
 
-.alumno-del-curso {
+.curso-del-alumno {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  margin: 0 0 -0.6rem;
+  margin: 0.2rem 0 0;
   font-size: 1.2rem;
   font-weight: 600;
   color: #4a463f;
@@ -1111,4 +1111,50 @@ button.enlace.atras:disabled {
   .fila-objetivo {
     flex-wrap: wrap;
   }
+}
+
+/* Apartados desplegables de la pantalla del curso (T8.2) */
+
+.desplegable summary {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.9rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.desplegable summary::-webkit-details-marker {
+  display: none;
+}
+
+.desplegable summary::before {
+  content: '▸';
+  color: #6f6a61;
+  width: 0.9rem;
+}
+
+.desplegable details[open] > summary::before {
+  content: '▾';
+}
+
+.desplegable summary h2 {
+  margin: 0;
+}
+
+.desplegable summary:hover h2 {
+  color: #2f5d50;
+}
+
+.resumen-desplegable {
+  color: #6f6a61;
+  font-size: 0.95rem;
+}
+
+.contenido-desplegable {
+  margin-top: 1rem;
+}
+
+.registrar-en-sesiones {
+  margin: 0 0 1rem;
 }
