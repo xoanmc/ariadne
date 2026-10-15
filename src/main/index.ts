@@ -1,13 +1,18 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, screen } from 'electron'
 import { join } from 'node:path'
 import { registrarManejadoresIpc } from './ipc/registrar'
 import { MIGRACIONES } from './persistencia/catalogoMigraciones'
 import { UbicacionDatos } from './servicios/ubicacionDatos'
 
 function crearVentana(): void {
+  // Proporcional a la pantalla: en un portátil la llena casi entera, en una pantalla grande no queda enorme
+  const { width: ancho, height: alto } = screen.getPrimaryDisplay().workAreaSize
   const ventana = new BrowserWindow({
-    width: 1100,
-    height: 760,
+    width: Math.min(1280, Math.round(ancho * 0.9)),
+    height: Math.min(900, Math.round(alto * 0.9)),
+    // Por debajo de esto la interfaz ya no cabe bien
+    minWidth: 640,
+    minHeight: 520,
     title: 'Ariadne',
     backgroundColor: '#f7f6f3',
     webPreferences: {

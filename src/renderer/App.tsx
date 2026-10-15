@@ -36,6 +36,14 @@ function sinAvisos(vista: Vista): Vista {
   }
 }
 
+/** Los apartados de la barra superior, en el orden en que se muestran. */
+const APARTADOS = [
+  { tipo: 'alumnos', texto: 'Alumnos' },
+  { tipo: 'calendario', texto: 'Calendario' },
+  { tipo: 'opciones', texto: 'Opciones del registro' },
+  { tipo: 'copias', texto: 'Copias de seguridad' }
+] as const
+
 const misma = (a: Vista, b: Vista) => JSON.stringify(sinAvisos(a)) === JSON.stringify(sinAvisos(b))
 
 export function App() {
@@ -45,6 +53,25 @@ export function App() {
   // El registro avisa de si tiene algo escrito sin guardar; salir de él entonces pide confirmación
   const registroSinGuardar = useRef(false)
   const [pendiente, setPendiente] = useState<(() => void) | null>(null)
+  // En ventanas estrechas los apartados se recogen bajo un botón de menú (T8.3)
+  const [menuAbierto, setMenuAbierto] = useState(false)
+  const barra = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (!menuAbierto) return
+    const fuera = (evento: MouseEvent) => {
+      if (!barra.current?.contains(evento.target as Node)) setMenuAbierto(false)
+    }
+    const escape = (evento: KeyboardEvent) => {
+      if (evento.key === 'Escape') setMenuAbierto(false)
+    }
+    window.addEventListener('mousedown', fuera)
+    window.addEventListener('keydown', escape)
+    return () => {
+      window.removeEventListener('mousedown', fuera)
+      window.removeEventListener('keydown', escape)
+    }
+  }, [menuAbierto])
 
   useEffect(() => {
     window.ariadne.datos.estado().then(setEstado)
@@ -99,26 +126,49 @@ export function App() {
   if (!estado) return null
   if (estado.tipo !== 'lista') return <PantallaSinDatos estado={estado} onEstado={setEstado} />
 
-  const enEsquina = vista.tipo === 'copias' || vista.tipo === 'opciones' || vista.tipo === 'calendario'
-  const esquina = (tipo: 'calendario' | 'opciones' | 'copias', texto: string) => (
-    <button className={vista.tipo === tipo ? 'enlace discreto activo' : 'enlace discreto'} onClick={() => ir({ tipo })}>
-      {texto}
-    </button>
-  )
+  // "Alumnos" sigue resaltado en todo lo que cuelga de un alumno: ficha, curso, registro, cierre
+  const apartadoActivo = vista.tipo === 'calendario' || vista.tipo === 'opciones' || vista.tipo === 'copias' ? vista.tipo : 'alumnos'
+  const enlaces = (alElegir?: () => void) =>
+    APARTADOS.map(({ tipo, texto }) => (
+      <button
+        key={tipo}
+        className={apartadoActivo === tipo ? 'enlace discreto activo' : 'enlace discreto'}
+        aria-current={apartadoActivo === tipo ? 'page' : undefined}
+        onClick={() => {
+          alElegir?.()
+          ir({ tipo })
+        }}
+      >
+        {texto}
+      </button>
+    ))
 
   return (
     <>
-      <header className="barra">
-        <button className="enlace atras" onClick={atras} disabled={historial.length <= 1} title="Atrás (Alt + ←)">
-          ← Atrás
-        </button>
-        <span className="hueco" />
-        <button className={enEsquina ? 'enlace discreto' : 'enlace discreto activo'} onClick={() => ir({ tipo: 'alumnos' })}>
-          Alumnos
-        </button>
-        {esquina('calendario', 'Calendario')}
-        {esquina('opciones', 'Opciones del registro')}
-        {esquina('copias', 'Copias de seguridad')}
+      <header className="barra" ref={barra}>
+        <div className="barra-interior">
+          <button className="enlace atras" onClick={atras} disabled={historial.length <= 1} title="Atrás (Alt + ←)">
+            ← Atrás
+          </button>
+          <span className="hueco" />
+          <nav className="menu-ancho" aria-label="Apartados">
+            {enlaces()}
+          </nav>
+          <button
+            className="menu-boton"
+            aria-label="Menú"
+            aria-expanded={menuAbierto}
+            aria-controls="menu-apartados"
+            onClick={() => setMenuAbierto(!menuAbierto)}
+          >
+            ☰
+          </button>
+        </div>
+        {menuAbierto && (
+          <nav id="menu-apartados" className="menu-panel" aria-label="Apartados">
+            {enlaces(() => setMenuAbierto(false))}
+          </nav>
+        )}
       </header>
 
       {pendiente && (
