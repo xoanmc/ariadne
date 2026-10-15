@@ -1155,9 +1155,6 @@ button.enlace.atras:disabled {
   margin-top: 1rem;
 }
 
-.registrar-en-sesiones {
-  margin: 0 0 1rem;
-}
 
 .nivel-del-curso {
   font-weight: normal;
@@ -1180,4 +1177,18 @@ button.enlace.editar:hover {
 
 .controles-sesiones {
   margin-top: 1rem;
+}
+
+/* Sesiones: "Registrar sesión" y las pestañas de trimestres en la misma fila */
+.cabecera-sesiones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.cabecera-sesiones .selector-trimestre {
+  margin: 0;
+  flex-wrap: wrap;
 }

@@ -62,13 +62,27 @@ export function SesionesDelCurso({ curso, onCorregir, onRegistrar, onResumen }: 
 
   return (
     <div className="sesiones">
-      {onRegistrar && (
-        <div className="acciones registrar-en-sesiones">
+      {/* Arriba, juntos: registrar y qué trimestre se ve (petición suya) */}
+      <div className="cabecera-sesiones">
+        {onRegistrar && (
           <button className="principal" onClick={onRegistrar}>
             Registrar sesión
           </button>
+        )}
+        <div className="selector-trimestre" role="tablist">
+          {curso.trimestres.map((t) => (
+            <button
+              key={t.id}
+              role="tab"
+              aria-selected={t.id === trimestreId}
+              className={t.id === trimestreId ? 'pestana activa' : 'pestana'}
+              onClick={() => setTrimestreId(t.id)}
+            >
+              {NOMBRE_TRIMESTRE[t.numero]} ({contar(sesiones.filter((s) => s.trimestreId === t.id))})
+            </button>
+          ))}
         </div>
-      )}
+      </div>
       {delTrimestre.length === 0 ? (
         <p className="apunte">No hay sesiones registradas en este trimestre.</p>
       ) : (
@@ -139,22 +153,8 @@ export function SesionesDelCurso({ curso, onCorregir, onRegistrar, onResumen }: 
         </ol>
       )}
 
-      {/* Debajo de las sesiones: qué trimestre se ve y su exportación (petición suya) */}
+      {/* Debajo de las sesiones, su exportación */}
       <div className="controles-sesiones">
-        <div className="selector-trimestre" role="tablist">
-          {curso.trimestres.map((t) => (
-            <button
-              key={t.id}
-              role="tab"
-              aria-selected={t.id === trimestreId}
-              className={t.id === trimestreId ? 'pestana activa' : 'pestana'}
-              onClick={() => setTrimestreId(t.id)}
-            >
-              {NOMBRE_TRIMESTRE[t.numero]} ({contar(sesiones.filter((s) => s.trimestreId === t.id))})
-            </button>
-          ))}
-        </div>
-
         <div className="exportar-trimestre">
           <button onClick={exportar}>
             Exportar el {NOMBRE_TRIMESTRE[curso.trimestres.find((t) => t.id === trimestreId)!.numero]}
