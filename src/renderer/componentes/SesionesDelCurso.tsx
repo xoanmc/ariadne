@@ -69,35 +69,6 @@ export function SesionesDelCurso({ curso, onCorregir, onRegistrar, onResumen }: 
           </button>
         </div>
       )}
-      <div className="selector-trimestre" role="tablist">
-        {curso.trimestres.map((t) => (
-          <button
-            key={t.id}
-            role="tab"
-            aria-selected={t.id === trimestreId}
-            className={t.id === trimestreId ? 'pestana activa' : 'pestana'}
-            onClick={() => setTrimestreId(t.id)}
-          >
-            {NOMBRE_TRIMESTRE[t.numero]} ({contar(sesiones.filter((s) => s.trimestreId === t.id))})
-          </button>
-        ))}
-      </div>
-
-      <div className="exportar-trimestre">
-        <button onClick={exportar}>
-          Exportar el {NOMBRE_TRIMESTRE[curso.trimestres.find((t) => t.id === trimestreId)!.numero]}
-        </button>
-        {exportado?.trimestreId === trimestreId && (
-          <span className="confirmacion-breve">
-            Guardado en <span className="ruta-breve">{exportado.ruta}</span>{' '}
-            <button className="enlace" onClick={() => window.ariadne.exportacion.mostrar()}>
-              Mostrar en la carpeta
-            </button>
-          </span>
-        )}
-        {errorExportar && <span className="problema">{errorExportar}</span>}
-      </div>
-
       {delTrimestre.length === 0 ? (
         <p className="apunte">No hay sesiones registradas en este trimestre.</p>
       ) : (
@@ -109,40 +80,96 @@ export function SesionesDelCurso({ curso, onCorregir, onRegistrar, onResumen }: 
                 {s.falta && <span className="etiqueta etiqueta-falta">No acudió</span>}
               </p>
               {s.estadoAlumno.length > 0 && (
-                <p><span className="subtitulo-linea">Estado:</span> {s.estadoAlumno.join(', ')}</p>
+                <p>
+                  <span className="subtitulo-linea">Estado:</span> {s.estadoAlumno.join(', ')}
+                </p>
               )}
               {s.respuestaActividades.length > 0 && (
-                <p><span className="subtitulo-linea">Respuesta:</span> {s.respuestaActividades.join(', ')}</p>
+                <p>
+                  <span className="subtitulo-linea">Respuesta:</span> {s.respuestaActividades.join(', ')}
+                </p>
               )}
               {s.objetivos.length > 0 && (
-                <p><span className="subtitulo-linea">Objetivos trabajados:</span> {s.objetivos.map((o) => o.enunciado).join(' · ')}</p>
+                <p>
+                  <span className="subtitulo-linea">Objetivos trabajados:</span> {s.objetivos.map((o) => o.enunciado).join(' · ')}
+                </p>
               )}
               {s.observaciones &&
                 (s.falta ? (
-                  <p><span className="subtitulo-linea">Motivo:</span> {s.observaciones}</p>
+                  <p>
+                    <span className="subtitulo-linea">Motivo:</span> {s.observaciones}
+                  </p>
                 ) : (
                   <p className="texto-largo">{s.observaciones}</p>
                 ))}
-              {s.saludMedicacion && <p><span className="subtitulo-linea">Salud o medicación:</span> {s.saludMedicacion}</p>}
+              {s.saludMedicacion && (
+                <p>
+                  <span className="subtitulo-linea">Salud o medicación:</span> {s.saludMedicacion}
+                </p>
+              )}
 
               {s.modificable &&
                 (borrando === s.id ? (
                   <div className="acciones-objetivo">
                     <span>¿Borrar esta sesión?</span>
-                    <button className="principal" onClick={() => borrar(s.id)}>Borrar</button>
+                    <button className="principal" onClick={() => borrar(s.id)}>
+                      Borrar
+                    </button>
                     <button onClick={() => setBorrando(null)}>Cancelar</button>
                     {aviso && <p className="problema">{aviso}</p>}
                   </div>
                 ) : (
                   <div className="acciones-objetivo">
-                    <button className="enlace" onClick={() => onCorregir(s.id)}>Corregir</button>
-                    <button className="enlace" onClick={() => { setAviso(null); setBorrando(s.id) }}>Borrar</button>
+                    <button className="enlace" onClick={() => onCorregir(s.id)}>
+                      Corregir
+                    </button>
+                    <button
+                      className="enlace"
+                      onClick={() => {
+                        setAviso(null)
+                        setBorrando(s.id)
+                      }}
+                    >
+                      Borrar
+                    </button>
                   </div>
                 ))}
             </li>
           ))}
         </ol>
       )}
+
+      {/* Debajo de las sesiones: qué trimestre se ve y su exportación (petición suya) */}
+      <div className="controles-sesiones">
+        <div className="selector-trimestre" role="tablist">
+          {curso.trimestres.map((t) => (
+            <button
+              key={t.id}
+              role="tab"
+              aria-selected={t.id === trimestreId}
+              className={t.id === trimestreId ? 'pestana activa' : 'pestana'}
+              onClick={() => setTrimestreId(t.id)}
+            >
+              {NOMBRE_TRIMESTRE[t.numero]} ({contar(sesiones.filter((s) => s.trimestreId === t.id))})
+            </button>
+          ))}
+        </div>
+
+        <div className="exportar-trimestre">
+          <button onClick={exportar}>
+            Exportar el {NOMBRE_TRIMESTRE[curso.trimestres.find((t) => t.id === trimestreId)!.numero]}
+          </button>
+          {exportado?.trimestreId === trimestreId && (
+            <span className="confirmacion-breve">
+              Guardado en <span className="ruta-breve">{exportado.ruta}</span>{' '}
+              <button className="enlace" onClick={() => window.ariadne.exportacion.mostrar()}>
+                Mostrar en la carpeta
+              </button>
+            </span>
+          )}
+          {errorExportar && <span className="problema">{errorExportar}</span>}
+        </div>
+      </div>
     </div>
   )
 }

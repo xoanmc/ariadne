@@ -84,27 +84,24 @@ export function PantallaCurso({ cursoId, recienAbierto, aviso, onRegistrar, onCo
       <p className="curso-del-alumno">
         <span>Curso {curso.curso}</span>
         <span className={activo ? 'etiqueta' : 'etiqueta etiqueta-apagada'}>{curso.estado}</span>
-      </p>
-      <p className="apunte">
-        {curso.nivelEducativo ?? 'Nivel educativo sin indicar'}
-        {curso.cursoAnterior && ` · continúa el curso ${curso.cursoAnterior}`}
+        <span className="nivel-del-curso">· {curso.nivelEducativo ?? 'nivel sin indicar'}</span>
         {activo && !corrigiendo && (
-          <>
-            {' · '}
-            <button
-              className="enlace"
-              onClick={() => {
-                setProblemas([])
-                setRechazo(null)
-                setConfirmacion(null)
-                setCorrigiendo(true)
-              }}
-            >
-              Corregir el nivel
-            </button>
-          </>
+          <button
+            className="enlace editar"
+            aria-label="Corregir el nivel educativo"
+            title="Corregir el nivel educativo"
+            onClick={() => {
+              setProblemas([])
+              setRechazo(null)
+              setConfirmacion(null)
+              setCorrigiendo(true)
+            }}
+          >
+            ✎
+          </button>
         )}
       </p>
+      {curso.cursoAnterior && <p className="apunte">Continúa el curso {curso.cursoAnterior}</p>}
       {corrigiendo && (
         <>
           <FormularioCurso
@@ -126,11 +123,7 @@ export function PantallaCurso({ cursoId, recienAbierto, aviso, onRegistrar, onCo
 
       {activo && programa !== undefined && <TrimestreEnCurso curso={curso} programa={programa} onCerrar={onCerrarTrimestre} />}
 
-      {/* Todo cerrado salvo Sesiones, que es lo que más usa (T8.2) */}
-      <Desplegable titulo="Evaluación inicial" resumen={resumenes.evaluacion}>
-        <EvaluacionInicial cursoId={curso.id} editable={activo} onResumen={(r) => resumir('evaluacion', r)} />
-      </Desplegable>
-
+      {/* Sesiones primero y abierto, que es lo que más usa; lo demás, cerrado (T8.2) */}
       <Desplegable titulo="Sesiones" resumen={resumenes.sesiones} abiertoAlEntrar>
         <SesionesDelCurso
           curso={curso}
@@ -138,6 +131,10 @@ export function PantallaCurso({ cursoId, recienAbierto, aviso, onRegistrar, onCo
           onRegistrar={activo ? () => onRegistrar(curso.alumnoId) : undefined}
           onResumen={(r) => resumir('sesiones', r)}
         />
+      </Desplegable>
+
+      <Desplegable titulo="Evaluación inicial" resumen={resumenes.evaluacion}>
+        <EvaluacionInicial cursoId={curso.id} editable={activo} onResumen={(r) => resumir('evaluacion', r)} />
       </Desplegable>
 
       <Desplegable titulo="Programa de intervención" resumen={resumenPrograma}>

@@ -1158,3 +1158,26 @@ button.enlace.atras:disabled {
 .registrar-en-sesiones {
   margin: 0 0 1rem;
 }
+
+.nivel-del-curso {
+  font-weight: normal;
+  color: #6f6a61;
+}
+
+/* El lápiz: se deduce que se puede corregir sin decirlo con palabras */
+button.enlace.editar {
+  font-size: 1.05rem;
+  line-height: 1;
+  padding: 0.15rem 0.3rem;
+  color: #6f6a61;
+  border-radius: 4px;
+}
+
+button.enlace.editar:hover {
+  color: #2f5d50;
+  background: #ebe9e4;
+}
+
+.controles-sesiones {
+  margin-top: 1rem;
+}
