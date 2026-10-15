@@ -111,15 +111,13 @@ button:disabled {
   border-bottom: 1px solid #e0dcd3;
 }
 
-/* Con el mismo ancho y márgenes que el contenido, para que "← Atrás" quede alineado con la columna */
+/* Ocupa todo el ancho de la ventana, con un margen pequeño: "← Atrás" a la izquierda y los apartados a la derecha */
 .barra-interior {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  max-width: 60rem;
-  margin-inline: auto;
   padding-block: 0.6rem;
-  padding-inline: clamp(1rem, 4vw, 2.5rem);
+  padding-inline: clamp(0.75rem, 2vw, 1.5rem);
 }
 
 .menu-ancho {
@@ -136,7 +134,7 @@ button.menu-boton {
 
 .menu-panel {
   position: absolute;
-  right: clamp(1rem, 4vw, 2.5rem);
+  right: clamp(0.75rem, 2vw, 1.5rem);
   top: calc(100% + 0.25rem);
   z-index: 10;
   display: flex;
