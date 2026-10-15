@@ -28,7 +28,7 @@ En construcción:
 | 5 — Cierre de trimestre | ✅ Cerrado: valoración, verificación automática, arrastre, pantalla única de cierre y aviso de objetivos estancados |
 | 6 — Exportación del trimestre | ✅ Cerrado: exportar el trimestre de un alumno o de todos a la vez, y ofrecerlo al cerrar el trimestre |
 | 7 — Datos y cierre | En curso: T7.1 hecha (exportación completa de los datos); T7.2 comprobada en el Mac, pendiente en Windows; queda T7.3 (un trimestre de uso real) |
-| 8 — Aspecto visual y experiencia de uso | En curso: T8.3 hecha (la interfaz se adapta al tamaño de la ventana, con menú ☰ en estrecho); quedan T8.1 (guía visual) y T8.2 (mejoras de uso) |
+| 8 — Aspecto visual y experiencia de uso | En curso: T8.3 hecha (la interfaz se adapta al tamaño de la ventana, con menú ☰ en estrecho); T8.2, ir puliendo detalles de uso. El rediseño completo (T8.1) se descartó |
 
 Los cimientos están completos: empaquetado para Windows, base de datos con migraciones, el esquema entero, copias de seguridad con restauración y la capa de dominio con las reglas centrales.
 
