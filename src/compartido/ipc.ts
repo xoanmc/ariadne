@@ -51,7 +51,8 @@ export const CANALES = {
   exportarTrimestre: 'exportacion:trimestre',
   mostrarExportacion: 'exportacion:mostrar',
   resumenExportarTodos: 'exportacion:resumenTodos',
-  exportarTodos: 'exportacion:todos'
+  exportarTodos: 'exportacion:todos',
+  exportarDatosCompletos: 'exportacion:datosCompletos'
 } as const
 
 export type Valoracion = 'sin_valorar' | 'conseguido' | 'no_conseguido' | 'pendiente_desarrollar'
@@ -198,6 +199,11 @@ export type ResultadoExportacion =
 
 export type ResultadoExportacionTodos =
   | { tipo: 'exportados'; carpeta: string; ficheros: number }
+  | { tipo: 'cancelado' }
+  | { tipo: 'rechazado'; mensaje: string }
+
+export type ResultadoDatosCompletos =
+  | { tipo: 'exportados'; carpeta: string }
   | { tipo: 'cancelado' }
   | { tipo: 'rechazado'; mensaje: string }
 
@@ -444,6 +450,8 @@ export interface AriadneApi {
     resumenTodos(): Promise<{ alumnos: number; trimestre: NumeroTrimestre }>
     /** Pregunta en qué carpeta y guarda un fichero por cada alumno con curso activo. */
     todos(numero: NumeroTrimestre): Promise<ResultadoExportacionTodos>
+    /** Todos sus datos: la base, el JSON legible y el LÉEME, en una carpeta nueva dentro de la que elija. */
+    datosCompletos(): Promise<ResultadoDatosCompletos>
   }
   calendario: {
     listar(): Promise<VistaCalendario[]>

@@ -68,7 +68,8 @@ const api: AriadneApi = {
     trimestre: (trimestreId) => ipcRenderer.invoke(CANALES.exportarTrimestre, trimestreId),
     mostrar: () => ipcRenderer.invoke(CANALES.mostrarExportacion),
     resumenTodos: () => ipcRenderer.invoke(CANALES.resumenExportarTodos),
-    todos: (numero) => ipcRenderer.invoke(CANALES.exportarTodos, numero)
+    todos: (numero) => ipcRenderer.invoke(CANALES.exportarTodos, numero),
+    datosCompletos: () => ipcRenderer.invoke(CANALES.exportarDatosCompletos)
   },
   calendario: {
     listar: () => ipcRenderer.invoke(CANALES.listarCalendarios),

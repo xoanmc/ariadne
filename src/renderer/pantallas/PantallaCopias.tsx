@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { EstadoDatos, ResultadoCambio } from '../../compartido/ipc'
 import { Copias } from '../componentes/Copias'
+import { ExportarDatos } from '../componentes/ExportarDatos'
 
 interface Props {
   ruta: string
@@ -23,6 +24,8 @@ export function PantallaCopias({ ruta, avisoCopia, onEstado }: Props) {
       <h1>Copias de seguridad</h1>
 
       <Copias aviso={avisoCopia} onRestaurada={async () => onEstado(await datos.estado())} />
+
+      <ExportarDatos />
 
       <section className="seccion">
         <h2>Dónde se guardan tus datos</h2>

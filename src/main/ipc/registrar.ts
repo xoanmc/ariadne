@@ -1,13 +1,14 @@
 import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } from 'electron'
-import { readdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { CANALES, type ResultadoCambio, type ResultadoCopia, type ResultadoExportacion, type ResultadoExportacionTodos, type ResultadoRestauracion } from '../../compartido/ipc'
+import { CANALES, type ResultadoCambio, type ResultadoCopia, type ResultadoDatosCompletos, type ResultadoExportacion, type ResultadoExportacionTodos, type ResultadoRestauracion } from '../../compartido/ipc'
 import * as actas from '../servicios/actas'
 import * as alumnos from '../servicios/alumnos'
 import * as calendario from '../servicios/calendario'
 import * as catalogo from '../servicios/catalogo'
 import * as cierre from '../servicios/cierre'
 import * as cursos from '../servicios/cursos'
+import { exportacionCompleta } from '../servicios/datosCompletos'
 import * as evaluaciones from '../servicios/evaluaciones'
 import { nombreLibre } from '../dominio/exportacion'
 import * as exportacion from '../servicios/exportacion'
@@ -249,6 +250,34 @@ export function registrarManejadoresIpc(datos: UbicacionDatos): void {
     }
     ultimaExportacion = { tipo: 'carpeta', ruta: carpeta }
     return { tipo: 'exportados', carpeta, ficheros: ficheros.length }
+  })
+
+  ipcMain.handle(CANALES.exportarDatosCompletos, async (evento): Promise<ResultadoDatosCompletos> => {
+    const eleccion = await dialog.showOpenDialog(ventanaDe(evento), {
+      title: 'Elige dónde guardar todos tus datos',
+      buttonLabel: 'Guardar aquí',
+      defaultPath: app.getPath('documents'),
+      properties: ['openDirectory', 'createDirectory']
+    })
+    if (eleccion.canceled || eleccion.filePaths.length === 0) return { tipo: 'cancelado' }
+
+    const exportacion = exportacionCompleta(datos.conexion())
+    // Una carpeta nueva cada vez: nunca se mezcla con una exportación anterior
+    let carpeta = join(eleccion.filePaths[0], exportacion.carpeta)
+    for (let n = 2; existsSync(carpeta); n++) carpeta = join(eleccion.filePaths[0], `${exportacion.carpeta} (${n})`)
+    try {
+      mkdirSync(carpeta)
+      const copia = datos.guardarCopiaEn(join(carpeta, 'ariadne.sqlite'))
+      if (copia.tipo !== 'guardada') throw new Error('copia')
+      writeFileSync(join(carpeta, 'ariadne-datos.json'), exportacion.json, 'utf8')
+      writeFileSync(join(carpeta, 'LÉEME.txt'), '\uFEFF' + exportacion.leeme, 'utf8')
+    } catch {
+      // A medias no sirve: o están los tres ficheros, o no queda nada
+      rmSync(carpeta, { recursive: true, force: true })
+      return { tipo: 'rechazado', mensaje: 'No se pudieron guardar tus datos ahí. Prueba en otra carpeta, por ejemplo en Documentos.' }
+    }
+    ultimaExportacion = { tipo: 'carpeta', ruta: carpeta }
+    return { tipo: 'exportados', carpeta }
   })
 
   ipcMain.handle(CANALES.listarCalendarios, () => calendario.listarCalendarios(datos.conexion()))
