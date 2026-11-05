@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Registro de sesiones y seguimiento de objetivos trimestrales para orientación",
   "author": "Ariadne",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "private": true,
   "main": "out/main/index.js",
   "scripts": {

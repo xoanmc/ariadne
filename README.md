@@ -97,4 +97,6 @@ El paquete se genera desde macOS sin Wine ni Rosetta. Se descartó el instalador
 
 ## Licencia
 
-Proyecto privado, sin licencia de uso (`UNLICENSED`).
+[MIT](LICENSE).
+
+Todos los nombres y datos que aparecen en las pruebas son inventados.
