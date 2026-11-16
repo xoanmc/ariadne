@@ -16,7 +16,7 @@ El proyecto se rige por una [constitución](documentacion/01_constitucion.md) de
 
 ## Estado
 
-En construcción:
+**En producción**: se usa a diario. El desarrollo sigue por hitos:
 
 | Hito | Estado |
 |---|---|
